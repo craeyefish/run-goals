@@ -74,7 +74,7 @@ func handleStravaCallback(w http.ResponseWriter, r *http.Request) {
 	fetchAndStoreUserActivities(&user)
 
 	// 4. Redirect back to frontend or show success
-	http.Redirect(w, r, "http://localhost:4200?joined=1", http.StatusFound)
+	http.Redirect(w, r, "<add domain here>?joined=1", http.StatusFound)
 }
 
 // exchangeCodeForToken calls Strava's OAuth token endpoint
