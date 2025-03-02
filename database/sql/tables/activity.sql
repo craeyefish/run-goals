@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS activity
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
     has_summit BOOLEAN,
-    CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE RESTRICT
+    CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
 );
