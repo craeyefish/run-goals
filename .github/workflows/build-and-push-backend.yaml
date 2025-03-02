@@ -37,7 +37,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./backend
           # Adjust for your Dockerfile location if not in the root
           file: backend/Dockerfile
           platforms: linux/arm/v7,linux/arm64,linux/amd64

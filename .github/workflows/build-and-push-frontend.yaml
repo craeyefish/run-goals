@@ -37,7 +37,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./frontend/strava-goal
           # Adjust for your Dockerfile location if not in the root
           file: frontend/strava-goal/Dockerfile
           platforms: linux/arm/v7,linux/arm64,linux/amd64
