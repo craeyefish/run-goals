@@ -7,13 +7,14 @@ import { Component } from '@angular/core';
 export class JoinChallengeComponent {
   password = '';
   correctPassword = 'secret'; // Example only! Use a real approach to hide this.
+  mydomain = '';
 
   joinIfPasswordCorrect() {
     if (this.password === this.correctPassword) {
       // Redirect to Strava’s OAuth page
       const clientId = '49851';
       const redirectUri = encodeURIComponent(
-        'http://localhost:8080/auth/strava/callback'
+        this.mydomain + '/auth/strava/callback'
       );
       const scope = 'read,activity:read_all';
 

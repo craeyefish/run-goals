@@ -1,0 +1,52 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: run-goals-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=run_goals
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend/strava-goal
+      dockerfile: Dockerfile
+    container_name: run-goals-frontend
+    expose:
+      - "80"
+
+  db:
+    image: postgres:13
+    container_name: run-goals-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: run_goals
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: run-goals-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  dbdata:
