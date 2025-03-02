@@ -10,8 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Test
-
 var DB *gorm.DB // global DB handle, or you can pass it around as needed
 
 func InitDB() {
