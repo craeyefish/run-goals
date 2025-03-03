@@ -5,7 +5,6 @@ import (
 )
 
 type User struct {
-	ID              uint  `json:"id"`
 	StravaAthleteID int64 `json:"strava_athelete_id"` // Strava athlete ID, unique
 	AccessToken     string `json:"access_token"`
 	RefreshToken    string `json:"refresh_token"`

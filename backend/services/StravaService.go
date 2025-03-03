@@ -34,11 +34,42 @@ func NewStravaService(l *log.Logger, config *config.Config, db *sql.DB) *StravaS
 }
 
 func (service *StravaService) FetchAndStoreUserActivities(user *models.User) error {
-	// err := service.activityDao.UpsertActivity(activity)
-	// if err != nil {
-	// 	service.l.Printf("Error calling ActivityDao: %v", err)
-	// 	return err
-	// }
+	// Ensure token is valid first
+	if err := service.ensureValidToken(user); err != nil {
+		return fmt.Errorf("token refresh error: %w", err)
+	}
+
+	page := 1
+	perPage := 30 // Strava default max is 30 or 100 depending on your app scope
+
+	for {
+		stravaActivities, err := service.fetchActivitiesPage(user.AccessToken, page, perPage)
+		if err != nil {
+			return err
+		}
+		if len(stravaActivities) == 0 {
+			break // no more activities
+		}
+		for _, stravaActivity := range stravaActivities {
+			// upsert (create or update) each activity in DB
+			// first convert stravaActivity into our activity model
+
+			t, _ := time.Parse(time.RFC3339, stravaActivity.StartDate) // handle error properly
+			activity := models.Activity{
+				StravaActivityID: stravaActivity.ID,
+				UserID:           user.ID,
+				Name:             stravaActivity.Name,
+				Distance:         stravaActivity.Distance, // decide if you store in m or km
+				StartDate:        t,
+				MapPolyline:      stravaActivity.Map.SummaryPolyline,
+			}
+			if err := service.activityDao.UpsertActivity(&activity); err != nil {
+				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)
+			}
+		}
+		page++
+	}
+
 	return nil
 }
 
@@ -103,8 +134,7 @@ func (service *StravaService) getUserDistance(u *models.User) (*float64, error) 
 	}
 
 	// 2. Otherwise, fetch from Strava
-	// TODO:
-	dist, err := fetchUserDistance(*u)
+	dist, err := service.fetchUserDistance(u)
 	dist = 0
 	if err != nil {
 		return &dist, err
@@ -114,12 +144,12 @@ func (service *StravaService) getUserDistance(u *models.User) (*float64, error) 
 	u.LastDistance = dist
 	u.LastUpdated = time.Now()
 
-	// TODO:
-	if err := DB.Save(u).Error; err != nil {
-		return 0, err
+	err = service.userDao.UpsertUser(u)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update the user's cached values: %w", err)
 	}
 
-	return dist, nil
+	return &dist, nil
 }
 
 // For demonstration only; use a proper HTTP client and handle errors properly
@@ -127,7 +157,7 @@ func (service *StravaService) getUserDistance(u *models.User) (*float64, error) 
 
 // Simple function to fetch the total distance for a user from Strava
 func (service *StravaService) fetchUserDistance(user *models.User) (float64, error) {
-	if err := ensureValidToken(user); err != nil {
+	if err := service.ensureValidToken(user); err != nil {
 		return 0, err
 	}
 

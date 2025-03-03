@@ -7,7 +7,6 @@ import (
 )
 
 type Activity struct {
-	ID               uint      `json:"id"`
 	StravaActivityID int64     `json:"strava_activity_id"`
 	UserID           uint      `json:"user_id"`
 	Name             string    `json:"name"`
