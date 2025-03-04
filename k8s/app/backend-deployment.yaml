@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: run-goals-backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: run-goals-backend
+  template:
+    metadata:
+      labels:
+        app: run-goals-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/craeyefish/run-goals-backend:latest
+          ports:
+            - containerPort: 8080

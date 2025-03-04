@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: run-goals-frontend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: run-goals-frontend
+  template:
+    metadata:
+      labels:
+        app: run-goals-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/craeyefish/run-goals-frontend:latest
+          ports:
+            - containerPort: 80

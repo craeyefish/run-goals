@@ -1,0 +1,22 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: run-goals-frontend-images
+  namespace: flux-system
+spec:
+  interval: 1m
+  # The GHCR repo for your frontend image
+  image: ghcr.io/craeyefish/run-goals-frontend
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: run-goals-frontend-policy
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: run-goals-frontend-images
+  policy:
+    tag:
+      # Use a regex pattern to match the 'latest' tag
+      pattern: "^latest$"
