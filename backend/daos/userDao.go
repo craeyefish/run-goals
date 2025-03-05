@@ -7,14 +7,14 @@ import (
 )
 
 type UserDao struct {
-	l        *log.Logger
-	database *sql.DB
+	l  *log.Logger
+	db *sql.DB
 }
 
 func NewUserDao(logger *log.Logger, db *sql.DB) *UserDao {
 	return &UserDao{
-		l:        logger,
-		database: db,
+		l:  logger,
+		db: db,
 	}
 }
 
@@ -43,7 +43,7 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 				created_at = EXCLUDED.created_at,
 				updated_at = EXCLUDED.updated_at;
 	`
-	_, err := dao.database.Exec(
+	_, err := dao.db.Exec(
 		sql,
 		user.StravaAthleteID,
 		user.AccessToken,
@@ -58,4 +58,52 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 		return err
 	}
 	return nil
+}
+
+func (dao *UserDao) GetUsers() ([]models.User, error) {
+	limit := 20
+	users := []models.User{}
+	sql := `
+		SELECT
+			id,
+			strava_athlete_id,
+			access_token,
+			refresh_token,
+			expires_at,
+			last_distance,
+			last_update,
+			created_at,
+			updated_at
+		FROM user
+		LIMIT $1;
+	`
+	rows, err := dao.db.Query(sql, limit)
+	if err != nil {
+		dao.l.Println("Error querying activity table", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		user := models.User{}
+		err = rows.Scan(
+			&user.ID,
+			&user.StravaAthleteID,
+			&user.AccessToken,
+			&user.RefreshToken,
+			&user.ExpiresAt,
+			&user.LastDistance,
+			&user.LastUpdated,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			dao.l.Println("Error parsing query result", err)
+		}
+		users = append(users, user)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Println("Error during iteration", err)
+	}
+
+	return users, nil
 }

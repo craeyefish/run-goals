@@ -3,45 +3,24 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	"log"
+	"run-goals/config"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type Config struct {
-	host     string
-	port     string
-	user     string
-	password string
-	dbname   string
-	sslMode  string
-}
-
-func OpenPG(config Config) (*sql.DB, error) {
-	db, err := sql.Open("pgx", config.String())
+func OpenPG(config *config.Config, logger *log.Logger) *sql.DB {
+	db, err := sql.Open(
+		"pgx",
+		String(config.Database),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("open: %w", err)
+		log.Fatal("failed to connect database:", err)
 	}
-	return db, nil
+	return db
 }
 
-func DefaultConfig() Config {
-	dbhost := os.Getenv("DB_HOST")
-	dbport := os.Getenv("DB_PORT")
-	dbuser := os.Getenv("DB_USER")
-	dbpassword := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	return Config{
-		host:     dbhost,
-		port:     dbport,
-		user:     dbuser,
-		password: dbpassword,
-		dbname:   dbname,
-		sslMode:  "disable",
-	}
-}
-
-func (cfg Config) String() string {
+func String(cfg config.Database) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.host, cfg.port, cfg.user, cfg.password, cfg.dbname, cfg.sslMode)
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode)
 }

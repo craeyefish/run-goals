@@ -3,9 +3,33 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"run-goals/config"
+	"run-goals/database"
+	"run-goals/handlers"
 )
 
 func main() {
+	// create logger
+	logger := log.New(os.Stdout, "app", log.LstdFlags)
+
+	// config
+	config := config.NewConfig()
+
+	// database setup
+	db := database.OpenPG(config, logger)
+
+	// create handlers
+	apiHandler := handlers.NewApiHandler(logger, db)
+	// webhookHandler
+	// authHandler
+
+	// create new serve mux and register handlers
+	mux := http.NewServeMux()
+	mux.Handle("/api/", apiHandler)
+	// mux.Handle("/webhook/", webhookHandler)
+	// mux.Handle("/auth/", authHandler)
+
 	InitDB()
 
 	http.HandleFunc("/webhook/strava", handleStravaWebhookEvents)

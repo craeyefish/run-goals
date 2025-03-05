@@ -20,16 +20,16 @@ func NewActivityService(l *log.Logger, db *sql.DB) *ActivityService {
 	}
 }
 
-// func (service *ActivityService) UpsertActivity(id int, activity *models.Activity) error {
-// 	err := service.dao.UpsertActivity(activity)
-// 	if err != nil {
-// 		service.l.Printf("Error calling ActivityDao: %v", err)
-// 		return err
-// 	}
-// 	return nil
-// }
+func (service *ActivityService) GetActivitiesByUserID(userID int64) ([]models.Activity, error) {
+	activities, err := service.dao.GetActivitiesByUserID(userID)
+	if err != nil {
+		service.l.Printf("Error calling ActivityDao: %v", err)
+		return nil, err
+	}
+	return activities, nil
+}
 
-func (service *ActivityService) GetActivitiesByUserId(id int, activity *models.Activity) error {
+func (service *ActivityService) UpsertActivitiesByUserId(id int, activity *models.Activity) error {
 	err := service.dao.UpsertActivity(activity)
 	if err != nil {
 		service.l.Printf("Error calling ActivityDao: %v", err)
