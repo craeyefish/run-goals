@@ -20,6 +20,7 @@ func main() {
 }
 
 // TODO(cian):
+//
 // 1. Add activity syncing
 //  - pull activity on webhook event.
 //  - sync all activities when user joins.
