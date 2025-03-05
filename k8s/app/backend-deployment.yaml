@@ -18,6 +18,16 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            # Postgres details
+            - name: DB_HOST
+              value: "run-goals-db" # matches the DB Service name
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "postgres"
+            - name: DB_NAME
+              value: "run_goals"
+            # Strava secrets
             - name: STRAVA_CLIENT_ID
               valueFrom:
                 secretKeyRef:
