@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: run-goals-backend
-  namespace: default
 spec:
   replicas: 1
   selector:
@@ -18,3 +17,14 @@ spec:
           image: ghcr.io/craeyefish/run-goals-backend:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: STRAVA_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: strava-credentials
+                  key: STRAVA_CLIENT_ID
+            - name: STRAVA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: strava-credentials
+                  key: STRAVA_CLIENT_SECRET
