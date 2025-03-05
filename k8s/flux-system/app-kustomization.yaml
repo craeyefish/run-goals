@@ -9,5 +9,5 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: flux-system
+    name: run-goals
     namespace: flux-system

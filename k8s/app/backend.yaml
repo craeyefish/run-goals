@@ -38,3 +38,17 @@ spec:
                 secretKeyRef:
                   name: strava-credentials
                   key: STRAVA_CLIENT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: run-goals-backend
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: run-goals-backend # matches deployment's labels
+  ports:
+    - port: 8080 # Service port
+      targetPort: 8080 # Container port from your deployment
+      nodePort: 30081 # NodePort (pick any free port in 30000-32767)
