@@ -6,6 +6,11 @@ import (
 	"run-goals/models"
 )
 
+type UserDaoInterface interface {
+	UpsertUser(user *models.User) error
+	GetUsers() ([]models.User, error)
+}
+
 type UserDao struct {
 	l  *log.Logger
 	db *sql.DB
@@ -79,7 +84,7 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 	`
 	rows, err := dao.db.Query(sql, limit)
 	if err != nil {
-		dao.l.Println("Error querying activity table", err)
+		dao.l.Println("Error querying user table", err)
 	}
 	defer rows.Close()
 	for rows.Next() {

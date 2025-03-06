@@ -7,32 +7,37 @@ import (
 	"run-goals/models"
 )
 
+type ActivityServiceInterface interface {
+	GetActivitiesByUserID(userID int64) ([]models.Activity, error)
+	UpsertActivitiesByUserId(id int, activity *models.Activity) error
+}
+
 type ActivityService struct {
-	l   *log.Logger
-	dao *daos.ActivityDao
+	l           *log.Logger
+	activityDao *daos.ActivityDao
 }
 
 func NewActivityService(l *log.Logger, db *sql.DB) *ActivityService {
-	customerDao := daos.NewActivityDao(l, db)
+	activityDao := daos.NewActivityDao(l, db)
 	return &ActivityService{
-		l:   l,
-		dao: customerDao,
+		l:           l,
+		activityDao: activityDao,
 	}
 }
 
-func (service *ActivityService) GetActivitiesByUserID(userID int64) ([]models.Activity, error) {
-	activities, err := service.dao.GetActivitiesByUserID(userID)
+func (s *ActivityService) GetActivitiesByUserID(userID int64) ([]models.Activity, error) {
+	activities, err := s.activityDao.GetActivitiesByUserID(userID)
 	if err != nil {
-		service.l.Printf("Error calling ActivityDao: %v", err)
+		s.l.Printf("Error calling ActivityDao: %v", err)
 		return nil, err
 	}
 	return activities, nil
 }
 
-func (service *ActivityService) UpsertActivitiesByUserId(id int, activity *models.Activity) error {
-	err := service.dao.UpsertActivity(activity)
+func (s *ActivityService) UpsertActivitiesByUserId(id int, activity *models.Activity) error {
+	err := s.activityDao.UpsertActivity(activity)
 	if err != nil {
-		service.l.Printf("Error calling ActivityDao: %v", err)
+		s.l.Printf("Error calling ActivityDao: %v", err)
 		return err
 	}
 	return nil

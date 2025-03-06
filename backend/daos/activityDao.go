@@ -6,6 +6,11 @@ import (
 	"run-goals/models"
 )
 
+type ActivityDaoInterface interface {
+	UpsertActivity(activity *models.Activity) error
+	GetActivitiesByUserID(userID int64) ([]models.Activity, error)
+}
+
 type ActivityDao struct {
 	l  *log.Logger
 	db *sql.DB

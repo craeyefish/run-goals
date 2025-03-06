@@ -28,8 +28,8 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "/api/activities":
 		handler.activityController.ListActivities(rw, r)
 		return
-	case "/api/progrss":
-		handler.userController.
+	case "/api/progress":
+		handler.progressController.
 		return
 	}
 

@@ -8,7 +8,7 @@ import (
 
 type UserController struct {
 	l       *log.Logger
-	service *services.ActivityService
+	service *services.UserService
 }
 
 func NewUserController(l *log.Logger, db *sql.DB) *UserController {

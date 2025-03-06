@@ -2,23 +2,31 @@ package services
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
-	"strconv"
-	"fmt"
-	"time"
-	"encoding/json"
+	"run-goals/config"
 	"run-goals/daos"
 	"run-goals/models"
-	"run-goals/config"
+	"strconv"
+	"strings"
+	"time"
 )
 
+type StravaServiceInterface interface {
+	FetchAndStoreUserActivities(user *models.User) error
+	EnsureValidToken(u *models.User) error
+	GetUserDistance(u *models.User) (*float64, error)
+	FetchUserDistance(user *models.User) (float64, error)
+	FetchActivitiesPage(accessToken string, page, perPage int)
+}
+
 type StravaService struct {
-	l   		*log.Logger
-	config 		*config.Config
-	userDao		*daos.UserDao
+	l           *log.Logger
+	config      *config.Config
+	userDao     *daos.UserDao
 	activityDao *daos.ActivityDao
 }
 
@@ -26,16 +34,16 @@ func NewStravaService(l *log.Logger, config *config.Config, db *sql.DB) *StravaS
 	userDao := daos.NewUserDao(l, db)
 	activityDao := daos.NewActivityDao(l, db)
 	return &StravaService{
-		l:   	     	l,
-		config: 		config,
-		userDao: 		userDao,
-		activityDao: 	activityDao,
+		l:           l,
+		config:      config,
+		userDao:     userDao,
+		activityDao: activityDao,
 	}
 }
 
 func (service *StravaService) FetchAndStoreUserActivities(user *models.User) error {
 	// Ensure token is valid first
-	if err := service.ensureValidToken(user); err != nil {
+	if err := service.EnsureValidToken(user); err != nil {
 		return fmt.Errorf("token refresh error: %w", err)
 	}
 
@@ -43,7 +51,7 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 	perPage := 30 // Strava default max is 30 or 100 depending on your app scope
 
 	for {
-		stravaActivities, err := service.fetchActivitiesPage(user.AccessToken, page, perPage)
+		stravaActivities, err := service.FetchActivitiesPage(user.AccessToken, page, perPage)
 		if err != nil {
 			return err
 		}
@@ -73,7 +81,7 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 	return nil
 }
 
-func (service *StravaService) ensureValidToken(u *models.User) error {
+func (service *StravaService) EnsureValidToken(u *models.User) error {
 	// 1. Check if token is still valid
 	if time.Now().Unix() < u.ExpiresAt {
 		// Token is not expired yet
@@ -121,7 +129,7 @@ func (service *StravaService) ensureValidToken(u *models.User) error {
 	return nil
 }
 
-func (service *StravaService) getUserDistance(u *models.User) (*float64, error) {
+func (service *StravaService) GetUserDistance(u *models.User) (*float64, error) {
 	// 1. Check if we have a recent value
 	distanceCacheTTL, err := strconv.ParseInt(service.config.Strava.DistanceCacheTTL, 10, 64)
 	if err != nil {
@@ -134,7 +142,7 @@ func (service *StravaService) getUserDistance(u *models.User) (*float64, error) 
 	}
 
 	// 2. Otherwise, fetch from Strava
-	dist, err := service.fetchUserDistance(u)
+	dist, err := service.FetchUserDistance(u)
 	dist = 0
 	if err != nil {
 		return &dist, err
@@ -156,8 +164,8 @@ func (service *StravaService) getUserDistance(u *models.User) (*float64, error) 
 // var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 // Simple function to fetch the total distance for a user from Strava
-func (service *StravaService) fetchUserDistance(user *models.User) (float64, error) {
-	if err := service.ensureValidToken(user); err != nil {
+func (service *StravaService) FetchUserDistance(user *models.User) (float64, error) {
+	if err := service.EnsureValidToken(user); err != nil {
 		return 0, err
 	}
 
@@ -201,7 +209,7 @@ func (service *StravaService) fetchUserDistance(user *models.User) (float64, err
 }
 
 // fetchActivitiesPage calls the Strava API to fetch a single page of activities
-func (service *StravaService) fetchActivitiesPage(accessToken string, page, perPage int) ([]models.StravaActivity, error) {
+func (service *StravaService) FetchActivitiesPage(accessToken string, page, perPage int) ([]models.StravaActivity, error) {
 	url := fmt.Sprintf("https://www.strava.com/api/v3/athlete/activities?page=%d&per_page=%d", page, perPage)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
