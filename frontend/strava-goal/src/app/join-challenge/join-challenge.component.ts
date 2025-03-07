@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
 export class JoinChallengeComponent {
   password = '';
   correctPassword = 'secret'; // Example only! Use a real approach to hide this.
-  mydomain = '';
+  mydomain = 'craeyebytes.com';
 
   joinIfPasswordCorrect() {
     if (this.password === this.correctPassword) {

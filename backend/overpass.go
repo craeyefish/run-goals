@@ -22,7 +22,16 @@ type Element struct {
 	Tags map[string]string `json:"tags"`
 }
 
-func fetchPeaks() (*OverpassResponse, error) {
+func FetchPeaks() error {
+	var peaks []Peak
+	if err := DB.Find(&peaks).Error; err != nil {
+		return err
+	}
+
+	if len(peaks) > 0 {
+		return nil
+	}
+
 	query := `
 [out:json];
 area["name"="Western Cape"]["admin_level"="4"]->.searchArea;
@@ -36,17 +45,18 @@ out;
 		strings.NewReader(query),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query overpass: %w", err)
+		return fmt.Errorf("failed to query overpass: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("overpass request failed: %d", resp.StatusCode)
+		return fmt.Errorf("overpass request failed: %d", resp.StatusCode)
 	}
 
 	var data OverpassResponse
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, fmt.Errorf("failed to parse overpass json: %w", err)
+		return fmt.Errorf("failed to parse overpass json: %w", err)
 	}
-	return &data, nil
+
+	return storePeaks(&data)
 }
