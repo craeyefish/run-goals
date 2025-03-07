@@ -5,6 +5,7 @@ metadata:
   name: run-goals
 resources:
   - backend.yaml
-  - frontend.yaml
+  - dashboard.yaml
   - db.yaml
+  - frontend.yaml
   - ingress.yaml
