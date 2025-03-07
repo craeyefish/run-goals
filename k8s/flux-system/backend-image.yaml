@@ -5,7 +5,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  # The GHCR repo for your backend image
   image: ghcr.io/craeyefish/run-goals-backend
 ---
 apiVersion: image.toolkit.fluxcd.io/v1beta2
@@ -17,6 +16,5 @@ spec:
   imageRepositoryRef:
     name: run-goals-backend-images
   policy:
-    tag:
-      # Use a regex pattern to match the 'latest' tag
-      pattern: "^latest$"
+    semver:
+      range: "*"

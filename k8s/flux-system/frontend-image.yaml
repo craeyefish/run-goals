@@ -17,6 +17,5 @@ spec:
   imageRepositoryRef:
     name: run-goals-frontend-images
   policy:
-    tag:
-      # Use a regex pattern to match the 'latest' tag
-      pattern: "^latest$"
+    semver:
+      range: "*"
