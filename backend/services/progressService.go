@@ -34,11 +34,11 @@ func NewProgressService(
 // TODO(cian): Make group setup process and store this in db.
 const groupGoal = 1000.0
 
-func (service *ProgressService) GetUsersProgress() (*models.GoalProgress, error) {
+func (s *ProgressService) GetUsersProgress() (*models.GoalProgress, error) {
 	// load all users from db
-	users, err := service.userDao.GetUsers()
+	users, err := s.userDao.GetUsers()
 	if err != nil {
-		service.l.Printf("Error calling UserDao: %v", err)
+		s.l.Printf("Error calling UserDao: %v", err)
 		return nil, err
 	}
 
@@ -53,13 +53,13 @@ func (service *ProgressService) GetUsersProgress() (*models.GoalProgress, error)
 		go func(u models.User) {
 			defer wg.Done()
 
-			dist, err := service.stravaService.GetUserDistance(&u)
+			dist, err := s.stravaService.GetUserDistance(&u)
 			if err != nil {
 				log.Println("Error fetching distance for user:", u.ID, err)
 				return
 			}
 
-			service.stravaService.FetchAndStoreUserActivities(&u)
+			s.stravaService.FetchAndStoreUserActivities(&u)
 			if err != nil {
 				log.Println("Error fetching activities for user:", u.ID, err)
 				return

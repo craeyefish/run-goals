@@ -8,16 +8,14 @@ import (
 )
 
 type ApiHandler struct {
-	l                  *log.Logger
-	activityController *controllers.ActivityController
-	userController     *controllers.UserController
+	l             *log.Logger
+	apiController *controllers.ApiController
 }
 
 func NewApiHandler(l *log.Logger, db *sql.DB) *ApiHandler {
 	return &ApiHandler{
 		l,
-		controllers.NewActivityController(l, db),
-		controllers.NewUserController(l, db),
+		controllers.NewApiController(l, db),
 	}
 }
 
@@ -26,11 +24,16 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// handle request to get activities
 	switch r.URL.Path {
 	case "/api/activities":
-		handler.activityController.ListActivities(rw, r)
+		handler.apiController.ListActivities(rw, r)
+		return
+	case "/api/peaks":
+		handler.apiController.ListActivities(rw, r)
 		return
 	case "/api/progress":
-		handler.progressController.
+		handler.apiController.ListActivities(rw, r)
+		return
+	case "/api/peak-summaries":
+		handler.apiController.ListActivities(rw, r)
 		return
 	}
-
 }

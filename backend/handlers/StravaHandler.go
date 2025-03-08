@@ -24,7 +24,10 @@ func NewStravaHandler(l *log.Logger, config *config.Config, db *sql.DB) *StravaH
 func (handler *StravaHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// handle request to get activities
 	switch r.URL.Path {
-	case "/api":
+	case "/webhook/strava":
+		handler.controller.ListActivities(rw, r)
+		return
+	case "/auth/strava/callback":
 		handler.controller.ListActivities(rw, r)
 		return
 	}
