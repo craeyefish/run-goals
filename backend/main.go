@@ -18,11 +18,16 @@ func main() {
 	http.HandleFunc("/api/peaks", handleListPeaks)
 	http.HandleFunc("/api/peak-summaries", handlePeakSummaries)
 
+	// TODO(cian): Move these to async processes.
+	PopulateSummitedPeaks()
+	FetchPeaks()
+
 	log.Println("Starting server on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // TODO(cian):
+//
 // 1. Add activity syncing
 //  - pull activity on webhook event.
 //  - sync all activities when user joins.
