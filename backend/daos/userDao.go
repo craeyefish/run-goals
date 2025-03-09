@@ -37,7 +37,7 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 		) VALUES (
 			($1, $2, $3, $4, $5, $6, $7, $8)
 		) ON CONFLICT (
-
+			strava_athlete_id
 		) DO UPDATE
 			SET
 				strava_athlete_id = EXCLUDED.strava_athlete_id,

@@ -4,10 +4,12 @@ import (
 	"log"
 	"run-goals/daos"
 	"run-goals/models"
+	"strconv"
 )
 
 type PeakServiceInterface interface {
 	ListPeaks() ([]models.Peak, error)
+	StorePeaks() (resp *models.OverpassResponse)
 }
 
 type PeakService struct {
@@ -58,4 +60,37 @@ func (s *PeakService) ListPeaks() ([]models.PeakSummited, error) {
 	}
 
 	return peaksSummited, nil
+}
+
+func (s *PeakService) StorePeaks(resp *models.OverpassResponse) error {
+	for _, el := range resp.Elements {
+		if el.Type != "node" {
+			continue
+		}
+
+		var name string
+		var elev float64
+		if val, ok := el.Tags["name"]; ok {
+			name = val
+		}
+		if val, ok := el.Tags["ele"]; ok {
+			parsedElev, _ := strconv.ParseFloat(val, 64)
+			elev = parsedElev
+		}
+
+		peak := &models.Peak{
+			OsmID:           el.ID,
+			Latitude:        el.Lat,
+			Longitude:       el.Lon,
+			Name:            name,
+			ElevationMeters: elev,
+		}
+
+		err := s.peaksDao.UpsertPeak(peak)
+		if err != nil {
+			s.l.Printf("Error calling PeakDao: %v", err)
+			return err
+		}
+	}
+	return nil
 }

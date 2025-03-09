@@ -7,6 +7,7 @@ import (
 type Config struct {
 	Strava   Strava
 	Database Database
+	Summit   Summit
 }
 
 func NewConfig() *Config {
@@ -24,6 +25,9 @@ func NewConfig() *Config {
 			DBName:   os.Getenv("DATABASE_DBNAME"),
 			SSLMode:  os.Getenv("DATABASE_SSLMODE"),
 		},
+		Summit: Summit{
+			SummitThresholdMeters: os.Getenv("SUMMIT_THRESHOLD_METERS"),
+		},
 	}
 }
 
@@ -40,4 +44,8 @@ type Database struct {
 	Password string
 	DBName   string
 	SSLMode  string
+}
+
+type Summit struct {
+	SummitThresholdMeters string // = "0.0007"
 }

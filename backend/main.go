@@ -22,6 +22,9 @@ func main() {
 	log.Println("Starting server on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
+	// TODO(steven): refactor
+	// refactor start
+
 	// // create server
 	// server := server.NewServer()
 	// // start the server
@@ -45,6 +48,8 @@ func main() {
 	// ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	// // shutdown server with created context - gracefully shutting down
 	// server.Shutdown(ctx)
+
+	// refactor end
 }
 
 // TODO(cian):
