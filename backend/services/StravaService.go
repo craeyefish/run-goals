@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,6 +20,8 @@ type StravaServiceInterface interface {
 	GetUserDistance(u *models.User) (*float64, error)
 	FetchUserDistance(user *models.User) (float64, error)
 	FetchActivitiesPage(accessToken string, page, perPage int)
+	ProcessWebhookEvent(payload models.StravaWebhookPayload)
+	ProcessCallback(code string) error
 }
 
 type StravaService struct {
@@ -30,9 +31,12 @@ type StravaService struct {
 	activityDao *daos.ActivityDao
 }
 
-func NewStravaService(l *log.Logger, config *config.Config, db *sql.DB) *StravaService {
-	userDao := daos.NewUserDao(l, db)
-	activityDao := daos.NewActivityDao(l, db)
+func NewStravaService(
+	l *log.Logger,
+	config *config.Config,
+	userDao *daos.UserDao,
+	activityDao *daos.ActivityDao,
+) *StravaService {
 	return &StravaService{
 		l:           l,
 		config:      config,
@@ -233,4 +237,87 @@ func (service *StravaService) FetchActivitiesPage(accessToken string, page, perP
 	}
 
 	return activities, nil
+}
+
+func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload) {
+	// Find the user in DB
+	user, err := s.userDao.GetUserByStravaAthleteID(payload.OwnerID)
+	if err != nil {
+		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
+		return
+	}
+
+	// 'strava_athlete_id' is how we store the Strava athlete ID in the User model
+	if user == nil {
+		s.l.Printf("No matching  user")
+	} else {
+		// We found the user - now fetch updated stats
+		dist, err := s.FetchUserDistance(user)
+		if err != nil {
+			s.l.Printf("Error fetching updated distance for user %d: %v\n", user.ID, err)
+		} else {
+			// Update and save
+			user.LastDistance = dist
+			user.LastUpdated = time.Now()
+
+			err = s.userDao.UpsertUser(user)
+			if err != nil {
+				s.l.Printf("Failed to update the user's cached values: %v", err)
+			} else {
+				s.l.Printf("Updated user %d with new distance: %.2f km\n", user.ID, dist)
+			}
+		}
+	}
+}
+
+func (s *StravaService) ProcessCallback(code string) error {
+	// 1. Excahnge code for tokens
+	tokenRes, err := s.exchangeCodeForToken(code)
+	if err != nil {
+		s.l.Println("Failed to exchange code", err)
+		return err
+	}
+
+	// 2. Store (or update) the user in the DB
+	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
+	if err != nil {
+		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
+		return err
+	}
+	// Create new user if not found, update if found
+	user.StravaAthleteID = tokenRes.Athlete.Id
+	user.AccessToken = tokenRes.AccessToken
+	user.RefreshToken = tokenRes.RefreshToken
+	user.ExpiresAt = tokenRes.ExpiresAt
+
+	err = s.userDao.UpsertUser(user)
+	s.l.Printf("Upsert new user: AthleteID %d", tokenRes.Athlete.Id)
+
+	// 3. Pull activities
+	s.FetchAndStoreUserActivities(user)
+	return nil
+}
+
+func (s *StravaService) exchangeCodeForToken(code string) (*models.StravaTokenResponse, error) {
+	formData := url.Values{}
+	formData.Set("client_id", s.config.Strava.ClientID)
+	formData.Set("client_secret", s.config.Strava.ClientSecret)
+	formData.Set("code", code)
+	formData.Set("grant_type", "authorization_code")
+
+	resp, err := http.Post(
+		"https://www.strava.com/oauth/token",
+		"application/x-www-form-urlencoded",
+		strings.NewReader(formData.Encode()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var tokenRes models.StravaTokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tokenRes); err != nil {
+		return nil, err
+	}
+	return &tokenRes, nil
 }

@@ -9,7 +9,7 @@ import (
 type ActivityDaoInterface interface {
 	UpsertActivity(activity *models.Activity) error
 	GetActivitiesByUserID(userID int64) ([]models.Activity, error)
-	GetActivitiesByID(id int64) ([]models.Activity, error)
+	GetActivityByID(id int64) ([]models.Activity, error)
 }
 
 type ActivityDao struct {
@@ -113,8 +113,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 	return activities, nil
 }
 
-func (dao *ActivityDao) GetActivitiesByID(id int64) ([]models.Activity, error) {
-	activities := []models.Activity{}
+func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
+	activity := models.Activity{}
 	sql := `
 		SELECT
 			id,
@@ -128,31 +128,19 @@ func (dao *ActivityDao) GetActivitiesByID(id int64) ([]models.Activity, error) {
 		WHERE
 			id = $1;
 	`
-	rows, err := dao.db.Query(sql, id)
+	row := dao.db.QueryRow(sql, id)
+	err := row.Scan(
+		&activity.ID,
+		&activity.StravaActivityID,
+		&activity.UserID,
+		&activity.Name,
+		&activity.Distance,
+		&activity.StartDate,
+		&activity.MapPolyline,
+	)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
 	}
-	defer rows.Close()
-	for rows.Next() {
-		activity := models.Activity{}
-		err = rows.Scan(
-			&activity.ID,
-			&activity.StravaActivityID,
-			&activity.UserID,
-			&activity.Name,
-			&activity.Distance,
-			&activity.StartDate,
-			&activity.MapPolyline,
-		)
-		if err != nil {
-			dao.l.Println("Error parsing query result", err)
-		}
-		activities = append(activities, activity)
-	}
-	err = rows.Err()
-	if err != nil {
-		dao.l.Println("Error during iteration", err)
-	}
 
-	return activities, nil
+	return activity, nil
 }

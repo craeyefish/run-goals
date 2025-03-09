@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"run-goals/controllers"
@@ -12,10 +11,13 @@ type ApiHandler struct {
 	apiController *controllers.ApiController
 }
 
-func NewApiHandler(l *log.Logger, db *sql.DB) *ApiHandler {
+func NewApiHandler(
+	l *log.Logger,
+	apiController *controllers.ApiController,
+) *ApiHandler {
 	return &ApiHandler{
 		l,
-		controllers.NewApiController(l, db),
+		apiController,
 	}
 }
 
@@ -27,10 +29,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		handler.apiController.ListActivities(rw, r)
 		return
 	case "/api/peaks":
-		handler.apiController.ListActivities(rw, r)
+		handler.apiController.ListPeaks(rw, r)
 		return
 	case "/api/progress":
-		handler.apiController.ListActivities(rw, r)
+		handler.apiController.GetProgress(rw, r)
 		return
 	case "/api/peak-summaries":
 		handler.apiController.ListActivities(rw, r)

@@ -1,7 +1,7 @@
 package models
 
 type Peak struct {
-	ID              uint    `json:"id"`
+	ID              int64   `json:"id"`
 	OsmID           int64   `json:"osm_id"` // OSM Node ID
 	Latitude        float64 `json:"latitude"`
 	Longitude       float64 `json:"longitude"`

@@ -66,7 +66,6 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 }
 
 func (dao *UserDao) GetUsers() ([]models.User, error) {
-	limit := 20
 	users := []models.User{}
 	sql := `
 		SELECT
@@ -79,10 +78,9 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 			last_update,
 			created_at,
 			updated_at
-		FROM user
-		LIMIT $1;
+		FROM user;
 	`
-	rows, err := dao.db.Query(sql, limit)
+	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying user table", err)
 	}
@@ -111,4 +109,40 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
+	user := models.User{}
+	sql := `
+		SELECT
+			id,
+			strava_athlete_id,
+			access_token,
+			refresh_token,
+			expires_at,
+			last_distance,
+			last_update,
+			created_at,
+			updated_at
+		FROM user
+		WHERE
+			strava_athlete_id = $1;
+	`
+	row := dao.db.QueryRow(sql, id)
+	err := row.Scan(
+		&user.ID,
+		&user.StravaAthleteID,
+		&user.AccessToken,
+		&user.RefreshToken,
+		&user.ExpiresAt,
+		&user.LastDistance,
+		&user.LastUpdated,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		dao.l.Println("Error querying user table", err)
+	}
+
+	return &user, nil
 }

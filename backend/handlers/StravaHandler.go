@@ -1,22 +1,23 @@
 package handlers
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
-	"run-goals/config"
 	"run-goals/controllers"
 )
 
 type StravaHandler struct {
-	l          *log.Logger
-	controller *controllers.StravaController
+	l                *log.Logger
+	stravaController *controllers.StravaController
 }
 
-func NewStravaHandler(l *log.Logger, config *config.Config, db *sql.DB) *StravaHandler {
+func NewStravaHandler(
+	l *log.Logger,
+	stravaController *controllers.StravaController,
+) *StravaHandler {
 	return &StravaHandler{
 		l,
-		controllers.NewStravaController(l, config, db),
+		stravaController,
 	}
 }
 
@@ -25,10 +26,20 @@ func (handler *StravaHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request)
 	// handle request to get activities
 	switch r.URL.Path {
 	case "/webhook/strava":
-		handler.controller.ListActivities(rw, r)
-		return
+		switch r.Method {
+		case http.MethodGet:
+			// This is just the verification challenge
+			handler.stravaController.VerifyWebhookEvent(rw, r)
+			return
+		case http.MethodPost:
+			// Process the webhook event
+			handler.stravaController.ProcessWebhookEvent(rw, r)
+			return
+		default:
+			http.Error(rw, "Method not allowed", http.StatusMethodNotAllowed)
+		}
 	case "/auth/strava/callback":
-		handler.controller.ListActivities(rw, r)
+		handler.stravaController.ProcessCallback(rw, r)
 		return
 	}
 }

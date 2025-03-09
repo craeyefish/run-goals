@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"log"
 	"run-goals/daos"
 	"run-goals/models"
@@ -20,10 +19,9 @@ type ProgressService struct {
 
 func NewProgressService(
 	l *log.Logger,
-	db *sql.DB,
+	userDao *daos.UserDao,
 	stravaService *StravaService,
 ) *ProgressService {
-	userDao := daos.NewUserDao(l, db)
 	return &ProgressService{
 		l:             l,
 		userDao:       userDao,
@@ -59,7 +57,7 @@ func (s *ProgressService) GetUsersProgress() (*models.GoalProgress, error) {
 				return
 			}
 
-			s.stravaService.FetchAndStoreUserActivities(&u)
+			err = s.stravaService.FetchAndStoreUserActivities(&u)
 			if err != nil {
 				log.Println("Error fetching activities for user:", u.ID, err)
 				return

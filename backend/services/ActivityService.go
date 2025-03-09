@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"log"
 	"run-goals/daos"
 	"run-goals/models"
@@ -17,8 +16,10 @@ type ActivityService struct {
 	activityDao *daos.ActivityDao
 }
 
-func NewActivityService(l *log.Logger, db *sql.DB) *ActivityService {
-	activityDao := daos.NewActivityDao(l, db)
+func NewActivityService(
+	l *log.Logger,
+	activityDao *daos.ActivityDao,
+) *ActivityService {
 	return &ActivityService{
 		l:           l,
 		activityDao: activityDao,

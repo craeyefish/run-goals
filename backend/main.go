@@ -6,6 +6,9 @@ import (
 )
 
 func main() {
+
+	// server := server.NewServer()
+
 	InitDB()
 
 	http.HandleFunc("/webhook/strava", handleStravaWebhookEvents)

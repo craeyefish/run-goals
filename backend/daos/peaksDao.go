@@ -6,24 +6,23 @@ import (
 	"run-goals/models"
 )
 
-type PeakDaoInterface interface {
+type PeaksDaoInterface interface {
 	GetPeaks() ([]models.Peak, error)
 }
 
-type PeakDao struct {
+type PeaksDao struct {
 	l  *log.Logger
 	db *sql.DB
 }
 
-func NewPeakDao(logger *log.Logger, db *sql.DB) *PeakDao {
-	return &PeakDao{
+func NewPeaksDao(logger *log.Logger, db *sql.DB) *PeaksDao {
+	return &PeaksDao{
 		l:  logger,
 		db: db,
 	}
 }
 
-func (dao *PeakDao) GetPeaks() ([]models.Peak, error) {
-	limit := 1000
+func (dao *PeaksDao) GetPeaks() ([]models.Peak, error) {
 	peaks := []models.Peak{}
 	sql := `
 		SELECT
@@ -34,9 +33,8 @@ func (dao *PeakDao) GetPeaks() ([]models.Peak, error) {
 			name,
 			elevation_meters
 		FROM peak
-		LIMIT $1
 	`
-	rows, err := dao.db.Query(sql, limit)
+	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying peak table", err)
 	}

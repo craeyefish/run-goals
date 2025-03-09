@@ -7,6 +7,7 @@ import (
 )
 
 type UserPeaksDaoInterface interface {
+	GetUserPeaks() ([]models.UserPeak, error)
 	GetUserPeaksJoin() ([]models.UserPeakJoin, error)
 }
 
@@ -22,7 +23,45 @@ func NewUserPeaksDao(logger *log.Logger, db *sql.DB) *UserPeaksDao {
 	}
 }
 
-func (dao *PeakDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
+func (dao *UserPeaksDao) GetUserPeaks() ([]models.UserPeak, error) {
+	userPeaks := []models.UserPeak{}
+	sql := `
+		SELECT
+			id,
+			user_id,
+			peak_id,
+			activity_id,
+			summited_at
+		FROM user_peaks;
+	`
+	rows, err := dao.db.Query(sql)
+	if err != nil {
+		dao.l.Println("Error querying user_peaks table", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		userPeak := models.UserPeak{}
+		err = rows.Scan(
+			&userPeak.ID,
+			&userPeak.UserID,
+			&userPeak.PeakID,
+			&userPeak.ActivityID,
+			&userPeak.SummitedAt,
+		)
+		if err != nil {
+			dao.l.Println("Error parsing query result", err)
+		}
+		userPeaks = append(userPeaks, userPeak)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Println("Error during iteration", err)
+	}
+
+	return userPeaks, nil
+}
+
+func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
 	userPeaksJoin := []models.UserPeakJoin{}
 	sql := `
 		SELECT

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -12,21 +11,31 @@ import (
 type ApiControllerInterface interface {
 	ListActivities(rw http.ResponseWriter, r *http.Request)
 	ListPeaks(rw http.ResponseWriter, r *http.Request)
-	Progress(rw http.ResponseWriter, r *http.Request)
-	PeakSummaries(rw http.ResponseWriter, r *http.Request)
+	GetProgress(rw http.ResponseWriter, r *http.Request)
+	GetPeakSummaries(rw http.ResponseWriter, r *http.Request)
 }
 
 type ApiController struct {
-	l               *log.Logger
-	activityService *services.ActivityService
-	progressService *services.ProgressService
+	l                *log.Logger
+	activityService  *services.ActivityService
+	progressService  *services.ProgressService
+	peakService      *services.PeakService
+	summariesService *services.SummariesService
 }
 
-func NewApiController(l *log.Logger, db *sql.DB) *ApiController {
+func NewApiController(
+	l *log.Logger,
+	activityService *services.ActivityService,
+	progressService *services.ProgressService,
+	peakService *services.PeakService,
+	summariesService *services.SummariesService,
+) *ApiController {
 	return &ApiController{
-		l:               l,
-		activityService: services.NewActivityService(l, db),
-		progressService: services.NewProgressService(l, db),
+		l:                l,
+		activityService:  activityService,
+		progressService:  progressService,
+		peakService:      peakService,
+		summariesService: summariesService,
 	}
 }
 
@@ -46,8 +55,8 @@ func (c *ApiController) ListActivities(rw http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Call activityService to return list of activies by userId
-	activities, err := c.activityService.GetActivitiesByUserID(userID)
+	// Call activityService to return list of activities by userId
+	response, err := c.activityService.GetActivitiesByUserID(userID)
 	if err != nil {
 		c.l.Println("Error fetching activities", err)
 		http.Error(rw, "Failed to fetch activities", http.StatusInternalServerError)
@@ -56,21 +65,55 @@ func (c *ApiController) ListActivities(rw http.ResponseWriter, r *http.Request) 
 
 	// Return the array of activities as JSON
 	rw.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(rw).Encode(activities); err != nil {
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
 		log.Println("Error encoding activities:", err)
 	}
 }
 
 func (c *ApiController) ListPeaks(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET ListPeaks")
-}
 
-func (c *ApiController) Progress(rw http.ResponseWriter, r *http.Request) {
-	c.l.Println("Handle GET Progress")
+	response, err := c.peakService.ListPeaks()
+	if err != nil {
+		c.l.Println("Error listing peaks", err)
+		http.Error(rw, "Failed to list peaks", http.StatusInternalServerError)
+		return
+	}
 
 	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding listPeaksResponse:", err)
+	}
 }
 
-func (c *ApiController) PeakSummaries(rw http.ResponseWriter, r *http.Request) {
+func (c *ApiController) GetProgress(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle GET Progress")
+
+	response, err := c.progressService.GetUsersProgress()
+	if err != nil {
+		c.l.Println("Error listing peaks", err)
+		http.Error(rw, "Failure calling progressService", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding GoalProgress response:", err)
+	}
+}
+
+func (c *ApiController) GetPeakSummaries(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET PeakSummaries")
+
+	response, err := c.summariesService.GetPeakSummaries()
+	if err != nil {
+		c.l.Println("Error listing peaks", err)
+		http.Error(rw, "Failure calling summariesService", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding Peak Summaries response:", err)
+	}
 }
