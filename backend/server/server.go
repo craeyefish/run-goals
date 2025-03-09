@@ -16,7 +16,7 @@ type Server struct {
 	Mux *http.ServeMux
 }
 
-func NewServer() (*http.Server, error) {
+func NewServer() *http.Server {
 	// create logger
 	logger := log.New(os.Stdout, "app", log.LstdFlags)
 
@@ -62,5 +62,5 @@ func NewServer() (*http.Server, error) {
 	return &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
-	}, nil
+	}
 }
