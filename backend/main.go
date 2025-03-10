@@ -21,6 +21,35 @@ func main() {
 
 	log.Println("Starting server on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	// TODO(steven): refactor
+	// refactor start
+
+	// // create server
+	// server := server.NewServer()
+	// // start the server
+	// go func() {
+	// 	log.Println("Starting server on http://localhost:8080")
+	// 	err := server.ListenAndServe()
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }()
+	// // trap sigterm or interrupt and gracefully shutdown the server
+	// // create channel 'sigChan'
+	// sigChan := make(chan os.Signal, 1)
+	// // register channel to receive notifications for both interrupt and kill signals
+	// signal.Notify(sigChan, os.Interrupt)
+	// signal.Notify(sigChan, os.Kill)
+	// // wait until signal is received and log
+	// sig := <-sigChan
+	// log.Println("Received terminate, graceful shutdown", sig)
+	// // create context used to allow server time to finish processing ongoing requests before shutting down
+	// ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	// // shutdown server with created context - gracefully shutting down
+	// server.Shutdown(ctx)
+
+	// refactor end
 }
 
 // TODO(cian):
