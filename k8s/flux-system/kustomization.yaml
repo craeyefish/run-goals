@@ -5,3 +5,4 @@ resources:
   - gotk-sync.yaml
   - backend-image.yaml
   - frontend-image.yaml
+  - app-kustomization.yaml
