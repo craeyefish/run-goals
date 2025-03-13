@@ -1,7 +1,6 @@
-CREATE TABLE IF NOT EXISTS activity
-(
+CREATE TABLE IF NOT EXISTS activity (
     id BIGSERIAL PRIMARY KEY,
-    strava_athlete_id BIGINT CONSTRAINT unique_activity_strava_athlete_id UNIQUE,
+    strava_athlete_id BIGINT,
     user_id BIGINT,
     name VARCHAR,
     distance NUMERIC,
@@ -10,5 +9,6 @@ CREATE TABLE IF NOT EXISTS activity
     created_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ,
     has_summit BOOLEAN,
-    CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
+    CONSTRAINT fk_activity_user_activity FOREIGN KEY (strava_athlete_id) REFERENCES users (strava_athlete_id) ON DELETE CASCADE,
+    CONSTRAINT fk_activity_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );

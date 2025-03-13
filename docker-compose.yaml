@@ -1,10 +1,11 @@
 version: "3.8"
 services:
   backend:
+    image: run-goals/backend:latest
+    container_name: run-goals-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: run-goals-backend
     ports:
       - "8080:8080"
     env_file:
@@ -15,27 +16,39 @@ services:
       - DB_PASSWORD=postgres
       - DB_NAME=run_goals
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
+    image: run-goals/frontend:latest
+    container_name: run-goals-frontend
     build:
       context: ./frontend/strava-goal
       dockerfile: Dockerfile
-    container_name: run-goals-frontend
     expose:
       - "80"
+    depends_on:
+      backend:
+        condition: service_started
 
   db:
-    image: postgres:13
+    image: run-goals/db:latest
     container_name: run-goals-db
+    build:
+      context: ./database
+      dockerfile: Dockerfile
     environment:
+      ENVIRONMENT: develop
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: run_goals
     ports:
       - "5432:5432"
-    volumes:
-      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     image: nginx:alpine
@@ -47,6 +60,3 @@ services:
     depends_on:
       - backend
       - frontend
-
-volumes:
-  dbdata:

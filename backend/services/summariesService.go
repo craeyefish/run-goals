@@ -59,7 +59,7 @@ func (s *SummariesService) GetPeakSummaries() ([]models.PeakSummary, error) {
 		summit := models.SummitedActivity{
 			UserName:   strconv.Itoa(int(row.UserName)), // if you want a string
 			UserID:     row.UserID,
-			ActivityID: activity.StravaActivityID,
+			ActivityID: activity.ID,
 			SummitedAt: row.SummitedAt,
 		}
 		summitsByPeak[row.PeakID] = append(summitsByPeak[row.PeakID], summit)

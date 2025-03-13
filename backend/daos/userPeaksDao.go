@@ -73,7 +73,7 @@ func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
          	up.summited_at,
           	u.strava_athlete_id AS user_name
 		FROM user_peaks up
-		LEFT JOIN users u ON up.user_id = u.id
+		LEFT JOIN users u ON up.user_id = u.id;
 	`
 	rows, err := dao.db.Query(sql)
 	if err != nil {
@@ -136,7 +136,7 @@ func (dao *UserPeaksDao) UpsertUserPeak(userPeak *models.UserPeak) error {
 
 func (dao *UserPeaksDao) ClearUserPeaks() error {
 	sql := `
-		DELETE FROM user_peaks
+		DELETE FROM user_peaks;
 	`
 	_, err := dao.db.Exec(sql)
 	if err != nil {

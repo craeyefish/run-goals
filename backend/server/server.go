@@ -38,6 +38,12 @@ func NewServer() *http.Server {
 	peakService := services.NewPeakService(logger, peaksDao, userPeaksDao)
 	summariesService := services.NewSummariesService(logger, peaksDao, userPeaksDao, activityDao)
 	progressService := services.NewProgressService(logger, userDao, stravaService)
+	// summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
+	// overpassService := services.NewOverpassService(logger, peaksDao)
+
+	// TODO(cian): Move these to async processes.
+	// summitService.PopulateSummitedPeaks()
+	// overpassService.FetchPeaks()
 
 	// initialise controllers
 	apiController := controllers.NewApiController(

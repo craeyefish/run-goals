@@ -28,7 +28,7 @@ func NewActivityDao(logger *log.Logger, db *sql.DB) *ActivityDao {
 func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 	sql := `
 		INSERT INTO activity (
-			strava_activity_id,
+			strava_athlete_id,
 			user_id,
 			name,
 			distance,
@@ -53,7 +53,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 	`
 	_, err := dao.db.Exec(
 		sql,
-		activity.StravaActivityID,
+		activity.StravaAthleteId,
 		activity.UserID,
 		activity.Name,
 		activity.Distance,
@@ -75,7 +75,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 	sql := `
 		SELECT
 			id,
-			strava_activity_id,
+			strava_athlete_id,
 			user_id,
 			name,
 			distance,
@@ -94,7 +94,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 		activity := models.Activity{}
 		err = rows.Scan(
 			&activity.ID,
-			&activity.StravaActivityID,
+			&activity.StravaAthleteId,
 			&activity.UserID,
 			&activity.Name,
 			&activity.Distance,
@@ -119,7 +119,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	sql := `
 		SELECT
 			id,
-			strava_activity_id,
+			strava_athlete_id,
 			user_id,
 			name,
 			distance,
@@ -132,7 +132,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	row := dao.db.QueryRow(sql, id)
 	err := row.Scan(
 		&activity.ID,
-		&activity.StravaActivityID,
+		&activity.StravaAthleteId,
 		&activity.UserID,
 		&activity.Name,
 		&activity.Distance,
@@ -151,7 +151,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	sql := `
 		SELECT
 			id,
-			strava_activity_id,
+			strava_athlete_id,
 			user_id,
 			name,
 			distance,
@@ -168,7 +168,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 		activity := models.Activity{}
 		err = rows.Scan(
 			&activity.ID,
-			&activity.StravaActivityID,
+			&activity.StravaAthleteId,
 			&activity.UserID,
 			&activity.Name,
 			&activity.Distance,

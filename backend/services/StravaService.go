@@ -68,12 +68,12 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 
 			t, _ := time.Parse(time.RFC3339, stravaActivity.StartDate) // handle error properly
 			activity := models.Activity{
-				StravaActivityID: stravaActivity.ID,
-				UserID:           user.ID,
-				Name:             stravaActivity.Name,
-				Distance:         stravaActivity.Distance, // decide if you store in m or km
-				StartDate:        t,
-				MapPolyline:      stravaActivity.Map.SummaryPolyline,
+				StravaAthleteId: user.StravaAthleteID,
+				UserID:          user.ID,
+				Name:            stravaActivity.Name,
+				Distance:        stravaActivity.Distance, // decide if you store in m or km
+				StartDate:       t,
+				MapPolyline:     stravaActivity.Map.SummaryPolyline,
 			}
 			if err := service.activityDao.UpsertActivity(&activity); err != nil {
 				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)

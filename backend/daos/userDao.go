@@ -25,13 +25,13 @@ func NewUserDao(logger *log.Logger, db *sql.DB) *UserDao {
 
 func (dao *UserDao) UpsertUser(user *models.User) error {
 	sql := `
-		INSERT INTO user (
+		INSERT INTO users (
 			strava_athlete_id,
 			access_token,
 			refresh_token,
 			expires_at,
 			last_distance,
-			last_update,
+			last_updated,
 			created_at,
 			updated_at
 		) VALUES (
@@ -45,6 +45,7 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 				refresh_token = EXCLUDED.refresh_token,
 				expires_at = EXCLUDED.expires_at,
 				last_distance = EXCLUDED.last_distance,
+				last_updated = EXCLUDED.last_updated,
 				created_at = EXCLUDED.created_at,
 				updated_at = EXCLUDED.updated_at;
 	`
@@ -55,6 +56,7 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 		user.RefreshToken,
 		user.ExpiresAt,
 		user.LastDistance,
+		user.LastUpdated,
 		user.CreatedAt,
 		user.UpdatedAt,
 	)
@@ -75,10 +77,10 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 			refresh_token,
 			expires_at,
 			last_distance,
-			last_update,
+			last_updated,
 			created_at,
 			updated_at
-		FROM user;
+		FROM users;
 	`
 	rows, err := dao.db.Query(sql)
 	if err != nil {
@@ -121,10 +123,10 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 			refresh_token,
 			expires_at,
 			last_distance,
-			last_update,
+			last_updated,
 			created_at,
 			updated_at
-		FROM user
+		FROM users
 		WHERE
 			strava_athlete_id = $1;
 	`
