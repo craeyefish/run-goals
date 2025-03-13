@@ -1,5 +1,4 @@
-CREATE TABLE IF NOT EXISTS "user"
-(
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     strava_athlete_id BIGINT CONSTRAINT unique_user_strava_athlete_id UNIQUE,
     access_token VARCHAR,

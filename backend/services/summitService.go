@@ -1,18 +1,50 @@
-package main
+package services
 
 import (
 	"errors"
 	"fmt"
 	"log"
 	"math"
+	"run-goals/config"
+	"run-goals/daos"
+	"run-goals/models"
+	"strconv"
 
 	"github.com/twpayne/go-polyline"
-	"gorm.io/gorm"
 )
 
-func candidatePeaks(route string) ([]Peak, error) {
-	var minLat, maxLat, minLon, maxLon float64
+type SummitServiceInterface interface {
+	CandidatePeaks(route string) ([]models.Peak, error)
+	IsPeakVisited(route string, peakLat float64, peakLon float64, thresholdMeters float64) bool
+	PopulateSummitedPeaks() error
+}
 
+type SummitService struct {
+	l            *log.Logger
+	config       *config.Config
+	peaksDao     *daos.PeaksDao
+	userPeaksDao *daos.UserPeaksDao
+	activityDao  *daos.ActivityDao
+}
+
+func NewSummitService(
+	l *log.Logger,
+	config *config.Config,
+	peaksDao *daos.PeaksDao,
+	userPeaksDao *daos.UserPeaksDao,
+	activityDao *daos.ActivityDao,
+) *SummitService {
+	return &SummitService{
+		l:            l,
+		config:       config,
+		peaksDao:     peaksDao,
+		userPeaksDao: userPeaksDao,
+		activityDao:  activityDao,
+	}
+}
+
+func (s *SummitService) CandidatePeaks(route string) ([]models.Peak, error) {
+	var minLat, maxLat, minLon, maxLon float64
 	if route == "" {
 		return nil, errors.New("no route")
 	}
@@ -51,18 +83,16 @@ func candidatePeaks(route string) ([]Peak, error) {
 	minLon -= buffer
 	maxLon += buffer
 
-	var candidatePeaks []Peak
-	err = DB.Where("lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?",
-		minLat, maxLat, minLon, maxLon,
-	).Find(&candidatePeaks).Error
+	candidatePeaks, err := s.peaksDao.GetPeaksBetweenLatLon(minLat, maxLat, minLon, maxLon)
 	if err != nil {
+		s.l.Printf("Error calling PeaksDao: %v", err)
 		return nil, err
 	}
 
 	return candidatePeaks, nil
 }
 
-func isPeakVisited(route string, peakLat float64, peakLon float64, thresholdMeters float64) bool {
+func (s *SummitService) IsPeakVisited(route string, peakLat float64, peakLon float64, thresholdMeters float64) bool {
 	// DecodeCoords returns a slice of [][2]float64:
 	//   coords[i][0] = latitude
 	//   coords[i][1] = longitude
@@ -128,31 +158,49 @@ func distance(x1, y1, x2, y2 float64) float64 {
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
-// The distance threshold (in meters) to consider a summit "bagged"
-const SummitThresholdMeters = 0.0007 // ~ 70 m
+func (s *SummitService) PopulateSummitedPeaks() error {
+	summitThresholdMeters, err := strconv.ParseFloat(s.config.Summit.SummitThresholdMeters, 64)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
 
-// Retroactively populate summited peaks data for all activities in the DB
-func PopulateSummitedPeaks() error {
-	if err := DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&UserPeak{}).Error; err != nil {
+	// delete all records from user_peaks
+	err = s.userPeaksDao.ClearUserPeaks()
+	if err != nil {
 		return fmt.Errorf("failed to clear user_peaks: %w", err)
 	}
 
-	var activities []Activity
-	if err := DB.Find(&activities).Error; err != nil {
+	// fetch all activities
+	activities, err := s.activityDao.GetActivities()
+	if err != nil {
 		return fmt.Errorf("failed to fetch activities: %w", err)
 	}
 
+	// loop through activities
 	for _, activity := range activities {
-		peaks, err := candidatePeaks(activity.MapPolyline)
+		peaks, err := s.CandidatePeaks(activity.MapPolyline)
 		if err != nil {
 			fmt.Println("failed to fetch candidate peaks: %w", err)
 			continue
 		}
 
+		// a) get candidate peaks
+		// b) is peak visited
+		// c) mark user summited peak
+		//
+		// upsert activity
+
 		var hasSummit bool
 		for _, peak := range peaks {
-			if isPeakVisited(activity.MapPolyline, peak.Lat, peak.Lon, SummitThresholdMeters) {
-				err = markUserSummitedPeak(activity.UserID, peak.ID, activity.ID, activity.StartDate)
+			if s.IsPeakVisited(activity.MapPolyline, peak.Latitude, peak.Longitude, summitThresholdMeters) {
+				userPeak := models.UserPeak{
+					UserID:     activity.UserID,
+					PeakID:     peak.ID,
+					ActivityID: activity.ID,
+					SummitedAt: activity.StartDate,
+				}
+				err = s.userPeaksDao.UpsertUserPeak(&userPeak)
 				if err != nil {
 					log.Printf("Failed to mark summit for user=%d peak=%d: %v\n", activity.UserID, peak.ID, err)
 				}
@@ -162,7 +210,7 @@ func PopulateSummitedPeaks() error {
 		}
 
 		activity.HasSummit = hasSummit
-		err = DB.Save(&activity).Error
+		err = s.activityDao.UpsertActivity(&activity)
 		if err != nil {
 			log.Printf("Failed to update activity=%d: %v\n", activity.ID, err)
 		}
