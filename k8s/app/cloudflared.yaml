@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: default
+data:
+  config.yaml: |
+    tunnel: 166497f5-3b46-4ac0-8946-f74d15518980
+    credentials-file: /etc/cloudflared/creds/166497f5-3b46-4ac0-8946-f74d15518980.json
+    ingress:
+      - hostname: craeyebytes.com
+        service: http://run-goals-frontend.default.svc.cluster.local:80
+      - service: http_status:404
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+      - name: cloudflared
+        image: cloudflare/cloudflared:latest
+        args: ["tunnel", "--no-autoupdate", "run", "--config", "/etc/cloudflared/config.yaml"]
+        volumeMounts:
+          - name: tunnel-credentials
+            mountPath: /etc/cloudflared/creds
+            readOnly: true
+          - name: tunnel-config
+            mountPath: /etc/cloudflared
+            readOnly: true
+      volumes:
+      - name: tunnel-credentials
+        secret:
+          secretName: cloudflared-credentials
+      - name: tunnel-config
+        configMap:
+          name: cloudflared-config

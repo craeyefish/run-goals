@@ -9,3 +9,4 @@ resources:
   - db.yaml
   - frontend.yaml
   - ingress.yaml
+  - cloudflared.yaml
