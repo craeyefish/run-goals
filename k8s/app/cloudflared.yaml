@@ -7,6 +7,7 @@ data:
   config.yaml: |
     tunnel: 166497f5-3b46-4ac0-8946-f74d15518980
     credentials-file: /etc/cloudflared/creds/166497f5-3b46-4ac0-8946-f74d15518980.json
+    no-autoupdate: true
     ingress:
       - hostname: craeyebytes.com
         service: http://run-goals-frontend.default.svc.cluster.local:80
@@ -31,14 +32,7 @@ spec:
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:latest
-          args:
-            [
-              "tunnel",
-              "run",
-              "--no-autoupdate",
-              "--config",
-              "/etc/cloudflared/config.yaml",
-            ]
+          args: ["tunnel", "run", "--config", "/etc/cloudflared/config.yaml"]
           volumeMounts:
             - name: tunnel-credentials
               mountPath: /etc/cloudflared/creds
