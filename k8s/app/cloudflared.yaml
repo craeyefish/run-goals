@@ -34,8 +34,8 @@ spec:
           args:
             [
               "tunnel",
-              "--no-autoupdate",
               "run",
+              "--no-autoupdate",
               "--config",
               "/etc/cloudflared/config.yaml",
             ]
