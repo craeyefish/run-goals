@@ -12,6 +12,7 @@ data:
         service: http://run-goals-frontend.default.svc.cluster.local:80
       - service: http_status:404
 
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,20 +29,27 @@ spec:
         app: cloudflared
     spec:
       containers:
-      - name: cloudflared
-        image: cloudflare/cloudflared:latest
-        args: ["tunnel", "--no-autoupdate", "run", "--config", "/etc/cloudflared/config.yaml"]
-        volumeMounts:
-          - name: tunnel-credentials
-            mountPath: /etc/cloudflared/creds
-            readOnly: true
-          - name: tunnel-config
-            mountPath: /etc/cloudflared
-            readOnly: true
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            [
+              "tunnel",
+              "--no-autoupdate",
+              "run",
+              "--config",
+              "/etc/cloudflared/config.yaml",
+            ]
+          volumeMounts:
+            - name: tunnel-credentials
+              mountPath: /etc/cloudflared/creds
+              readOnly: true
+            - name: tunnel-config
+              mountPath: /etc/cloudflared
+              readOnly: true
       volumes:
-      - name: tunnel-credentials
-        secret:
-          secretName: cloudflared-credentials
-      - name: tunnel-config
-        configMap:
-          name: cloudflared-config
+        - name: tunnel-credentials
+          secret:
+            secretName: cloudflared-credentials
+        - name: tunnel-config
+          configMap:
+            name: cloudflared-config
