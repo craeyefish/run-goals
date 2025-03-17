@@ -32,7 +32,7 @@ spec:
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:latest
-          args: ["tunnel", "run", "--config", "/etc/cloudflared/config.yaml"]
+          args: ["tunnel", "run"]
           volumeMounts:
             - name: tunnel-credentials
               mountPath: /etc/cloudflared/creds
