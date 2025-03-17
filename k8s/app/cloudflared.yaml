@@ -10,7 +10,7 @@ data:
     no-autoupdate: true
     ingress:
       - hostname: craeyebytes.com
-        service: http://run-goals-frontend.default.svc.cluster.local:80
+        service: http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80
       - service: http_status:404
 
 ---
