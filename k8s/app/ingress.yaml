@@ -15,13 +15,27 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: run-goals-backend # The Service name for your backend
+                name: run-goals-backend
+                port:
+                  number: 8080
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: run-goals-backend
+                port:
+                  number: 8080
+          - path: /webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: run-goals-backend
                 port:
                   number: 8080
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: run-goals-frontend # The Service name for your frontend
+                name: run-goals-frontend
                 port:
                   number: 80
