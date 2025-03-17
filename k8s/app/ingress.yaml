@@ -11,21 +11,21 @@ spec:
     - host: craeyebytes.com
       http:
         paths:
-          - path: /api
+          - path: /api/
             pathType: Prefix
             backend:
               service:
                 name: run-goals-backend
                 port:
                   number: 8080
-          - path: /auth
+          - path: /auth/
             pathType: Prefix
             backend:
               service:
                 name: run-goals-backend
                 port:
                   number: 8080
-          - path: /webhook
+          - path: /webhook/
             pathType: Prefix
             backend:
               service:
