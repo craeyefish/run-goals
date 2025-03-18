@@ -85,6 +85,7 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying user table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -102,12 +103,14 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		users = append(users, user)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return users, nil
@@ -144,6 +147,7 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 	)
 	if err != nil {
 		dao.l.Println("Error querying user table", err)
+		return nil, err
 	}
 
 	return &user, nil

@@ -10,10 +10,6 @@ import (
 )
 
 func main() {
-	// // TODO(cian): Move these to async processes.
-	// PopulateSummitedPeaks()
-	// FetchPeaks()
-
 	// create server
 	server := server.NewServer()
 

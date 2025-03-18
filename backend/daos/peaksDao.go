@@ -39,6 +39,7 @@ func (dao *PeaksDao) GetPeaks() ([]models.Peak, error) {
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying peak table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -53,12 +54,14 @@ func (dao *PeaksDao) GetPeaks() ([]models.Peak, error) {
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		peaks = append(peaks, peak)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return peaks, nil
@@ -117,6 +120,7 @@ func (dao *PeaksDao) GetPeaksBetweenLatLon(minLat float64, maxLat float64, minLo
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying peak table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -131,12 +135,14 @@ func (dao *PeaksDao) GetPeaksBetweenLatLon(minLat float64, maxLat float64, minLo
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		peaks = append(peaks, peak)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return peaks, nil

@@ -88,6 +88,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 	rows, err := dao.db.Query(sql, userID)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -103,12 +104,14 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		activities = append(activities, activity)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return activities, nil
@@ -141,6 +144,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
+		return models.Activity{}, err
 	}
 
 	return activity, nil
@@ -162,6 +166,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -177,12 +182,14 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		activities = append(activities, activity)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return activities, nil

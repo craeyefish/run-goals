@@ -165,10 +165,16 @@ func (s *SummitService) PopulateSummitedPeaks() error {
 		return err
 	}
 
-	// delete all records from user_peaks
-	err = s.userPeaksDao.ClearUserPeaks()
+	// Only do this if there is no data in user peaks.
+	// TODO(cian): Replace with a loop that syncs things up daily,
+	// it should get populated as activities get added.
+	peaks, err := s.userPeaksDao.GetUserPeaks()
 	if err != nil {
 		return fmt.Errorf("failed to clear user_peaks: %w", err)
+	}
+
+	if len(peaks) > 0 {
+		return nil
 	}
 
 	// fetch all activities

@@ -39,6 +39,7 @@ func (dao *UserPeaksDao) GetUserPeaks() ([]models.UserPeak, error) {
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying user_peaks table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -52,12 +53,14 @@ func (dao *UserPeaksDao) GetUserPeaks() ([]models.UserPeak, error) {
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		userPeaks = append(userPeaks, userPeak)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return userPeaks, nil
@@ -78,6 +81,7 @@ func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
 	rows, err := dao.db.Query(sql)
 	if err != nil {
 		dao.l.Println("Error querying user_peaks table", err)
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -91,12 +95,14 @@ func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
+			return nil, err
 		}
 		userPeaksJoin = append(userPeaksJoin, userPeakJoin)
 	}
 	err = rows.Err()
 	if err != nil {
 		dao.l.Println("Error during iteration", err)
+		return nil, err
 	}
 
 	return userPeaksJoin, nil
