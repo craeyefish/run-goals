@@ -116,7 +116,7 @@ func (dao *UserPeaksDao) UpsertUserPeak(userPeak *models.UserPeak) error {
 			activity_id,
 			summited_at
 		) VALUES (
-			($1, $2, $3, $4)
+			$1, $2, $3, $4
 		) ON CONFLICT (
 			user_id
 		) DO UPDATE

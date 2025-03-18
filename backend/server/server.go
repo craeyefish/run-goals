@@ -44,7 +44,8 @@ func NewServer() *http.Server {
 	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
 	summitService.PopulateSummitedPeaks()
 	overpassService := services.NewOverpassService(logger, peaksDao)
-	overpassService.FetchPeaks()
+	peaks, _ := overpassService.FetchPeaks()
+	peakService.StorePeaks(peaks)
 
 	// initialise controllers
 	apiController := controllers.NewApiController(

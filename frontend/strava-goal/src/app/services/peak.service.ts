@@ -5,10 +5,10 @@ import { Observable } from 'rxjs';
 export interface Peak {
   id: number;
   osm_id: number;
-  lat: number;
-  lon: number;
+  latitude: number;
+  longitude: number;
   name: string;
-  elev_m: number;
+  elevation_meters: number;
   is_summited: boolean; // new boolean to indicate if this peak was visited by the user/group
 }
 

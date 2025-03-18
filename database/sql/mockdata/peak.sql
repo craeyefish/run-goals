@@ -1,5 +1,5 @@
 INSERT INTO
-    peak (
+    peaks (
         osm_id,
         latitude,
         longitude,

@@ -64,7 +64,7 @@ export class ActivityMapComponent implements OnInit {
   }
 
   loadActivities(): void {
-    const userId = 1;
+    const userId = 2;
     this.activityService.getActivitiesForUser(userId).subscribe({
       next: (data) => {
         this.activities = data;
@@ -138,7 +138,9 @@ export class ActivityMapComponent implements OnInit {
       // Choose the icon based on whether it's summited
       const iconToUse = peak.is_summited ? visitedPeakIcon : defaultPeakIcon;
 
-      const marker = L.marker([peak.lat, peak.lon], { icon: iconToUse });
+      const marker = L.marker([peak.latitude, peak.longitude], {
+        icon: iconToUse,
+      });
       marker.bindPopup(this.buildPeakPopup(peak));
 
       // Add marker to the cluster group instead of the map directly
@@ -149,7 +151,7 @@ export class ActivityMapComponent implements OnInit {
   buildPeakPopup(peak: Peak): string {
     return `
       <strong>${peak.name || 'Unnamed Peak'}</strong><br>
-      Elev: ${peak.elev_m ? `${peak.elev_m} m` : 'N/A'}
+      Elev: ${peak.elevation_meters ? `${peak.elevation_meters} m` : 'N/A'}
     `;
   }
 

@@ -2,9 +2,12 @@ package daos
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"run-goals/models"
 )
+
+var ErrUserNotFound = errors.New("user not found")
 
 type UserDaoInterface interface {
 	UpsertUser(user *models.User) error
@@ -35,7 +38,7 @@ func (dao *UserDao) UpsertUser(user *models.User) error {
 			created_at,
 			updated_at
 		) VALUES (
-			($1, $2, $3, $4, $5, $6, $7, $8)
+			$1, $2, $3, $4, $5, $6, $7, $8
 		) ON CONFLICT (
 			strava_athlete_id
 		) DO UPDATE
@@ -118,7 +121,7 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 
 func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 	user := models.User{}
-	sql := `
+	query := `
 		SELECT
 			id,
 			strava_athlete_id,
@@ -133,7 +136,7 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 		WHERE
 			strava_athlete_id = $1;
 	`
-	row := dao.db.QueryRow(sql, id)
+	row := dao.db.QueryRow(query, id)
 	err := row.Scan(
 		&user.ID,
 		&user.StravaAthleteID,
@@ -145,7 +148,10 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
+		dao.l.Printf("No user found with strava_athlete_id=%d", id)
+		return nil, ErrUserNotFound
+	} else if err != nil {
 		dao.l.Println("Error querying user table", err)
 		return nil, err
 	}

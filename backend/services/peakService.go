@@ -63,6 +63,10 @@ func (s *PeakService) ListPeaks() ([]models.PeakSummited, error) {
 }
 
 func (s *PeakService) StorePeaks(resp *models.OverpassResponse) error {
+	if resp == nil {
+		return nil
+	}
+
 	for _, el := range resp.Elements {
 		if el.Type != "node" {
 			continue

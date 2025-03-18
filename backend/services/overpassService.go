@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,15 +30,15 @@ func NewOverpassService(
 	}
 }
 
-func (s *OverpassService) FetchPeaks() error {
+func (s *OverpassService) FetchPeaks() (*models.OverpassResponse, error) {
 	peaks, err := s.peaksDao.GetPeaks()
 	if err != nil {
 		s.l.Printf("Error calling PeaksDao: %v", err)
-		return err
+		return nil, err
 	}
 
 	if len(peaks) > 0 {
-		return nil
+		return nil, errors.New("peaks already stored")
 	}
 
 	query := `
@@ -53,18 +54,18 @@ func (s *OverpassService) FetchPeaks() error {
 		strings.NewReader(query),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to query overpass: %w", err)
+		return nil, fmt.Errorf("failed to query overpass: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("overpass request failed: %d", resp.StatusCode)
+		return nil, fmt.Errorf("overpass request failed: %d", resp.StatusCode)
 	}
 
 	var data models.OverpassResponse
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return fmt.Errorf("failed to parse overpass json: %w", err)
+		return nil, fmt.Errorf("failed to parse overpass json: %w", err)
 	}
 
-	return nil
+	return &data, nil
 }

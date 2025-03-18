@@ -16,7 +16,7 @@ done
 # TABLES
 TABLE_DIR=../sql/tables
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/users.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/peak.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/peaks.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/activity.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/userpeaks.sql"
 
@@ -24,7 +24,7 @@ psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/userpeaks.sql"
 if [ "$ENVIRONMENT" != "production" ]; then
     MOCK_DATA_DIR=../sql/mockdata
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/users.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/peak.sql"
+    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/peaks.sql"
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/activity.sql"
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/userpeaks.sql"
 fi

@@ -34,11 +34,11 @@ func (dao *PeaksDao) GetPeaks() ([]models.Peak, error) {
 			longitude,
 			name,
 			elevation_meters
-		FROM peak
+		FROM peaks
 	`
 	rows, err := dao.db.Query(sql)
 	if err != nil {
-		dao.l.Println("Error querying peak table", err)
+		dao.l.Println("Error querying peaks table", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -70,18 +70,18 @@ func (dao *PeaksDao) GetPeaks() ([]models.Peak, error) {
 func (dao *PeaksDao) UpsertPeak(peak *models.Peak) error {
 	sql := `
 		INSERT INTO peaks (
-			osmid,
+			osm_id,
 			latitude,
 			longitude,
 			name,
 			elevation_meters
 		) VALUES (
-			($1, $2, $3, $4, $5)
+			$1, $2, $3, $4, $5
 		) ON CONFLICT (
-			osmid
+			osm_id
 		) DO UPDATE
 			SET
-				osmid = EXCLUDED.osmid,
+				osm_id = EXCLUDED.osm_id,
 				latitude = EXCLUDED.latitude,
 				longitude = EXCLUDED.longitude,
 				name = EXCLUDED.name,

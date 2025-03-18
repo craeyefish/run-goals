@@ -1,5 +1,6 @@
 INSERT INTO
     activity (
+        strava_activity_id,
         strava_athlete_id,
         user_id,
         name,
@@ -12,6 +13,7 @@ INSERT INTO
     )
 VALUES
     (
+        1,
         1001,
         1,
         'Morning Run',
@@ -23,6 +25,7 @@ VALUES
         TRUE
     ),
     (
+        2,
         1001,
         1,
         'Evening Cycle',
@@ -34,6 +37,7 @@ VALUES
         FALSE
     ),
     (
+        3,
         1002,
         2,
         'Hiking Trip',
@@ -45,6 +49,7 @@ VALUES
         TRUE
     ),
     (
+        4,
         1002,
         2,
         'Quick Walk',
@@ -56,6 +61,7 @@ VALUES
         FALSE
     ),
     (
+        5,
         1003,
         3,
         'Trail Run',
@@ -67,6 +73,7 @@ VALUES
         TRUE
     ),
     (
+        6,
         1003,
         3,
         'City Ride',
@@ -78,6 +85,7 @@ VALUES
         FALSE
     ),
     (
+        7,
         1004,
         4,
         'Summit Hike',
@@ -89,6 +97,7 @@ VALUES
         TRUE
     ),
     (
+        8,
         1004,
         4,
         'Park Jog',
@@ -100,6 +109,7 @@ VALUES
         FALSE
     ),
     (
+        9,
         1005,
         5,
         'Long Run',
@@ -111,6 +121,7 @@ VALUES
         TRUE
     ),
     (
+        10,
         1005,
         5,
         'Mountain Biking',

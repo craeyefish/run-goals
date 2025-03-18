@@ -28,6 +28,7 @@ func NewActivityDao(logger *log.Logger, db *sql.DB) *ActivityDao {
 func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 	sql := `
 		INSERT INTO activity (
+			strava_activity_id,
 			strava_athlete_id,
 			user_id,
 			name,
@@ -38,7 +39,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 			updated_at,
 			has_summit
 		) VALUES (
-			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 		) ON CONFLICT (
 			strava_activity_id
 		) DO UPDATE
@@ -53,6 +54,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 	`
 	_, err := dao.db.Exec(
 		sql,
+		activity.StravaActivityId,
 		activity.StravaAthleteId,
 		activity.UserID,
 		activity.Name,
@@ -75,6 +77,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 	sql := `
 		SELECT
 			id,
+			strava_activity_id,
 			strava_athlete_id,
 			user_id,
 			name,
@@ -95,6 +98,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 		activity := models.Activity{}
 		err = rows.Scan(
 			&activity.ID,
+			&activity.StravaActivityId,
 			&activity.StravaAthleteId,
 			&activity.UserID,
 			&activity.Name,
@@ -122,6 +126,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	sql := `
 		SELECT
 			id,
+			strava_activity_id,
 			strava_athlete_id,
 			user_id,
 			name,
@@ -135,6 +140,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	row := dao.db.QueryRow(sql, id)
 	err := row.Scan(
 		&activity.ID,
+		&activity.StravaActivityId,
 		&activity.StravaAthleteId,
 		&activity.UserID,
 		&activity.Name,
@@ -155,6 +161,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	sql := `
 		SELECT
 			id,
+			strava_activity_id,
 			strava_athlete_id,
 			user_id,
 			name,
@@ -173,6 +180,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 		activity := models.Activity{}
 		err = rows.Scan(
 			&activity.ID,
+			&activity.StravaActivityId,
 			&activity.StravaAthleteId,
 			&activity.UserID,
 			&activity.Name,

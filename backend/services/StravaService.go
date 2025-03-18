@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,12 +69,13 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 
 			t, _ := time.Parse(time.RFC3339, stravaActivity.StartDate) // handle error properly
 			activity := models.Activity{
-				StravaAthleteId: user.StravaAthleteID,
-				UserID:          user.ID,
-				Name:            stravaActivity.Name,
-				Distance:        stravaActivity.Distance, // decide if you store in m or km
-				StartDate:       t,
-				MapPolyline:     stravaActivity.Map.SummaryPolyline,
+				StravaActivityId: stravaActivity.ID,
+				StravaAthleteId:  user.StravaAthleteID,
+				UserID:           user.ID,
+				Name:             stravaActivity.Name,
+				Distance:         stravaActivity.Distance, // decide if you store in m or km
+				StartDate:        t,
+				MapPolyline:      stravaActivity.Map.SummaryPolyline,
 			}
 			if err := service.activityDao.UpsertActivity(&activity); err != nil {
 				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)
@@ -87,7 +89,7 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 
 func (service *StravaService) EnsureValidToken(u *models.User) error {
 	// 1. Check if token is still valid
-	if time.Now().Unix() < u.ExpiresAt {
+	if time.Now().Before(u.ExpiresAt) {
 		// Token is not expired yet
 		return nil
 	}
@@ -121,7 +123,7 @@ func (service *StravaService) EnsureValidToken(u *models.User) error {
 	// 3. Update user struct
 	u.AccessToken = trr.AccessToken
 	u.RefreshToken = trr.RefreshToken
-	u.ExpiresAt = trr.ExpiresAt
+	u.ExpiresAt = time.Unix(trr.ExpiresAt, 0).UTC()
 
 	// 4. Save to DB
 	err = service.userDao.UpsertUser(u)
@@ -242,30 +244,27 @@ func (service *StravaService) FetchActivitiesPage(accessToken string, page, perP
 func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload) {
 	// Find the user in DB
 	user, err := s.userDao.GetUserByStravaAthleteID(payload.OwnerID)
-	if err != nil {
+	if errors.Is(err, daos.ErrUserNotFound) {
+		s.l.Printf("No matching  user")
+		return
+	} else if err != nil {
 		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
 		return
 	}
 
-	// 'strava_athlete_id' is how we store the Strava athlete ID in the User model
-	if user == nil {
-		s.l.Printf("No matching  user")
+	dist, err := s.FetchUserDistance(user)
+	if err != nil {
+		s.l.Printf("Error fetching updated distance for user %d: %v\n", user.ID, err)
 	} else {
-		// We found the user - now fetch updated stats
-		dist, err := s.FetchUserDistance(user)
-		if err != nil {
-			s.l.Printf("Error fetching updated distance for user %d: %v\n", user.ID, err)
-		} else {
-			// Update and save
-			user.LastDistance = dist
-			user.LastUpdated = time.Now()
+		// Update and save
+		user.LastDistance = dist
+		user.LastUpdated = time.Now()
 
-			err = s.userDao.UpsertUser(user)
-			if err != nil {
-				s.l.Printf("Failed to update the user's cached values: %v", err)
-			} else {
-				s.l.Printf("Updated user %d with new distance: %.2f km\n", user.ID, dist)
-			}
+		err = s.userDao.UpsertUser(user)
+		if err != nil {
+			s.l.Printf("Failed to update the user's cached values: %v", err)
+		} else {
+			s.l.Printf("Updated user %d with new distance: %.2f km\n", user.ID, dist)
 		}
 	}
 }
@@ -280,17 +279,25 @@ func (s *StravaService) ProcessCallback(code string) error {
 
 	// 2. Store (or update) the user in the DB
 	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
-	if err != nil {
+	if errors.Is(err, daos.ErrUserNotFound) {
+		// NoReturnErr: User not found, continue and create one.
+		user = &models.User{}
+	} else if err != nil {
 		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
 		return err
 	}
+
 	// Create new user if not found, update if found
 	user.StravaAthleteID = tokenRes.Athlete.Id
 	user.AccessToken = tokenRes.AccessToken
 	user.RefreshToken = tokenRes.RefreshToken
-	user.ExpiresAt = tokenRes.ExpiresAt
+	user.ExpiresAt = time.Unix(tokenRes.ExpiresAt, 0).UTC()
 
 	err = s.userDao.UpsertUser(user)
+	if err != nil {
+		s.l.Println("Failed to upsert user", err)
+		return err
+	}
 	s.l.Printf("Upsert new user: AthleteID %d", tokenRes.Athlete.Id)
 
 	// 3. Pull activities
