@@ -7,17 +7,20 @@ import (
 )
 
 type ApiHandler struct {
-	l             *log.Logger
-	apiController *controllers.ApiController
+	l                *log.Logger
+	apiController    *controllers.ApiController
+	groupsController *controllers.GroupsController
 }
 
 func NewApiHandler(
 	l *log.Logger,
 	apiController *controllers.ApiController,
+	groupsController *controllers.GroupsController,
 ) *ApiHandler {
 	return &ApiHandler{
 		l,
 		apiController,
+		groupsController,
 	}
 }
 
@@ -37,5 +40,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "/api/peak-summaries":
 		handler.apiController.GetPeakSummaries(rw, r)
 		return
+	case "/api/groups":
+		if r.Method == http.MethodPost {
+			handler.groupsController.CreateGroup(rw, r)
+			return
+		}
 	}
 }

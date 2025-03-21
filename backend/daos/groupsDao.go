@@ -10,9 +10,11 @@ type GroupsDaoInterface interface {
 	CreateGroup(group models.Group) error
 	UpdateGroup(group models.Group) error
 	DeleteGroup(groupID int64) error
+
 	CreateGroupMember(member models.GroupMember) error
 	UpdateGroupMember(member models.GroupMember) error
 	DeleteGroupMember(userID int64) error
+
 	CreateGroupGoal(goal models.GroupGoal) error
 	UpdateGroupGoal(goal models.GroupGoal) error
 	DeleteGroupGoal(goalID int64) error
