@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
 import * as polyline from '@mapbox/polyline';
 import 'leaflet.markercluster';
@@ -24,7 +24,7 @@ export const visitedPeakIcon = L.icon({
   templateUrl: './activity-map.component.html',
   styleUrls: ['./activity-map.component.scss'],
 })
-export class ActivityMapComponent implements OnInit {
+export class ActivityMapComponent implements OnInit, AfterViewInit {
   showPeaks = true;
   map!: L.Map;
 
@@ -45,6 +45,12 @@ export class ActivityMapComponent implements OnInit {
     // Fetch both data sets in parallel
     this.loadActivities();
     this.loadPeaks();
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.map.invalidateSize();
+    }, 200);
   }
 
   initMap(): void {

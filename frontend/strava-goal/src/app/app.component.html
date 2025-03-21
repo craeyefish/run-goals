@@ -1,1 +1,19 @@
-<router-outlet></router-outlet>
+<!-- Fill full screen, no outer scroll -->
+<div class="container-fluid vh-100 d-flex flex-column overflow-hidden">
+  <!-- Row for header -->
+  <div class="row flex-shrink-0">
+    <div class="col">
+      <app-header></app-header>
+    </div>
+  </div>
+
+  <!-- Row for sidebar + home side-by-side -->
+  <div class="row flex-grow-1 overflow-hidden">
+    <div class="col-auto bg-light h-100 overflow-auto" style="width: 200px">
+      <app-sidebar></app-sidebar>
+    </div>
+    <div class="col overflow-hidden d-flex flex-column border">
+      <app-home></app-home>
+    </div>
+  </div>
+</div>
