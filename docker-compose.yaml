@@ -31,6 +31,23 @@ services:
       backend:
         condition: service_started
 
+  frontend-dev:
+    container_name: run-goals-frontend-dev
+    build:
+      context: ./frontend/strava-goal
+      dockerfile: Dockerfile.dev
+    # Volume mount for live reload
+    volumes:
+      - ./frontend/strava-goal:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    command: npm run start
+
   db:
     image: run-goals/db:latest
     container_name: run-goals-db

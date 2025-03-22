@@ -1,0 +1,26 @@
+<div>
+  <div class="d-flex align-items-center mb-3">
+    <h3 class="mb-0 me-3">Activities</h3>
+    <button class="btn btn-primary">Refresh</button>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Date</th>
+        <th scope="col">KM</th>
+        <th scope="col">Summits</th>
+        <th scope="col">Location</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let act of activities">
+        <td>{{ act.id }}</td>
+        <td>{{ act.date }}</td>
+        <td>{{ act.km }}</td>
+        <td>{{ act.summits }}</td>
+        <td>{{ act.location }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

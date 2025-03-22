@@ -1,11 +1,13 @@
-<label>
-  <input
-    type="checkbox"
-    [checked]="showPeaks"
-    (change)="onTogglePeaks($event)"
-  />
-  Show Summits
-</label>
+<div>
+  <label>
+    <input
+      type="checkbox"
+      [checked]="showPeaks"
+      (change)="onTogglePeaks($event)"
+    />
+    Show Summits
+  </label>
 
-<!-- The map container -->
-<div id="map" style="height: 600px"></div>
+  <!-- The map container -->
+  <div id="map" style="height: 100vh"></div>
+</div>
