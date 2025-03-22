@@ -7,7 +7,7 @@ import (
 )
 
 type GroupsDaoInterface interface {
-	CreateGroup(group models.Group) error
+	CreateGroup(request models.Group) error
 	UpdateGroup(group models.Group) error
 	DeleteGroup(groupID int64) error
 
@@ -35,7 +35,8 @@ func NewGroupsDao(logger *log.Logger, db *sql.DB) *GroupsDao {
 	}
 }
 
-func (dao *GroupsDao) CreateGroup(group models.Group) error {
+func (dao *GroupsDao) CreateGroup(group models.Group) (*int64, error) {
+	var id int64
 	sql := `
 		INSERT INTO groups (
 			name,
@@ -43,14 +44,15 @@ func (dao *GroupsDao) CreateGroup(group models.Group) error {
 			created_at
 		) VALUES (
 			$1, $2, $3
-		);
+		)
+		RETURNING id;
 	`
-	_, err := dao.db.Exec(sql, group.Name, group.CreatedBy, group.CreatedAt)
+	err := dao.db.QueryRow(sql, group.Name, group.CreatedBy, group.CreatedAt).Scan(&id)
 	if err != nil {
 		dao.l.Printf("Error creating group: %v", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return &id, nil
 }
 
 func (dao *GroupsDao) UpdateGroup(group models.Group) error {
@@ -107,10 +109,12 @@ func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
 		UPDATE
 			group_members
 		SET
-			role = $2
-		WHERE id = $1;
+			role = $1
+		WHERE
+			group_id = $2
+			AND user_id = $3;
 	`
-	_, err := dao.db.Exec(sql, member.ID, member.Role)
+	_, err := dao.db.Exec(sql, member.Role, member.GroupID, member.UserID)
 	if err != nil {
 		dao.l.Printf("Error updating group member: %v", err)
 		return err
@@ -118,13 +122,15 @@ func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
 	return nil
 }
 
-func (dao *GroupsDao) DeleteGroupMember(userID int64) error {
+func (dao *GroupsDao) DeleteGroupMember(userID int64, groupID int64) error {
 	sql := `
 		DELETE FROM
 			group_members
-		WHERE id = $1;
+		WHERE
+			user_id = $1
+			AND group_id = $2;
 	`
-	_, err := dao.db.Exec(sql, userID)
+	_, err := dao.db.Exec(sql, userID, groupID)
 	if err != nil {
 		dao.l.Printf("Error deleting group member: %v", err)
 		return err
@@ -197,7 +203,12 @@ func (dao *GroupsDao) GetUserGroups(userID int64) ([]models.Group, error) {
 			created_at
 		FROM groups
 		WHERE
-			id = $1;
+			id in (
+				SELECT
+					group_id
+				FROM group_members
+				WHERE user_id = $1
+			)
 	`
 	rows, err := dao.db.Query(sql, userID)
 	if err != nil {
@@ -232,7 +243,10 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	groupMembers := []models.GroupMember{}
 	sql := `
 		SELECT
-			user_id
+			group_id,
+			user_id,
+			role,
+			joined_at
 		FROM group_members
 		WHERE group_id = $1;
 	`
@@ -245,7 +259,6 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	for rows.Next() {
 		groupMember := models.GroupMember{}
 		err = rows.Scan(
-			&groupMember.ID,
 			&groupMember.GroupID,
 			&groupMember.UserID,
 			&groupMember.Role,

@@ -45,5 +45,43 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.groupsController.CreateGroup(rw, r)
 			return
 		}
+		if r.Method == http.MethodPut {
+			handler.groupsController.UpdateGroup(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.groupsController.DeleteGroup(rw, r)
+			return
+		}
+		if r.Method == http.MethodGet {
+			handler.groupsController.GetUserGroups(rw, r)
+			return
+		}
+	case "/api/group-member":
+		if r.Method == http.MethodPost {
+			handler.groupsController.CreateGroupMember(rw, r)
+			return
+		}
+		if r.Method == http.MethodPut {
+			handler.groupsController.UpdateGroupMember(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.groupsController.DeleteGroupMember(rw, r)
+			return
+		}
+	case "/api/group-goal":
+		if r.Method == http.MethodPost {
+			handler.groupsController.CreateGroupGoal(rw, r)
+			return
+		}
+		if r.Method == http.MethodPut {
+			handler.groupsController.UpdateGroupGoal(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.groupsController.DeleteGroupGoal(rw, r)
+			return
+		}
 	}
 }

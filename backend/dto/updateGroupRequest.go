@@ -1,10 +1,8 @@
-package models
+package dto
 
-import (
-	"time"
-)
+import "time"
 
-type Group struct {
+type UpdateGroupRequest struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
 	CreatedBy int64     `json:"created_by"`

@@ -1,10 +1,8 @@
-package models
+package dto
 
-import (
-	"time"
-)
+import "time"
 
-type GroupGoal struct {
+type UpdateGroupGoalRequest struct {
 	ID          int64     `json:"id"`
 	GroupID     int64     `json:"group_id"`
 	Name        string    `json:"name"`
