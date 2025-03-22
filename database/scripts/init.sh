@@ -19,6 +19,9 @@ psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/users.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/peaks.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/activity.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/userpeaks.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/groups.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/group_members.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/group_goals.sql"
 
 # LOAD MOCK DATA INTO DATABASE TABLES
 if [ "$ENVIRONMENT" != "production" ]; then
@@ -27,4 +30,7 @@ if [ "$ENVIRONMENT" != "production" ]; then
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/peaks.sql"
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/activity.sql"
     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/userpeaks.sql"
+    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/groups.sql"
+    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_members.sql"
+    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_goals.sql"
 fi

@@ -31,6 +31,7 @@ func NewServer() *http.Server {
 	peaksDao := daos.NewPeaksDao(logger, db)
 	userDao := daos.NewUserDao(logger, db)
 	userPeaksDao := daos.NewUserPeaksDao(logger, db)
+	groupsDao := daos.NewGroupsDao(logger, db)
 
 	// initialise services
 	stravaService := services.NewStravaService(logger, config, userDao, activityDao)
@@ -38,6 +39,7 @@ func NewServer() *http.Server {
 	peakService := services.NewPeakService(logger, peaksDao, userPeaksDao)
 	summariesService := services.NewSummariesService(logger, peaksDao, userPeaksDao, activityDao)
 	progressService := services.NewProgressService(logger, userDao, stravaService)
+	groupsService := services.NewGroupsService(logger, groupsDao)
 
 	// once off data population
 	// TODO(cian): Update to sync processes
@@ -55,10 +57,11 @@ func NewServer() *http.Server {
 		peakService,
 		summariesService,
 	)
+	groupsController := controllers.NewGroupsController(logger, groupsService)
 	stravaController := controllers.NewStravaController(logger, stravaService)
 
 	// initialise handlers
-	apiHandler := handlers.NewApiHandler(logger, apiController)
+	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
 
 	// create new serve mux and register handlers
