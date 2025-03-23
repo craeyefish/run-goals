@@ -1,28 +1,29 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import * as L from 'leaflet';
-import * as polyline from '@mapbox/polyline';
-import 'leaflet.markercluster';
-import { ActivityService, Activity } from '../services/activity.service';
-import { PeakService, Peak } from '../services/peak.service';
+import { AfterViewInit, Component, OnInit } from "@angular/core";
+import * as L from "leaflet";
+import * as polyline from "@mapbox/polyline";
+import "leaflet.markercluster";
+import { ActivityService, Activity } from "src/app/services/activity.service";
+import { PeakService, Peak } from "src/app/services/peak.service";
 
 export const defaultPeakIcon = L.icon({
-  iconUrl: 'assets/summit-icon.png', // your default summit icon
+  iconUrl: "assets/summit-icon.png", // your default summit icon
   iconSize: [32, 32],
   iconAnchor: [16, 16],
   popupAnchor: [0, -32],
 });
 
 export const visitedPeakIcon = L.icon({
-  iconUrl: 'assets/summit-icon-green.png', // a green version for visited peaks
+  iconUrl: "assets/summit-icon-green.png", // a green version for visited peaks
   iconSize: [32, 32],
   iconAnchor: [16, 16],
   popupAnchor: [0, -32],
 });
 
 @Component({
-  selector: 'app-activity-map',
-  templateUrl: './activity-map.component.html',
-  styleUrls: ['./activity-map.component.scss'],
+  selector: "app-activity-map",
+  standalone: true,
+  templateUrl: "./activity-map.component.html",
+  styleUrls: ["./activity-map.component.scss"],
 })
 export class ActivityMapComponent implements OnInit, AfterViewInit {
   showPeaks = true;
@@ -36,7 +37,7 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
 
   constructor(
     private activityService: ActivityService,
-    private peakService: PeakService
+    private peakService: PeakService,
   ) {}
 
   ngOnInit(): void {
@@ -54,13 +55,13 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
   }
 
   initMap(): void {
-    this.map = L.map('map', {
+    this.map = L.map("map", {
       center: [-33.9249, 18.4241], // e.g., near Cape Town
       zoom: 7,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
     }).addTo(this.map);
 
     // Initialize the cluster group
@@ -77,7 +78,7 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
         this.displayActivities();
       },
       error: (err) => {
-        console.error('Error fetching activities:', err);
+        console.error("Error fetching activities:", err);
       },
     });
   }
@@ -87,16 +88,16 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
       if (act.map_polyline) {
         const decodedCoords = polyline.decode(act.map_polyline);
         const latLngs = decodedCoords.map((coords) =>
-          L.latLng(coords[0], coords[1])
+          L.latLng(coords[0], coords[1]),
         );
 
         const color = act.has_summit
-          ? 'rgba(14, 212, 14, 0.61)'
-          : 'rgba(0, 0, 255, 0.6)';
+          ? "rgba(14, 212, 14, 0.61)"
+          : "rgba(0, 0, 255, 0.6)";
 
         // Default polyline style
         const poly = L.polyline(latLngs, { color: color, weight: 3 }).addTo(
-          this.map
+          this.map,
         );
 
         // Construct HTML for your popup
@@ -112,13 +113,13 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
         poly.bindPopup(infoHtml);
 
         // Highlight on popup open
-        poly.on('popupopen', () => {
-          poly.setStyle({ color: 'red', weight: 5 });
+        poly.on("popupopen", () => {
+          poly.setStyle({ color: "red", weight: 5 });
         });
 
         // Revert style on popup close
-        poly.on('popupclose', () => {
-          poly.setStyle({ color: 'blue', weight: 3 });
+        poly.on("popupclose", () => {
+          poly.setStyle({ color: "blue", weight: 3 });
         });
       }
     }
@@ -131,7 +132,7 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
         this.displayPeaks();
       },
       error: (err) => {
-        console.error('Error fetching peaks:', err);
+        console.error("Error fetching peaks:", err);
       },
     });
   }
@@ -156,8 +157,8 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
 
   buildPeakPopup(peak: Peak): string {
     return `
-      <strong>${peak.name || 'Unnamed Peak'}</strong><br>
-      Elev: ${peak.elevation_meters ? `${peak.elevation_meters} m` : 'N/A'}
+      <strong>${peak.name || "Unnamed Peak"}</strong><br>
+      Elev: ${peak.elevation_meters ? `${peak.elevation_meters} m` : "N/A"}
     `;
   }
 
