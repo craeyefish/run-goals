@@ -4,11 +4,10 @@ import { PeakSummaries } from "../models/peak-summit.model";
 import { CommonModule } from "@angular/common";
 
 @Component({
-  selector: "app-peak-summit-table",
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: "./peak-summit-table.component.html",
-  styleUrls: ["./peak-summit-table.component.scss"],
+    selector: "app-peak-summit-table",
+    imports: [CommonModule],
+    templateUrl: "./peak-summit-table.component.html",
+    styleUrls: ["./peak-summit-table.component.scss"]
 })
 export class PeakSummitTableComponent implements OnInit {
   peakSummaries: PeakSummaries[] = [];

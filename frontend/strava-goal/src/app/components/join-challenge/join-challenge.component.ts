@@ -2,10 +2,9 @@ import { Component } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 
 @Component({
-  selector: "app-join-challenge",
-  standalone: true,
-  imports: [FormsModule],
-  templateUrl: "./join-challenge.component.html",
+    selector: "app-join-challenge",
+    imports: [FormsModule],
+    templateUrl: "./join-challenge.component.html"
 })
 export class JoinChallengeComponent {
   password = "";
