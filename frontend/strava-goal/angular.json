@@ -67,10 +67,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "strava-goal:build:production"
+              "buildTarget": "strava-goal:build:production"
             },
             "development": {
-              "browserTarget": "strava-goal:build:development"
+              "buildTarget": "strava-goal:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -78,7 +78,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "strava-goal:build"
+            "buildTarget": "strava-goal:build"
           }
         },
         "test": {
