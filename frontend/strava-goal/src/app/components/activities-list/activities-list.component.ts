@@ -10,10 +10,10 @@ interface Activity {
 }
 
 @Component({
-    selector: "app-activities-list",
-    imports: [CommonModule],
-    templateUrl: "./activities-list.component.html",
-    styleUrls: ["./activities-list.component.scss"]
+  selector: "app-activities-list",
+  imports: [CommonModule],
+  templateUrl: "./activities-list.component.html",
+  styleUrls: ["./activities-list.component.scss"],
 })
 export class ActivitiesListComponent {
   activities: Activity[] = [
