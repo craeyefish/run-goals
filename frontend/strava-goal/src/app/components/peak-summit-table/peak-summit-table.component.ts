@@ -5,7 +5,6 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   selector: "app-peak-summit-table",
-  standalone: true,
   imports: [CommonModule],
   templateUrl: "./peak-summit-table.component.html",
   styleUrls: ["./peak-summit-table.component.scss"],

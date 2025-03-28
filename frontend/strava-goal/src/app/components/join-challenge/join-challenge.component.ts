@@ -3,7 +3,6 @@ import { FormsModule } from "@angular/forms";
 
 @Component({
   selector: "app-join-challenge",
-  standalone: true,
   imports: [FormsModule],
   templateUrl: "./join-challenge.component.html",
 })

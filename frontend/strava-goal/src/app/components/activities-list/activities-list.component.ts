@@ -11,7 +11,6 @@ interface Activity {
 
 @Component({
   selector: "app-activities-list",
-  standalone: true,
   imports: [CommonModule],
   templateUrl: "./activities-list.component.html",
   styleUrls: ["./activities-list.component.scss"],

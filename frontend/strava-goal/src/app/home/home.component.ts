@@ -5,7 +5,6 @@ import { ActivityMapComponent } from "../components/activity-map/activity-map.co
 
 @Component({
   selector: "app-home",
-  standalone: true,
   imports: [UserStatsComponent, ActivitiesListComponent, ActivityMapComponent],
   templateUrl: "./home.component.html",
   styleUrls: ["./home.component.scss"],
