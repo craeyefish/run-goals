@@ -30,7 +30,7 @@ RUN npm install
 COPY . .
 
 # Build your Angular app in production mode
-RUN npm run build --prod
+RUN npm run build -- --configuration production
 
 
 # =========================================
