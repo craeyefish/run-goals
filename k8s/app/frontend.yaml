@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/craeyefish/run-goals-frontend:latest
+          image: ghcr.io/craeyefish/run-goals-frontend:prod
           ports:
             - containerPort: 80
 ---

@@ -1,5 +1,25 @@
 version: "3.8"
+
 services:
+  db:
+    image: run-goals/db:latest
+    container_name: run-goals-db
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      ENVIRONMENT: develop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: run_goals
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     image: run-goals/backend:latest
     container_name: run-goals-backend
@@ -19,27 +39,31 @@ services:
       db:
         condition: service_healthy
 
+  # Production-like Frontend (Nginx) - from final 'prod' stage
   frontend:
-    image: run-goals/frontend:latest
+    image: run-goals/frontend:prod
     container_name: run-goals-frontend
     build:
       context: ./frontend/strava-goal
       dockerfile: Dockerfile
-    expose:
-      - "80"
+      # IMPORTANT: specify the final stage
+      target: prod
+    ports:
+      - "80:80"
     depends_on:
-      backend:
-        condition: service_started
+      - backend
 
+  # Dev Frontend (live reload, etc.) - from 'dev' stage
   frontend-dev:
     container_name: run-goals-frontend-dev
     build:
       context: ./frontend/strava-goal
-      dockerfile: Dockerfile.dev
-    # Volume mount for live reload
+      dockerfile: Dockerfile
+      target: dev
     volumes:
       - ./frontend/strava-goal:/app
-      - /app/node_modules
+      # if you want to keep node_modules in the container, omit or handle carefully
+      # - /app/node_modules
     ports:
       - "4200:4200"
     environment:
@@ -47,25 +71,6 @@ services:
     depends_on:
       - backend
     command: npm run start
-
-  db:
-    image: run-goals/db:latest
-    container_name: run-goals-db
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    environment:
-      ENVIRONMENT: develop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: run_goals
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   nginx:
     image: nginx:alpine
