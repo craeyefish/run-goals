@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"run-goals/meta"
 	"run-goals/services"
-	"strconv"
 )
 
 type ApiControllerInterface interface {
@@ -42,18 +42,7 @@ func NewApiController(
 func (c *ApiController) ListActivities(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET ListActivities")
 
-	// extract user id from url
-	userIDStr := r.URL.Query().Get("userId")
-	if userIDStr == "" {
-		http.Error(rw, "missing userId", http.StatusBadRequest)
-		return
-	}
-
-	userID, err := strconv.ParseInt(userIDStr, 10, 64)
-	if err != nil {
-		http.Error(rw, "Invalid userId", http.StatusBadRequest)
-		return
-	}
+	userID, _ := meta.GetUserIDFromContext(r.Context())
 
 	// Call activityService to return list of activities by userId
 	response, err := c.activityService.GetActivitiesByUserID(userID)

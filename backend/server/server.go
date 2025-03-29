@@ -9,6 +9,7 @@ import (
 	"run-goals/daos"
 	"run-goals/database"
 	"run-goals/handlers"
+	"run-goals/middleware"
 	"run-goals/services"
 )
 
@@ -34,6 +35,7 @@ func NewServer() *http.Server {
 	groupsDao := daos.NewGroupsDao(logger, db)
 
 	// initialise services
+	jwtService := services.NewJWTService(logger, config)
 	stravaService := services.NewStravaService(logger, config, userDao, activityDao)
 	activityService := services.NewActivityService(logger, activityDao)
 	peakService := services.NewPeakService(logger, peaksDao, userPeaksDao)
@@ -58,7 +60,7 @@ func NewServer() *http.Server {
 		summariesService,
 	)
 	groupsController := controllers.NewGroupsController(logger, groupsService)
-	stravaController := controllers.NewStravaController(logger, stravaService)
+	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
 
 	// initialise handlers
 	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
@@ -66,7 +68,7 @@ func NewServer() *http.Server {
 
 	// create new serve mux and register handlers
 	mux := http.NewServeMux()
-	mux.Handle("/api/", apiHandler)
+	mux.Handle("/api/", middleware.JWT(jwtService, apiHandler))
 	mux.Handle("/webhook/", stravaHandler)
 	mux.Handle("/auth/", stravaHandler)
 

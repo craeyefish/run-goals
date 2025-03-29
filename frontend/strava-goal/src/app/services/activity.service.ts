@@ -20,7 +20,7 @@ export class ActivityService {
   constructor(private http: HttpClient) {}
 
   // Adjust userId param as needed
-  getActivitiesForUser(userId: number): Observable<Activity[]> {
-    return this.http.get<Activity[]>(`/api/activities?userId=${userId}`);
+  getActivitiesForUser(): Observable<Activity[]> {
+    return this.http.get<Activity[]>(`/api/activities`);
   }
 }

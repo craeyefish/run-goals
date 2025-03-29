@@ -10,15 +10,18 @@ import (
 
 type StravaController struct {
 	l             *log.Logger
+	jwtService    *services.JWTService
 	stravaService *services.StravaService
 }
 
 func NewStravaController(
 	l *log.Logger,
+	jwtService *services.JWTService,
 	stravaService *services.StravaService,
 ) *StravaController {
 	return &StravaController{
 		l:             l,
+		jwtService:    jwtService,
 		stravaService: stravaService,
 	}
 }
@@ -52,17 +55,26 @@ func (c *StravaController) ProcessWebhookEvent(rw http.ResponseWriter, r *http.R
 }
 
 func (c *StravaController) ProcessCallback(rw http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		http.Error(rw, "missing code", http.StatusBadRequest)
+	var payload struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(rw, "failed to parse callback payload", http.StatusBadRequest)
 		return
 	}
 
-	err := c.stravaService.ProcessCallback(code)
+	user, err := c.stravaService.ProcessCallback(payload.Code)
 	if err != nil {
 		http.Error(rw, "Failed to process callback", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(rw, r, "<add domain here>?joined=1", http.StatusFound)
+	tokenString, err := c.jwtService.GenerateToken(user.ID)
+	if err != nil {
+		http.Error(rw, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(map[string]string{"token": tokenString})
 }
