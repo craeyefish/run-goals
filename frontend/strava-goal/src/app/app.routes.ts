@@ -10,6 +10,7 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 import { StravaCallbackComponent } from './components/strava-callback/strava-callback.component';
 import { StravaCallbackGuard } from './guards/strava-callback.guard';
 import { NoAuthGuard } from './guards/no-auth.guard';
+import { AuthPageComponent } from './pages/auth/auth.component';
 
 export const routes: Routes = [
   {
@@ -18,7 +19,7 @@ export const routes: Routes = [
     canActivate: [NoAuthGuard],
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
-      { path: 'login', component: LoginComponent },
+      { path: 'login', component: AuthPageComponent },
       { path: 'strava/callback', component: StravaCallbackComponent, canActivate: [StravaCallbackGuard] },
     ]
   },

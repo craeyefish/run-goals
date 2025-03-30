@@ -1,0 +1,21 @@
+.auth-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--background-color);
+
+  .card {
+    background: var(--seasalt); // Light background from your theme
+    padding: 2.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.1);
+    min-width: 22rem;
+    text-align: center;
+
+    h1 {
+      color: var(--text-color);
+      margin-bottom: 20px;
+    }
+  }
+}
