@@ -56,7 +56,7 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      'https://craeyebytes.com/strava/callback'
+      'https://craeyebytes.com/auth/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState()
