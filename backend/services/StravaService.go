@@ -269,12 +269,12 @@ func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload)
 	}
 }
 
-func (s *StravaService) ProcessCallback(code string) error {
+func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 	// 1. Excahnge code for tokens
 	tokenRes, err := s.exchangeCodeForToken(code)
 	if err != nil {
 		s.l.Println("Failed to exchange code", err)
-		return err
+		return nil, err
 	}
 
 	// 2. Store (or update) the user in the DB
@@ -284,7 +284,7 @@ func (s *StravaService) ProcessCallback(code string) error {
 		user = &models.User{}
 	} else if err != nil {
 		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
-		return err
+		return nil, err
 	}
 
 	// Create new user if not found, update if found
@@ -296,13 +296,13 @@ func (s *StravaService) ProcessCallback(code string) error {
 	err = s.userDao.UpsertUser(user)
 	if err != nil {
 		s.l.Println("Failed to upsert user", err)
-		return err
+		return nil, err
 	}
 	s.l.Printf("Upsert new user: AthleteID %d", tokenRes.Athlete.Id)
 
 	// 3. Pull activities
 	s.FetchAndStoreUserActivities(user)
-	return nil
+	return user, nil
 }
 
 func (s *StravaService) exchangeCodeForToken(code string) (*models.StravaTokenResponse, error) {

@@ -1,13 +1,13 @@
-import { Component, OnInit } from "@angular/core";
-import { PeakSummitService } from "../services/peak-summit.service";
-import { PeakSummaries } from "../models/peak-summit.model";
-import { CommonModule } from "@angular/common";
+import { Component, OnInit } from '@angular/core';
+import { PeakSummitService } from 'src/app/services/peak-summit.service';
+import { PeakSummaries } from 'src/app/models/peak-summit.model';
+import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: "app-peak-summit-table",
+  selector: 'app-peak-summit-table',
   imports: [CommonModule],
-  templateUrl: "./peak-summit-table.component.html",
-  styleUrls: ["./peak-summit-table.component.scss"],
+  templateUrl: './peak-summit-table.component.html',
+  styleUrls: ['./peak-summit-table.component.scss'],
 })
 export class PeakSummitTableComponent implements OnInit {
   peakSummaries: PeakSummaries[] = [];
@@ -24,7 +24,7 @@ export class PeakSummitTableComponent implements OnInit {
         this.peakSummaries = data;
       },
       error: (err) => {
-        console.error("Error fetching peak summaries:", err);
+        console.error('Error fetching peak summaries:', err);
       },
     });
   }
