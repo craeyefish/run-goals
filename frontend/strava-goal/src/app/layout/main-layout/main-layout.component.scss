@@ -5,16 +5,15 @@
 
 app-sidebar {
   width: 15rem;
-  border: 1px solid yellow;
   flex-shrink: 0;
-  background-color: #333;
+  background-color: var(--background-shade-color-1);
   padding: 1rem;
 }
 
 main {
-  border: 1px solid lime;
   flex-grow: 1;
-  background-color: #333;
+  background-color: var(--background-shade-color-2);
+  color: --text-color;
   padding: 0.5rem;
   overflow: auto;
 }

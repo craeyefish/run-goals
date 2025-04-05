@@ -1,7 +1,4 @@
 nav {
-  border: 1px solid black;
-  color: white;
-
   ul {
     display: flex;
     flex-direction: column;
@@ -14,7 +11,7 @@ nav {
     font-size: 1.5rem;
     cursor: pointer;
     &:hover {
-      color: blue;
+      font-weight: bold;
     }
   }
 }

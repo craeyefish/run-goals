@@ -2,19 +2,41 @@
 $primary: #63d2ff; // Pale Azure
 $secondary: #78d5d7; // Tiffany Blue
 $background: #f7f9f9; // Seasalt
+$background-shade-1: #f4f6f6; // Seasalt shade 1
+$background-shade-2: #e9eded; // Seasalt shade 2
 $surface: #bed8d4; // Ash Gray
 $text: #212529; // Standard dark text
 $accent: #2081c3; // Steel Blue
 
-@mixin theme($primary, $secondary, $background, $surface, $text, $accent) {
+@mixin theme(
+  $primary,
+  $secondary,
+  $background,
+  $background-shade-1,
+  $background-shade-2,
+  $surface,
+  $text,
+  $accent
+) {
   --primary-color: #{$primary};
   --secondary-color: #{$secondary};
   --background-color: #{$background};
+  --background-shade-color-1: #{$background-shade-1};
+  --background-shade-color-2: #{$background-shade-2};
   --surface-color: #{$surface};
   --text-color: #{$text};
   --accent-color: #{$accent};
 }
 
 :root {
-  @include theme($primary, $secondary, $background, $surface, $text, $accent);
+  @include theme(
+    $primary,
+    $secondary,
+    $background,
+    $background-shade-1,
+    $background-shade-2,
+    $surface,
+    $text,
+    $accent
+  );
 }

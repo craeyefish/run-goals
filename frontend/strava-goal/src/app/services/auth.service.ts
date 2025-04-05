@@ -11,7 +11,7 @@ export class AuthService {
   private tokenKey = 'jwt_token';
   private token: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   storeToken(token: string): void {
     this.token = token;
@@ -46,13 +46,6 @@ export class AuthService {
 
   login(): void {
     // Redirect to Strava’s OAuth page
-
-    // Temporary for skipping login while testing
-    // if (1 == 1) {
-    //   this.token = 'testToken';
-    //   this.router.navigate(['']);
-    //   return
-    // }
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(

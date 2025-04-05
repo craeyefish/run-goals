@@ -4,11 +4,24 @@ header {
   justify-content: space-between;
   height: 4rem;
   padding: 0 1rem;
-  background-color: #333;
-  color: white;
+  background-color: var(--background-color);
+  color: --text-color;
 
-  span {
-    font-size: 2rem;
-    font-weight: bold;
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    .icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      object-fit: contain;
+    }
+
+    span {
+      font-size: 2rem;
+      font-weight: bold;
+    }
   }
 }
