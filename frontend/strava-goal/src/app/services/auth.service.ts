@@ -7,11 +7,11 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
-  private stateKey = "strava_oath_state"
+  private stateKey = 'strava_oath_state';
   private tokenKey = 'jwt_token';
   private token: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
   storeToken(token: string): void {
     this.token = token;
@@ -56,10 +56,10 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      'https://craeyebytes.com/auth/strava/callback'
+      'https://craeyebytes.com/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
-    const state = this.generateState()
+    const state = this.generateState();
 
     const stravaAuthUrl =
       `https://www.strava.com/oauth/authorize` +
@@ -74,8 +74,8 @@ export class AuthService {
 
   generateState(): string {
     const state = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem(this.stateKey, state)
-    return state
+    localStorage.setItem(this.stateKey, state);
+    return state;
   }
 
   validateState(returnedState: string): boolean {

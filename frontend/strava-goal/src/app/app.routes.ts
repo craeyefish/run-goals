@@ -14,14 +14,17 @@ import { AuthPageComponent } from './pages/auth/auth.component';
 
 export const routes: Routes = [
   {
-    path: 'auth',
+    path: 'login',
     component: AuthLayoutComponent,
     canActivate: [NoAuthGuard],
     children: [
-      { path: '', redirectTo: 'login', pathMatch: 'full' },
-      { path: 'login', component: AuthPageComponent },
-      { path: 'strava/callback', component: StravaCallbackComponent, canActivate: [StravaCallbackGuard] },
-    ]
+      { path: '', component: AuthPageComponent },
+      {
+        path: 'strava/callback',
+        component: StravaCallbackComponent,
+        canActivate: [StravaCallbackGuard],
+      },
+    ],
   },
   {
     path: '',
@@ -35,5 +38,5 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
     ],
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];

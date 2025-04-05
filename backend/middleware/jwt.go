@@ -14,20 +14,20 @@ func JWT(jwtService *services.JWTService, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+			http.Error(rw, "header failed", http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+			http.Error(rw, "bearer len wrong", http.StatusUnauthorized)
 			return
 		}
 
 		tokenStr := parts[1]
 		token, err := jwtService.ValidateToken(tokenStr)
 		if err != nil || !token.Valid {
-			http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+			http.Error(rw, "token validation failed", http.StatusUnauthorized)
 			return
 		}
 
