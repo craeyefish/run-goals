@@ -7,7 +7,7 @@ import (
 	"run-goals/services"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func JWT(jwtService *services.JWTService, next http.Handler) http.Handler {

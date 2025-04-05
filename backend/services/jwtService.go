@@ -31,7 +31,7 @@ func NewJWTService(
 func (j *JWTService) GenerateToken(userID int64) (string, error) {
 	// Create the claims
 	claims := jwt.MapClaims{
-		"sub": userID,
+		"sub": float64(userID),
 		"exp": time.Now().Add(time.Hour * 24).Unix(), // 24 hour expiry
 		"iat": time.Now().Unix(),
 	}
