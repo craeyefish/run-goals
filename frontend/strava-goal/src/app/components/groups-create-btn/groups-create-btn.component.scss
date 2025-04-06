@@ -1,11 +1,14 @@
 button {
+  width: 10rem;
+  height: 3rem;
   background-color: var(--primary-color);
   color: --text-color;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
+  font-weight: bold;
   transition: 0.3s;
 
   &:hover {

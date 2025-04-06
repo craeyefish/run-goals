@@ -2,11 +2,11 @@ import { Component } from '@angular/core';
 import { GroupService } from 'src/app/services/groups.service';
 
 @Component({
-  selector: 'groups-members-table',
+  selector: 'groups-progress-bar',
   imports: [],
-  templateUrl: './groups-members-table.component.html',
-  styleUrl: './groups-members-table.component.scss',
+  templateUrl: './groups-progress-bar.component.html',
+  styleUrl: './groups-progress-bar.component.scss',
 })
-export class GroupsMembersTableComponent {
+export class GroupsProgressBarComponent {
   constructor(private groupService: GroupService) { }
 }
