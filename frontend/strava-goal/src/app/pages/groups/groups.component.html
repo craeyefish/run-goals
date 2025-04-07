@@ -1,7 +1,7 @@
 <div class="page-container">
   <div class="header-container">
     <span>Groups</span>
-    <groups-create-btn></groups-create-btn>
+    <groups-create-btn [onClick]="openCreateGroupForm"></groups-create-btn>
   </div>
   <div class="groups-table-container">
     <div class="table-container">
@@ -27,3 +27,11 @@
     </div>
   </div>
 </div>
+
+<groups-create-form
+  *ngIf="showCreateGroupForm()"
+  class="card-container"
+  [formVisible]="showCreateGroupForm"
+  [onSubmit]="onCreateGroupFormSubmit"
+>
+</groups-create-form>
