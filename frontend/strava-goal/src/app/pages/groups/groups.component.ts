@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal } from '@angular/core';
 import { GroupsCreateBtnComponent } from 'src/app/components/groups-create-btn/groups-create-btn.component';
 import { GroupsCreateFormComponent } from 'src/app/components/groups-create-form/groups-create-form.component';
+import { GroupsGoalsTableComponent } from 'src/app/components/groups-goals-table/groups-goals-table.component';
 import { GroupsMembersTableComponent } from 'src/app/components/groups-members-table/groups-members-table.component';
 import { GroupsProgressBarComponent } from 'src/app/components/groups-progress-bar/groups-progress-bar.component';
 import { GroupsTableComponent } from 'src/app/components/groups-table/groups-table.component';
@@ -16,7 +17,8 @@ import { CreateGroupRequest, GroupService } from 'src/app/services/groups.servic
     GroupsTableComponent,
     GroupsMembersTableComponent,
     GroupsProgressBarComponent,
-    GroupsCreateFormComponent
+    GroupsCreateFormComponent,
+    GroupsGoalsTableComponent
   ],
   templateUrl: './groups.component.html',
   styleUrls: ['./groups.component.scss'],

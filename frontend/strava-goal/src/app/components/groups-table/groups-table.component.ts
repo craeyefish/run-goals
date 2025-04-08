@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { GroupService } from 'src/app/services/groups.service';
+import { GetGroupsResponse, Group, GroupService } from 'src/app/services/groups.service';
 
 @Component({
   selector: 'groups-table',
@@ -8,5 +8,19 @@ import { GroupService } from 'src/app/services/groups.service';
   styleUrl: './groups-table.component.scss',
 })
 export class GroupsTableComponent {
+  groups: Group[] = [];
+
   constructor(private groupService: GroupService) { }
+
+  ngOnInit() {
+    const userID = 1;
+    this.groupService.getGroups(userID).subscribe({
+      next: (response) => {
+        this.groups = response.groups;
+      },
+      error: (err) => {
+        console.error('Failed to load groups', err)
+      }
+    })
+  }
 }

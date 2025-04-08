@@ -30,6 +30,16 @@
     }
   }
 
+  .goals-table-container {
+    width: 100%;
+    background-color: var(--background-color);
+    border-radius: 1rem;
+
+    .table-container {
+      padding: 2rem;
+    }
+  }
+
   .group-details-container {
     display: flex;
     align-items: center;

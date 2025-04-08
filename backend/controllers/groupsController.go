@@ -256,7 +256,10 @@ func (c *GroupsController) GetUserGroups(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response, err := c.groupsService.GetUserGroups(id)
+	groups, err := c.groupsService.GetUserGroups(id)
+	response := dto.GetUserGroupsResponse{
+		groups: groups,
+	}
 	if err != nil {
 		c.l.Printf("Error getting user groups %v", err)
 		http.Error(rw, "Failed to get user groups", http.StatusInternalServerError)
