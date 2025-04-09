@@ -1,5 +1,4 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { StringToken } from '@angular/compiler';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -19,6 +18,15 @@ export class GroupService {
     return this.http.get<GetGroupsResponse>('/api/groups', { params })
   }
 
+  createGoal(request: CreateGoalRequest): Observable<any> {
+    return this.http.post('/api/group-goal', request);
+  }
+
+  getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
+    const params = new HttpParams().set('groupID', groupID)
+    return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params })
+  }
+
 }
 
 export interface Group {
@@ -28,6 +36,16 @@ export interface Group {
   created_at: string;
 }
 
+export interface Goal {
+  id: number;
+  group_id: number;
+  name: string;
+  target_value: string;
+  start_date: string;
+  end_date: string;
+  create_at: string;
+}
+
 export interface CreateGroupRequest {
   name: string;
   created_by: number;
@@ -35,4 +53,16 @@ export interface CreateGroupRequest {
 
 export interface GetGroupsResponse {
   groups: Group[];
+}
+
+export interface CreateGoalRequest {
+  group_id: number;
+  name: string;
+  target_value: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface GetGroupGoalsResponse {
+  goals: Goal[];
 }

@@ -1,23 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal } from '@angular/core';
-import { GroupsCreateBtnComponent } from 'src/app/components/groups-create-btn/groups-create-btn.component';
+import { AppButtonComponent } from 'src/app/components/app-button/app-button.component';
+import { GoalsCreateFormComponent } from 'src/app/components/goals-create-form/goals-create-form.component';
 import { GroupsCreateFormComponent } from 'src/app/components/groups-create-form/groups-create-form.component';
 import { GroupsGoalsTableComponent } from 'src/app/components/groups-goals-table/groups-goals-table.component';
 import { GroupsMembersTableComponent } from 'src/app/components/groups-members-table/groups-members-table.component';
 import { GroupsProgressBarComponent } from 'src/app/components/groups-progress-bar/groups-progress-bar.component';
 import { GroupsTableComponent } from 'src/app/components/groups-table/groups-table.component';
-import { CreateGroupRequest, GroupService } from 'src/app/services/groups.service';
+import { CreateGoalRequest, CreateGroupRequest, GroupService } from 'src/app/services/groups.service';
 
 @Component({
   selector: 'app-groups',
   standalone: true,
   imports: [
     CommonModule,
-    GroupsCreateBtnComponent,
+    AppButtonComponent,
     GroupsTableComponent,
     GroupsMembersTableComponent,
     GroupsProgressBarComponent,
     GroupsCreateFormComponent,
+    GoalsCreateFormComponent,
     GroupsGoalsTableComponent
   ],
   templateUrl: './groups.component.html',
@@ -28,8 +30,10 @@ export class GroupsComponent {
   constructor(private groupService: GroupService) { }
 
   showCreateGroupForm: WritableSignal<boolean> = signal(false);
+  showCreateGoalForm: WritableSignal<boolean> = signal(false);
 
   openCreateGroupForm = () => this.showCreateGroupForm.set(true)
+  openCreateGoalForm = () => this.showCreateGoalForm.set(true)
 
   onCreateGroupFormSubmit = (data: { name: string }) => {
     const requestPayload: CreateGroupRequest = {
@@ -43,7 +47,33 @@ export class GroupsComponent {
         this.showCreateGroupForm.set(false);
       },
       error: (err) => {
-        console.error('oops, a error', err)
+        console.error('Error creating group:', err)
+      }
+    })
+  }
+
+  onCreateGoalFormSubmit = (
+    data: {
+      name: string,
+      targetValue: string,
+      startDate: string,
+      endDate: string
+    }) => {
+    const requestPayload: CreateGoalRequest = {
+      group_id: 1, // todo: get selected group
+      name: data.name,
+      target_value: data.targetValue,
+      start_date: data.startDate,
+      end_date: data.endDate,
+    };
+
+    this.groupService.createGoal(requestPayload).subscribe({
+      next: (response) => {
+        console.log('Goal Created:', data);
+        this.showCreateGoalForm.set(false);
+      },
+      error: (err) => {
+        console.error('Error creating group goal:', err)
       }
     })
   }

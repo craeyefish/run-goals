@@ -2,14 +2,15 @@
   <thead>
     <tr>
       <th>Group Name</th>
+      <th>Created By</th>
+      <th>Created At</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>Test Group 1</td>
-    </tr>
-    <tr>
-      <td>Test Group 2</td>
+    <tr *ngFor="let group of groups">
+      <td>{{ group.name }}</td>
+      <td>{{ group.created_by }}</td>
+      <td>{{ group.created_at }}</td>
     </tr>
   </tbody>
 </table>

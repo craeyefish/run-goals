@@ -1,9 +1,10 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { GetGroupsResponse, Group, GroupService } from 'src/app/services/groups.service';
+import { Group, GroupService } from 'src/app/services/groups.service';
 
 @Component({
   selector: 'groups-table',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './groups-table.component.html',
   styleUrl: './groups-table.component.scss',
 })
@@ -13,7 +14,7 @@ export class GroupsTableComponent {
   constructor(private groupService: GroupService) { }
 
   ngOnInit() {
-    const userID = 1;
+    const userID = 1;  // todo: get all user data from authservice signal or storage ?
     this.groupService.getGroups(userID).subscribe({
       next: (response) => {
         this.groups = response.groups;

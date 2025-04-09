@@ -83,5 +83,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.groupsController.DeleteGroupGoal(rw, r)
 			return
 		}
+	case "/api/group-goals":
+		if r.Method == http.MethodGet {
+			handler.groupsController.GetGroupGoals(rw, r)
+			return
+		}
 	}
 }
