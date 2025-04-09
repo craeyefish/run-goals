@@ -21,6 +21,7 @@ type GroupsDaoInterface interface {
 
 	GetUserGroups(userID int64) ([]models.Group, error)
 	GetGroupMembers(groupID int64) ([]models.GroupMember, error)
+	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
 }
 
 type GroupsDao struct {
@@ -277,4 +278,50 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	}
 
 	return groupMembers, nil
+}
+
+func (dao *GroupsDao) GetGroupGoals(groupID int64) ([]models.GroupGoal, error) {
+	groupGoals := []models.GroupGoal{}
+	sql := `
+		SELECT
+			id,
+			group_id,
+			name,
+			target_value,
+			start_date,
+			end_date,
+			created_at
+		FROM group_goals
+		WHERE group_id = $1;
+	`
+	rows, err := dao.db.Query(sql, groupID)
+	if err != nil {
+		dao.l.Printf("Error getting group goals: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		groupGoal := models.GroupGoal{}
+		err = rows.Scan(
+			&groupGoal.ID,
+			&groupGoal.GroupID,
+			&groupGoal.Name,
+			&groupGoal.TargetValue,
+			&groupGoal.StartDate,
+			&groupGoal.EndDate,
+			&groupGoal.CreatedAt,
+		)
+		if err != nil {
+			dao.l.Printf("Error parsing query result: %f", err)
+			return nil, err
+		}
+		groupGoals = append(groupGoals, groupGoal)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Printf("Error during iteration: %v", err)
+		return nil, err
+	}
+
+	return groupGoals, nil
 }

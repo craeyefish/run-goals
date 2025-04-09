@@ -1,0 +1,21 @@
+<div class="card-container-overlay" (click)="handleClose()">
+  <div class="card-container" (click)="$event.stopPropagation()">
+    <div class="card">
+      <span>Create Group</span>
+
+      <label>
+        Name:
+        <input
+          type="text"
+          [value]="groupName()"
+          (input)="groupName.set($any($event.target).value)"
+        />
+      </label>
+
+      <div class="button-row">
+        <button (click)="handleSubmit()">Create</button>
+        <button (click)="handleClose()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,20 @@
 <div class="page-container">
   <div class="header-container">
     <span>Groups</span>
-    <groups-create-btn></groups-create-btn>
+    <app-button [onClick]="openCreateGroupForm">Create Group</app-button>
   </div>
   <div class="groups-table-container">
     <div class="table-container">
       <groups-table></groups-table>
+    </div>
+  </div>
+  <div class="header-container">
+    <span>Goals</span>
+    <app-button [onClick]="openCreateGoalForm">Create Goal</app-button>
+  </div>
+  <div class="goals-table-container">
+    <div class="table-container">
+      <groups-goals-table></groups-goals-table>
     </div>
   </div>
   <div class="group-details-container">
@@ -27,3 +36,19 @@
     </div>
   </div>
 </div>
+
+<groups-create-form
+  *ngIf="showCreateGroupForm()"
+  class="card-container"
+  [formVisible]="showCreateGroupForm"
+  [onSubmit]="onCreateGroupFormSubmit"
+>
+</groups-create-form>
+
+<goals-create-form
+  *ngIf="showCreateGoalForm()"
+  class="card-container"
+  [formVisible]="showCreateGoalForm"
+  [onSubmit]="onCreateGoalFormSubmit"
+>
+</goals-create-form>

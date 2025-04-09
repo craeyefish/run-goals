@@ -22,6 +22,7 @@ type GroupServiceInterface interface {
 	DeleteGroupGoal(goalID int64) error
 
 	GetUserGroups(userID int64) ([]models.Group, error)
+	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
 }
 
 type GroupsService struct {
@@ -184,4 +185,13 @@ func (s *GroupsService) GetUserGroups(userID int64) ([]models.Group, error) {
 		return nil, err
 	}
 	return userGroups, nil
+}
+
+func (s *GroupsService) GetGroupGoals(groupID int64) ([]models.GroupGoal, error) {
+	groupGoals, err := s.groupsDao.GetGroupGoals(groupID)
+	if err != nil {
+		s.l.Printf("Error calling groupsDao.GetGroupGoals: %v", err)
+		return nil, err
+	}
+	return groupGoals, nil
 }

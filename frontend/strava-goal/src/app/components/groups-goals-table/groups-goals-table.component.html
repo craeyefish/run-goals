@@ -1,0 +1,18 @@
+<table>
+  <thead>
+    <tr>
+      <th>Goal</th>
+      <th>Target Value</th>
+      <th>Start Date</th>
+      <th>End Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let goal of goals">
+      <td>{{ goal.name }}</td>
+      <td>{{ goal.target_value }}</td>
+      <td>{{ goal.start_date }}</td>
+      <td>{{ goal.end_date }}</td>
+    </tr>
+  </tbody>
+</table>

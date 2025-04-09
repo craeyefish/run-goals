@@ -22,6 +22,7 @@ type GroupsControllerInterface interface {
 	CreateGroupGoal(rw http.ResponseWriter, r *http.Request)
 	UpdateGroupGoal(rw http.ResponseWriter, r *http.Request)
 	DeleteGroupGoal(rw http.ResponseWriter, r *http.Request)
+	GetGroupGoals(rw http.ResponseWriter, r *http.Request)
 
 	// todo: get goal progress
 }
@@ -256,7 +257,10 @@ func (c *GroupsController) GetUserGroups(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response, err := c.groupsService.GetUserGroups(id)
+	groups, err := c.groupsService.GetUserGroups(id)
+	response := dto.GetUserGroupsResponse{
+		Groups: groups,
+	}
 	if err != nil {
 		c.l.Printf("Error getting user groups %v", err)
 		http.Error(rw, "Failed to get user groups", http.StatusInternalServerError)
@@ -264,6 +268,38 @@ func (c *GroupsController) GetUserGroups(rw http.ResponseWriter, r *http.Request
 	}
 
 	// Return the array of Groups as JSON
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding groups:", err)
+	}
+}
+
+func (c *GroupsController) GetGroupGoals(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle GET group-goals - get group goals")
+
+	// extract groupID from url
+	strID := r.URL.Query().Get("groupID")
+	if strID == "" {
+		http.Error(rw, "missing groupID", http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.ParseInt(strID, 10, 64)
+	if err != nil {
+		http.Error(rw, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+	// todo
+	goals, err := c.groupsService.GetGroupGoals(id)
+	response := dto.GetGroupGoalsResponse{
+		Goals: goals,
+	}
+	if err != nil {
+		c.l.Printf("Error getting user groups %v", err)
+		http.Error(rw, "Failed to get user groups", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the array of Goals as JSON
 	rw.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(rw).Encode(response); err != nil {
 		log.Println("Error encoding groups:", err)

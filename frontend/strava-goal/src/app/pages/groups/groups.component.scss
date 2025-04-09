@@ -30,6 +30,16 @@
     }
   }
 
+  .goals-table-container {
+    width: 100%;
+    background-color: var(--background-color);
+    border-radius: 1rem;
+
+    .table-container {
+      padding: 2rem;
+    }
+  }
+
   .group-details-container {
     display: flex;
     align-items: center;
@@ -75,5 +85,27 @@
       width: 100%;
       padding: 1rem;
     }
+  }
+}
+
+.form-card-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); // semi-transparent background
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  create-group-form-card {
+    background: var(--background-color);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    max-width: 30rem;
+    width: 100%;
   }
 }
