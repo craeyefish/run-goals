@@ -9,6 +9,7 @@ import { GroupsProgressBarComponent } from 'src/app/components/groups-progress-b
 import { GroupsTableComponent } from 'src/app/components/groups-table/groups-table.component';
 import { CreateGoalRequest, CreateGroupRequest, GroupService } from 'src/app/services/groups.service';
 
+
 @Component({
   selector: 'app-groups',
   standalone: true,
