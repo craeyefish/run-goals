@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { Goal, GroupService } from 'src/app/services/groups.service';
 
 @Component({
@@ -9,19 +9,29 @@ import { Goal, GroupService } from 'src/app/services/groups.service';
   styleUrl: './groups-goals-table.component.scss',
 })
 export class GroupsGoalsTableComponent {
-  goals: Goal[] = [];
+  goals = signal<Goal[]>([]);
+  public groupService = inject(GroupService);
 
-  constructor(private groupService: GroupService) { }
-
-  ngOnInit() {
-    const groupID = 1; // todo: get selected groupID
-    this.groupService.getGroupGoals(groupID).subscribe({
-      next: (response) => {
-        this.goals = response.goals;
-      },
-      error: (err) => {
-        console.error('Failed to load group goals', err)
+  constructor() {
+    effect(() => {
+      const selectedGroup = this.groupService.selectedGroup();
+      if (selectedGroup) {
+        this.groupService.loadGoals(selectedGroup.id);
       }
     })
+
+    effect(() => {
+      if (this.groupService.goalCreated()) {
+        const selectedGroup = this.groupService.selectedGroup();
+        if (selectedGroup) {
+          this.groupService.loadGoals(selectedGroup.id);
+        }
+        this.groupService.resetGoalCreated()
+      }
+    })
+  }
+
+  selectGoal(goal: Goal) {
+    this.groupService.selectedGoal.set(goal);
   }
 }

@@ -19,6 +19,8 @@ table {
   // add bottom border to each row
   tbody tr {
     border-bottom: 0.1rem solid var(--background-shade-color-2);
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
 
   // add lighter background for every second row
@@ -26,9 +28,12 @@ table {
     background-color: var(--background-shade-color-2);
   }
 
-  // style active row
-  tbody tr.active-row {
-    font-weight: bold;
-    color: var(--surface-color);
+  tr.selected {
+    background-color: color-mix(in srgb, var(--secondary-color) 50%, white);
+    cursor: pointer;
+  }
+
+  tbody tr:hover {
+    background-color: color-mix(in srgb, var(--secondary-color) 20%, white);
   }
 }

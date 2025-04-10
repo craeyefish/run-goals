@@ -23,6 +23,7 @@ type GroupServiceInterface interface {
 
 	GetUserGroups(userID int64) ([]models.Group, error)
 	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
+	// GetGroupGoalDetails() ()
 }
 
 type GroupsService struct {

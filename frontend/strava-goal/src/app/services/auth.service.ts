@@ -7,6 +7,9 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class AuthService {
+
+  // selectedUserID signal?
+
   private stateKey = 'strava_oath_state';
   private tokenKey = 'jwt_token';
   private token: string | null = null;
@@ -49,7 +52,8 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      'https://craeyebytes.com/login/strava/callback'
+      // 'https://craeyebytes.com/login/strava/callback'
+      'https://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();

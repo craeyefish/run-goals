@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Group, GroupService } from 'src/app/services/groups.service';
 
 @Component({
@@ -9,19 +9,28 @@ import { Group, GroupService } from 'src/app/services/groups.service';
   styleUrl: './groups-table.component.scss',
 })
 export class GroupsTableComponent {
-  groups: Group[] = [];
 
-  constructor(private groupService: GroupService) { }
+  groups = signal<Group[]>([]);
+
+  constructor(public groupService: GroupService) { }
 
   ngOnInit() {
     const userID = 1;  // todo: get all user data from authservice signal or storage ?
     this.groupService.getGroups(userID).subscribe({
       next: (response) => {
-        this.groups = response.groups;
+        this.groups.set(response.groups);
+        if (response.groups.length > 0) {
+          this.groupService.selectedGroup.set(response.groups[0]);
+          console.log(this.groupService.selectedGroup())
+        }
       },
       error: (err) => {
         console.error('Failed to load groups', err)
       }
     })
+  }
+
+  selectGroup(group: Group) {
+    this.groupService.selectedGroup.set(group);
   }
 }

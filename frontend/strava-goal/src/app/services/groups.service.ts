@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -7,7 +7,19 @@ import { Observable } from 'rxjs';
 })
 export class GroupService {
 
+  selectedGroup = signal<Group | null>(null);
+  selectedGoal = signal<Goal | null>(null);
+  goalCreated = signal<boolean>(false);
+  goals = signal<Goal[]>([]);
+
   constructor(private http: HttpClient) { }
+
+  notifyGoalCreated() {
+    this.goalCreated.set(true);
+  }
+  resetGoalCreated() {
+    this.goalCreated.set(false);
+  }
 
   createGroup(request: CreateGroupRequest): Observable<any> {
     return this.http.post('/api/groups', request);
@@ -25,6 +37,28 @@ export class GroupService {
   getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
     const params = new HttpParams().set('groupID', groupID)
     return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params })
+  }
+
+  getGoalProgress(groupID: number, goalID: number): Observable<GetGroupGoalProgressResponse> {
+    const params = new HttpParams()
+      .set('goalID', goalID)
+      .set('groupID', groupID)
+    // this.http.get<GetGroupGoalProgressResponse>('/api/group-goal-progress', { params })
+    return this.http.get<GetGroupGoalProgressResponse>('/api/group-goals', { params })
+  }
+
+  loadGoals(groupID: number) {
+    this.getGroupGoals(groupID).subscribe({
+      next: (response) => {
+        this.goals.set(response.goals);
+        if (!this.selectedGoal() && response.goals.length > 0) {
+          this.selectedGoal.set(response.goals[0]);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load group goals', err)
+      }
+    })
   }
 
 }
@@ -46,6 +80,15 @@ export interface Goal {
   create_at: string;
 }
 
+export interface Member {
+  id: number;
+  name: string;
+  activities: number;
+  summits: number;
+  distance: number;
+  contribution: number;
+}
+
 export interface CreateGroupRequest {
   name: string;
   created_by: number;
@@ -65,4 +108,8 @@ export interface CreateGoalRequest {
 
 export interface GetGroupGoalsResponse {
   goals: Goal[];
+}
+
+export interface GetGroupGoalProgressResponse {
+  members: Member[];
 }

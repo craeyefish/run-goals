@@ -8,11 +8,17 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let goal of goals">
-      <td>{{ goal.name }}</td>
-      <td>{{ goal.target_value }}</td>
-      <td>{{ goal.start_date }}</td>
-      <td>{{ goal.end_date }}</td>
-    </tr>
+    <ng-container *ngIf="groupService.selectedGoal() as selectedGoal">
+      <tr
+        *ngFor="let goal of groupService.goals()"
+        (click)="selectGoal(goal)"
+        [class.selected]="goal === selectedGoal"
+      >
+        <td>{{ goal.name }}</td>
+        <td>{{ goal.target_value }}</td>
+        <td>{{ goal.start_date }}</td>
+        <td>{{ goal.end_date }}</td>
+      </tr>
+    </ng-container>
   </tbody>
 </table>

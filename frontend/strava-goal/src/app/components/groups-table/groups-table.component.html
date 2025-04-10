@@ -7,10 +7,16 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let group of groups">
-      <td>{{ group.name }}</td>
-      <td>{{ group.created_by }}</td>
-      <td>{{ group.created_at }}</td>
-    </tr>
+    <ng-container *ngIf="groupService.selectedGroup() as selectedGroup">
+      <tr
+        *ngFor="let group of groups()"
+        (click)="selectGroup(group)"
+        [class.selected]="group === selectedGroup"
+      >
+        <td>{{ group.name }}</td>
+        <td>{{ group.created_by }}</td>
+        <td>{{ group.created_at }}</td>
+      </tr>
+    </ng-container>
   </tbody>
 </table>

@@ -59,9 +59,15 @@ export class GroupsComponent {
       targetValue: string,
       startDate: string,
       endDate: string
-    }) => {
+    }
+  ) => {
+    const selectedGroup = this.groupService.selectedGroup();
+    if (!selectedGroup) {
+      console.log('No selectedGroup');
+      return;
+    }
     const requestPayload: CreateGoalRequest = {
-      group_id: 1, // todo: get selected group
+      group_id: selectedGroup.id,
       name: data.name,
       target_value: data.targetValue,
       start_date: data.startDate,
@@ -72,10 +78,11 @@ export class GroupsComponent {
       next: (response) => {
         console.log('Goal Created:', data);
         this.showCreateGoalForm.set(false);
+        this.groupService.notifyGoalCreated();
       },
       error: (err) => {
         console.error('Error creating group goal:', err)
       }
-    })
+    });
   }
 }

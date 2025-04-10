@@ -5,26 +5,16 @@
       <th>Activities</th>
       <th>Summits</th>
       <th>Distance</th>
+      <th>Contribution</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>Steven</td>
-      <td>10</td>
-      <td>1</td>
-      <td>50</td>
-    </tr>
-    <tr>
-      <td>Etienne</td>
-      <td>10</td>
-      <td>1</td>
-      <td>50</td>
-    </tr>
-    <tr>
-      <td>Cian</td>
-      <td>10</td>
-      <td>1</td>
-      <td>50</td>
+    <tr *ngFor="let member of members()">
+      <td>{{ member.name }}</td>
+      <td>{{ member.activities }}</td>
+      <td>{{ member.summits }}</td>
+      <td>{{ member.distance }}</td>
+      <td>{{ member.contribution }}</td>
     </tr>
   </tbody>
 </table>
