@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface Peak {
   id: number;
@@ -16,11 +16,34 @@ export interface Peak {
   providedIn: 'root',
 })
 export class PeakService {
+  private peaksSubject = new BehaviorSubject<Peak[] | null>(null);
+  peaks$ = this.peaksSubject.asObservable();
+  private loading = false;
+
   constructor(private http: HttpClient) {}
 
   // If you have a bounding-box approach, you'd pass minLat etc. as query params.
   // For now, assume we want all peaks:
-  getPeaks(): Observable<Peak[]> {
-    return this.http.get<Peak[]>('/api/peaks'); // Adjust path if needed
+  loadPeaks(): void {
+    if (this.peaksSubject.value) {
+      return;
+    }
+
+    if (this.loading) {
+      return;
+    }
+
+    this.loading = true;
+
+    this.http.get<Peak[]>('/api/peaks').subscribe({
+      next: (acts) => {
+        this.peaksSubject.next(acts);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load peaks', err);
+        this.loading = false;
+      },
+    });
   }
 }

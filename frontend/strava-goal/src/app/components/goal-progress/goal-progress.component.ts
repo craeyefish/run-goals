@@ -1,20 +1,19 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit } from '@angular/core';
 import {
-  ProgressService,
   GoalProgress,
-  UserContribution,
-} from "src/app/services/progress.service";
+  ProgressService,
+} from 'src/app/services/progress.service';
 
 @Component({
-  selector: "app-goal-progress",
+  selector: 'app-goal-progress',
   standalone: true,
-  templateUrl: "./goal-progress.component.html",
-  styleUrls: ["./goal-progress.component.scss"],
+  templateUrl: './goal-progress.component.html',
+  styleUrls: ['./goal-progress.component.scss'],
 })
 export class GoalProgressComponent implements OnInit {
   goalProgress: GoalProgress | null = null;
 
-  constructor(private progressService: ProgressService) { }
+  constructor(private progressService: ProgressService) {}
 
   ngOnInit(): void {
     this.progressService.getProgress().subscribe({
@@ -22,7 +21,7 @@ export class GoalProgressComponent implements OnInit {
         this.goalProgress = data;
       },
       error: (err) => {
-        console.error("Error fetching progress", err);
+        console.error('Error fetching progress', err);
       },
     });
   }

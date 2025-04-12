@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface Activity {
   id: number;
@@ -13,14 +13,39 @@ export interface Activity {
   has_summit: boolean; // true if at least one peak was bagged on this activity
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ActivityService {
+  private activitiesSubject = new BehaviorSubject<Activity[] | null>(null);
+  activities$ = this.activitiesSubject.asObservable();
+
+  private loading = false;
+
   constructor(private http: HttpClient) {}
 
-  // Adjust userId param as needed
-  getActivitiesForUser(): Observable<Activity[]> {
-    return this.http.get<Activity[]>(`/api/activities`);
+  loadActivities(forceRefresh: boolean = false): void {
+    if (this.activitiesSubject.value && !forceRefresh) {
+      return;
+    }
+
+    if (this.loading) {
+      return;
+    }
+
+    this.loading = true;
+
+    this.http.get<Activity[]>('/api/activities').subscribe({
+      next: (acts) => {
+        this.activitiesSubject.next(acts);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load activities', err);
+        this.loading = false;
+      },
+    });
+  }
+
+  refreshActivities(): void {
+    this.loadActivities(true);
   }
 }

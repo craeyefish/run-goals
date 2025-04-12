@@ -1,22 +1,14 @@
-<app-activity-map></app-activity-map>
-<app-peak-summit-table></app-peak-summit-table>
-<div *ngIf="goalProgress">
-  <h2>Group Goal: {{ goalProgress.goal }} km</h2>
-  <p>Current Total: {{ goalProgress.currentProgress | number : "1.0-2" }} km</p>
-
+<div *ngIf="goalProgress; else loading">
   <div class="progress-bar-container">
     <div
       class="progress-bar"
-      [style.width.%]="(goalProgress.currentProgress / goalProgress.goal) * 100"
+      [style.width.%]="
+        (goalProgress!.currentProgress / goalProgress!.goal) * 100
+      "
     ></div>
   </div>
-
-  <h3>Individual Contributions</h3>
-  <ul>
-    <li *ngFor="let c of goalProgress.contributions">
-      {{ c.name }}: {{ c.totalDistance | number : "1.0-2" }} km
-    </li>
-  </ul>
 </div>
 
-<div *ngIf="!goalProgress">Loading...</div>
+<ng-template #loading>
+  <p>Loading progress...</p>
+</ng-template>

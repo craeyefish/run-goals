@@ -3,24 +3,46 @@
     <h3 class="mb-0 me-3">Activities</h3>
     <button class="btn btn-primary">Refresh</button>
   </div>
+
   <table class="table table-striped">
     <thead>
       <tr>
         <th scope="col">ID</th>
         <th scope="col">Date</th>
         <th scope="col">KM</th>
-        <th scope="col">Summits</th>
-        <th scope="col">Location</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let act of activities">
+      <tr *ngFor="let act of paginatedActivities">
         <td>{{ act.id }}</td>
-        <td>{{ act.date }}</td>
-        <td>{{ act.km }}</td>
-        <td>{{ act.summits }}</td>
-        <td>{{ act.location }}</td>
+        <td>{{ act.start_date }}</td>
+        <td>{{ act.distance }}</td>
       </tr>
     </tbody>
   </table>
+
+  <!-- Pagination Controls -->
+  <nav *ngIf="totalPages() > 1">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" (click)="goToPage(currentPage - 1)">Previous</a>
+      </li>
+
+      <li
+        class="page-item"
+        *ngFor="let page of getDisplayedPages()"
+        [class.active]="page === currentPage"
+        [class.disabled]="page === -1"
+      >
+        <a class="page-link" *ngIf="page !== -1" (click)="goToPage(page)">{{
+          page
+        }}</a>
+        <span class="page-link" *ngIf="page === -1">...</span>
+      </li>
+
+      <li class="page-item" [class.disabled]="currentPage === totalPages()">
+        <a class="page-link" (click)="goToPage(currentPage + 1)">Next</a>
+      </li>
+    </ul>
+  </nav>
 </div>

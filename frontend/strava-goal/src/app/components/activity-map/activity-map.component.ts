@@ -4,6 +4,7 @@ import * as polyline from '@mapbox/polyline';
 import 'leaflet.markercluster';
 import { ActivityService, Activity } from 'src/app/services/activity.service';
 import { PeakService, Peak } from 'src/app/services/peak.service';
+import { filter } from 'rxjs';
 
 export const defaultPeakIcon = L.icon({
   iconUrl: 'assets/summit-icon.png', // your default summit icon
@@ -43,9 +44,20 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.initMap();
 
-    // Fetch both data sets in parallel
-    this.loadActivities();
-    this.loadPeaks();
+    this.activityService.loadActivities();
+    this.activityService.activities$
+      .pipe(filter((acts) => acts !== null))
+      .subscribe((acts) => {
+        this.activities = acts!;
+        this.displayActivities();
+      });
+
+    this.peakService.loadPeaks();
+    this.peakService.peaks$
+      .pipe(filter((peaks) => peaks !== null))
+      .subscribe((peaks) => {
+        this.peaks = peaks!;
+      });
   }
 
   ngAfterViewInit() {
@@ -68,18 +80,6 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
     this.markerClusterGroup = L.markerClusterGroup();
     // We'll add markers to this group once we fetch them
     this.map.addLayer(this.markerClusterGroup);
-  }
-
-  loadActivities(): void {
-    this.activityService.getActivitiesForUser().subscribe({
-      next: (data) => {
-        this.activities = data;
-        this.displayActivities();
-      },
-      error: (err) => {
-        console.error('Error fetching activities:', err);
-      },
-    });
   }
 
   displayActivities(): void {
@@ -122,18 +122,6 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
         });
       }
     }
-  }
-
-  loadPeaks(): void {
-    this.peakService.getPeaks().subscribe({
-      next: (data) => {
-        this.peaks = data;
-        this.displayPeaks();
-      },
-      error: (err) => {
-        console.error('Error fetching peaks:', err);
-      },
-    });
   }
 
   displayPeaks(): void {
