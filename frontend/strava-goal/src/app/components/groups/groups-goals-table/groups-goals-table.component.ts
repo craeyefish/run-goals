@@ -9,7 +9,6 @@ import { Goal, GroupService } from 'src/app/services/groups.service';
   styleUrl: './groups-goals-table.component.scss',
 })
 export class GroupsGoalsTableComponent {
-  goals = signal<Goal[]>([]);
   public groupService = inject(GroupService);
 
   constructor() {
@@ -26,7 +25,6 @@ export class GroupsGoalsTableComponent {
         if (selectedGroup) {
           this.groupService.loadGoals(selectedGroup.id);
         }
-        this.groupService.resetGoalCreated()
       }
     })
   }

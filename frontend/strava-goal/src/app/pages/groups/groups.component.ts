@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal } from '@angular/core';
-import { AppButtonComponent } from 'src/app/components/app-button/app-button.component';
-import { GoalsCreateFormComponent } from 'src/app/components/goals-create-form/goals-create-form.component';
-import { GroupsCreateFormComponent } from 'src/app/components/groups-create-form/groups-create-form.component';
-import { GroupsGoalsTableComponent } from 'src/app/components/groups-goals-table/groups-goals-table.component';
-import { GroupsMembersTableComponent } from 'src/app/components/groups-members-table/groups-members-table.component';
-import { GroupsProgressBarComponent } from 'src/app/components/groups-progress-bar/groups-progress-bar.component';
-import { GroupsTableComponent } from 'src/app/components/groups-table/groups-table.component';
-import { CreateGoalRequest, CreateGroupRequest, GroupService } from 'src/app/services/groups.service';
+import { AppButtonComponent } from 'src/app/components/app/app-button/app-button.component';
+import { GoalsCreateFormComponent } from 'src/app/components/groups/goals-create-form/goals-create-form.component';
+import { GroupsCreateFormComponent } from 'src/app/components/groups/groups-create-form/groups-create-form.component';
+import { GroupsGoalsTableComponent } from 'src/app/components/groups/groups-goals-table/groups-goals-table.component';
+import { GroupsMembersTableComponent } from 'src/app/components/groups/groups-members-table/groups-members-table.component';
+import { GroupsProgressBarComponent } from 'src/app/components/groups/groups-progress-bar/groups-progress-bar.component';
+import { GroupsTableComponent } from 'src/app/components/groups/groups-table/groups-table.component';
+import { CreateGoalRequest, CreateGroupRequest, CreateGroupResponse, GroupService } from 'src/app/services/groups.service';
 
 
 @Component({
@@ -44,8 +44,9 @@ export class GroupsComponent {
 
     this.groupService.createGroup(requestPayload).subscribe({
       next: (response) => {
-        console.log('Group Created:', data);
+        console.log('Group Created:', response);
         this.showCreateGroupForm.set(false);
+        this.groupService.notifyGroupCreated(response.group_id);
       },
       error: (err) => {
         console.error('Error creating group:', err)
@@ -78,7 +79,7 @@ export class GroupsComponent {
       next: (response) => {
         console.log('Goal Created:', data);
         this.showCreateGoalForm.set(false);
-        this.groupService.notifyGoalCreated();
+        this.groupService.notifyGoalCreated(response.goal_id);
       },
       error: (err) => {
         console.error('Error creating group goal:', err)

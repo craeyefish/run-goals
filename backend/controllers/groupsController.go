@@ -54,11 +54,20 @@ func (c *GroupsController) CreateGroup(rw http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	err := c.groupsService.CreateGroup(request)
+	groupID, err := c.groupsService.CreateGroup(request)
 	if err != nil {
 		c.l.Printf("Error creating group: %v", err)
 		http.Error(rw, "Failed to create group", http.StatusInternalServerError)
 		return
+	}
+
+	response := dto.CreateGroupResponse{
+		GroupID: *groupID,
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding CreateGroupResponse:", err)
 	}
 }
 
@@ -191,11 +200,20 @@ func (c *GroupsController) CreateGroupGoal(rw http.ResponseWriter, r *http.Reque
 	}
 	defer r.Body.Close()
 
-	err := c.groupsService.CreateGroupGoal(request)
+	goalID, err := c.groupsService.CreateGroupGoal(request)
 	if err != nil {
 		c.l.Printf("Error creating group goal: %v", err)
 		http.Error(rw, "Failed to create group goal", http.StatusInternalServerError)
 		return
+	}
+
+	response := dto.CreateGroupGoalResponse{
+		GoalID: *goalID,
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding CreateGroupGoalResponse:", err)
 	}
 }
 

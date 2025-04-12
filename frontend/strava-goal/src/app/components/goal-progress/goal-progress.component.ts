@@ -3,7 +3,7 @@ import {
   ProgressService,
   GoalProgress,
   UserContribution,
-} from "../services/progress.service";
+} from "src/app/services/progress.service";
 
 @Component({
   selector: "app-goal-progress",
@@ -14,7 +14,7 @@ import {
 export class GoalProgressComponent implements OnInit {
   goalProgress: GoalProgress | null = null;
 
-  constructor(private progressService: ProgressService) {}
+  constructor(private progressService: ProgressService) { }
 
   ngOnInit(): void {
     this.progressService.getProgress().subscribe({

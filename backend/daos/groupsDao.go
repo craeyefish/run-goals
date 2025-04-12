@@ -7,7 +7,7 @@ import (
 )
 
 type GroupsDaoInterface interface {
-	CreateGroup(request models.Group) error
+	CreateGroup(request models.Group) (int64, error)
 	UpdateGroup(group models.Group) error
 	DeleteGroup(groupID int64) error
 
@@ -15,7 +15,7 @@ type GroupsDaoInterface interface {
 	UpdateGroupMember(member models.GroupMember) error
 	DeleteGroupMember(userID int64) error
 
-	CreateGroupGoal(goal models.GroupGoal) error
+	CreateGroupGoal(goal models.GroupGoal) (int64, error)
 	UpdateGroupGoal(goal models.GroupGoal) error
 	DeleteGroupGoal(goalID int64) error
 
@@ -139,7 +139,8 @@ func (dao *GroupsDao) DeleteGroupMember(userID int64, groupID int64) error {
 	return nil
 }
 
-func (dao *GroupsDao) CreateGroupGoal(goal models.GroupGoal) error {
+func (dao *GroupsDao) CreateGroupGoal(goal models.GroupGoal) (*int64, error) {
+	var id int64
 	sql := `
 		INSERT INTO group_goals (
 			group_id,
@@ -150,14 +151,15 @@ func (dao *GroupsDao) CreateGroupGoal(goal models.GroupGoal) error {
 			created_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6
-		);
+		)
+		RETURNING id;
 	`
-	_, err := dao.db.Exec(sql, goal.GroupID, goal.Name, goal.TargetValue, goal.StartDate, goal.EndDate, goal.CreatedAt)
+	err := dao.db.QueryRow(sql, goal.GroupID, goal.Name, goal.TargetValue, goal.StartDate, goal.EndDate, goal.CreatedAt).Scan(&id)
 	if err != nil {
 		dao.l.Printf("Error adding group goal: %v", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return &id, nil
 }
 
 func (dao *GroupsDao) UpdateGroupGoal(goal models.GroupGoal) error {

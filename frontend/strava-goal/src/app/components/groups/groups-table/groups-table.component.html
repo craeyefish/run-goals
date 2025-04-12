@@ -9,7 +9,7 @@
   <tbody>
     <ng-container *ngIf="groupService.selectedGroup() as selectedGroup">
       <tr
-        *ngFor="let group of groups()"
+        *ngFor="let group of groupService.groups()"
         (click)="selectGroup(group)"
         [class.selected]="group === selectedGroup"
       >

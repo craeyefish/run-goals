@@ -9,7 +9,7 @@ import (
 )
 
 type GroupServiceInterface interface {
-	CreateGroup(request dto.CreateGroupRequest) error
+	CreateGroup(request dto.CreateGroupRequest) (int64, error)
 	UpdateGroup(group dto.UpdateGroupRequest) error
 	DeleteGroup(groupID int64) error
 
@@ -17,7 +17,7 @@ type GroupServiceInterface interface {
 	UpdateGroupMember(member dto.UpdateGroupMemberRequest) error
 	DeleteGroupMember(userID int64, groupID int64) error
 
-	CreateGroupGoal(goal dto.CreateGroupGoalRequest) error
+	CreateGroupGoal(goal dto.CreateGroupGoalRequest) (int64, error)
 	UpdateGroupGoal(goal dto.UpdateGroupGoalRequest) error
 	DeleteGroupGoal(goalID int64) error
 
@@ -41,7 +41,7 @@ func NewGroupsService(
 	}
 }
 
-func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) error {
+func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) (*int64, error) {
 	group := models.Group{
 		ID:        0,
 		Name:      request.Name,
@@ -51,7 +51,7 @@ func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) error {
 	groupID, err := s.groupsDao.CreateGroup(group)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.CreateGroup: %v", err)
-		return err
+		return nil, err
 	}
 
 	groupMember := models.GroupMember{
@@ -63,10 +63,10 @@ func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) error {
 	err = s.groupsDao.CreateGroupMember(groupMember)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.CreateGroupMember: %v", err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return groupID, nil
 }
 
 func (s *GroupsService) UpdateGroup(request dto.UpdateGroupRequest) error {
@@ -134,7 +134,7 @@ func (s *GroupsService) DeleteGroupMember(userID int64, groupID int64) error {
 	return nil
 }
 
-func (s *GroupsService) CreateGroupGoal(request dto.CreateGroupGoalRequest) error {
+func (s *GroupsService) CreateGroupGoal(request dto.CreateGroupGoalRequest) (*int64, error) {
 	goal := models.GroupGoal{
 		ID:          0,
 		GroupID:     request.GroupID,
@@ -144,12 +144,12 @@ func (s *GroupsService) CreateGroupGoal(request dto.CreateGroupGoalRequest) erro
 		EndDate:     request.EndDate,
 		CreatedAt:   time.Now(),
 	}
-	err := s.groupsDao.CreateGroupGoal(goal)
+	goalID, err := s.groupsDao.CreateGroupGoal(goal)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.CreateGroupGoal: %v", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return goalID, nil
 }
 
 func (s *GroupsService) UpdateGroupGoal(request dto.UpdateGroupGoalRequest) error {

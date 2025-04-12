@@ -7,22 +7,17 @@ import { Observable } from 'rxjs';
 })
 export class GroupService {
 
+  groups = signal<Group[]>([]);
+  groupCreated = signal<number | null>(null);
   selectedGroup = signal<Group | null>(null);
-  selectedGoal = signal<Goal | null>(null);
-  goalCreated = signal<boolean>(false);
   goals = signal<Goal[]>([]);
+  goalCreated = signal<number | null>(null);
+  selectedGoal = signal<Goal | null>(null);
 
   constructor(private http: HttpClient) { }
 
-  notifyGoalCreated() {
-    this.goalCreated.set(true);
-  }
-  resetGoalCreated() {
-    this.goalCreated.set(false);
-  }
-
-  createGroup(request: CreateGroupRequest): Observable<any> {
-    return this.http.post('/api/groups', request);
+  createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
+    return this.http.post<CreateGroupResponse>('/api/groups', request);
   }
 
   getGroups(userID: number): Observable<GetGroupsResponse> {
@@ -30,8 +25,8 @@ export class GroupService {
     return this.http.get<GetGroupsResponse>('/api/groups', { params })
   }
 
-  createGoal(request: CreateGoalRequest): Observable<any> {
-    return this.http.post('/api/group-goal', request);
+  createGoal(request: CreateGoalRequest): Observable<CreateGoalResponse> {
+    return this.http.post<CreateGoalResponse>('/api/group-goal', request);
   }
 
   getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
@@ -47,11 +42,34 @@ export class GroupService {
     return this.http.get<GetGroupGoalProgressResponse>('/api/group-goals', { params })
   }
 
+  loadGroups() {
+    const userID = 1;
+    this.getGroups(userID).subscribe({
+      next: (response) => {
+        this.groups.set(response.groups);
+        const createdGroup = this.groups().find(group => group.id === this.groupCreated());
+        if (createdGroup) {
+          this.selectedGroup.set(createdGroup);
+          this.resetGroupCreated();
+        } else if (response.groups.length > 0) {
+          this.selectedGroup.set(response.groups[0]);
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load groups', err)
+      }
+    })
+  }
+
   loadGoals(groupID: number) {
     this.getGroupGoals(groupID).subscribe({
       next: (response) => {
         this.goals.set(response.goals);
-        if (!this.selectedGoal() && response.goals.length > 0) {
+        const createdGoal = this.goals().find(goal => goal.id === this.goalCreated());
+        if (createdGoal) {
+          this.selectedGoal.set(createdGoal);
+          this.resetGoalCreated();
+        } else if (response.goals.length > 0) {
           this.selectedGoal.set(response.goals[0]);
         }
       },
@@ -59,6 +77,20 @@ export class GroupService {
         console.error('Failed to load group goals', err)
       }
     })
+  }
+
+  notifyGoalCreated(goalID: number) {
+    this.goalCreated.set(goalID);
+  }
+  resetGoalCreated() {
+    this.goalCreated.set(null);
+  }
+
+  notifyGroupCreated(groupID: number) {
+    this.groupCreated.set(groupID);
+  }
+  resetGroupCreated() {
+    this.groupCreated.set(null);
   }
 
 }
@@ -94,6 +126,10 @@ export interface CreateGroupRequest {
   created_by: number;
 }
 
+export interface CreateGroupResponse {
+  group_id: number;
+}
+
 export interface GetGroupsResponse {
   groups: Group[];
 }
@@ -104,6 +140,10 @@ export interface CreateGoalRequest {
   target_value: string;
   start_date: string;
   end_date: string;
+}
+
+export interface CreateGoalResponse {
+  goal_id: number;
 }
 
 export interface GetGroupGoalsResponse {
