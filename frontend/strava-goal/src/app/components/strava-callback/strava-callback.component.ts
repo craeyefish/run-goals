@@ -22,7 +22,8 @@ export class StravaCallbackComponent implements OnInit {
         // Exchange code for JWT by calling the backend
         this.authService.loginWithStravaAuth(code).subscribe({
           next: (res) => {
-            this.authService.storeToken(res.token);
+            this.authService.storeAccessToken(res.accessToken);
+            this.authService.storeRefreshToken(res.refreshToken);
             // Now the user is logged in, navigate to the main page
             this.router.navigate(['/']);
           },

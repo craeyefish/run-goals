@@ -28,11 +28,23 @@ func NewJWTService(
 	}
 }
 
-func (j *JWTService) GenerateToken(userID int64) (string, error) {
+func (j *JWTService) GenerateAccessToken(userID int64) (string, error) {
 	// Create the claims
 	claims := jwt.MapClaims{
 		"sub": float64(userID),
-		"exp": time.Now().Add(time.Hour * 24).Unix(), // 24 hour expiry
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(j.secretKey)
+}
+
+func (j *JWTService) GenerateRefreshToken(userID int64) (string, error) {
+	// Create the claims
+	claims := jwt.MapClaims{
+		"sub": float64(userID),
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 day expiry
 		"iat": time.Now().Unix(),
 	}
 

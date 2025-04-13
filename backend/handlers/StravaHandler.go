@@ -38,8 +38,5 @@ func (handler *StravaHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request)
 		default:
 			http.Error(rw, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	case "/auth/strava/callback":
-		handler.stravaController.ProcessCallback(rw, r)
-		return
 	}
 }

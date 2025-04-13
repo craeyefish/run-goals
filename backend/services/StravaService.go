@@ -278,10 +278,12 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 	}
 
 	// 2. Store (or update) the user in the DB
+	var newUser bool
 	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
 	if errors.Is(err, daos.ErrUserNotFound) {
 		// NoReturnErr: User not found, continue and create one.
 		user = &models.User{}
+		newUser = true
 	} else if err != nil {
 		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
 		return nil, err
@@ -301,7 +303,10 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 	s.l.Printf("Upsert new user: AthleteID %d", tokenRes.Athlete.Id)
 
 	// 3. Pull activities
-	s.FetchAndStoreUserActivities(user)
+	if newUser {
+		s.FetchAndStoreUserActivities(user)
+	}
+
 	return user, nil
 }
 
