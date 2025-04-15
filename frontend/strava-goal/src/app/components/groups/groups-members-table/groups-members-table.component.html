@@ -1,20 +1,22 @@
 <table>
   <thead>
     <tr>
-      <th>Name</th>
+      <th>UserID</th>
+      <th>Role</th>
       <th>Activities</th>
-      <th>Summits</th>
       <th>Distance</th>
-      <th>Contribution</th>
+      <th>Unique Summits</th>
+      <th>Summits</th>
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let member of members()">
-      <td>{{ member.name }}</td>
-      <td>{{ member.activities }}</td>
-      <td>{{ member.summits }}</td>
-      <td>{{ member.distance }}</td>
-      <td>{{ member.contribution }}</td>
+    <tr *ngFor="let member of groupService.membersContribution()">
+      <td>{{ member.user_id }}</td>
+      <td>{{ member.role }}</td>
+      <td>{{ member.total_activities }}</td>
+      <td>{{ member.total_distance }}</td>
+      <td>{{ member.total_unique_summits }}</td>
+      <td>{{ member.total_summits }}</td>
     </tr>
   </tbody>
 </table>

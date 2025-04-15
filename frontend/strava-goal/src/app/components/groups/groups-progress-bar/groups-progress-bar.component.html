@@ -1,5 +1,8 @@
 <div class="progress-bar-container">
-  <div class="progress-bar-fill">
-    <span>?%</span>
+  <div class="progress-bar-fill" [style.width.%]="distanceProgress()">
+    <span>{{ distanceProgress() }}</span>
   </div>
 </div>
+
+// todo: 1. update backend and frontend goals to accept distance and summits 2.
+update group progress bar ... app component??

@@ -7,6 +7,7 @@ import (
 	"run-goals/dto"
 	"run-goals/services"
 	"strconv"
+	"time"
 )
 
 type GroupsControllerInterface interface {
@@ -18,13 +19,12 @@ type GroupsControllerInterface interface {
 	CreateGroupMember(rw http.ResponseWriter, r *http.Request)
 	UpdateGroupMember(rw http.ResponseWriter, r *http.Request)
 	DeleteGroupMember(rw http.ResponseWriter, r *http.Request)
+	GetGroupMembersGoalContribution(rw http.ResponseWriter, r *http.Request)
 
 	CreateGroupGoal(rw http.ResponseWriter, r *http.Request)
 	UpdateGroupGoal(rw http.ResponseWriter, r *http.Request)
 	DeleteGroupGoal(rw http.ResponseWriter, r *http.Request)
 	GetGroupGoals(rw http.ResponseWriter, r *http.Request)
-
-	// todo: get goal progress
 }
 
 type GroupsController struct {
@@ -306,7 +306,6 @@ func (c *GroupsController) GetGroupGoals(rw http.ResponseWriter, r *http.Request
 		http.Error(rw, "Invalid group ID", http.StatusBadRequest)
 		return
 	}
-	// todo
 	goals, err := c.groupsService.GetGroupGoals(id)
 	response := dto.GetGroupGoalsResponse{
 		Goals: goals,
@@ -314,6 +313,62 @@ func (c *GroupsController) GetGroupGoals(rw http.ResponseWriter, r *http.Request
 	if err != nil {
 		c.l.Printf("Error getting user groups %v", err)
 		http.Error(rw, "Failed to get user groups", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the array of Goals as JSON
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding groups:", err)
+	}
+}
+
+func (c *GroupsController) GetGroupMembersGoalContribution(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle GET group-member - get group member goal contributions")
+
+	// extract groupID from url
+	str := r.URL.Query().Get("groupID")
+	if str == "" {
+		http.Error(rw, "missing groupID", http.StatusBadRequest)
+		return
+	}
+	groupID, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		http.Error(rw, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	// extract startDate from url
+	str = r.URL.Query().Get("startDate")
+	if str == "" {
+		http.Error(rw, "missing startDate", http.StatusBadRequest)
+		return
+	}
+	startDate, err := time.Parse("2006-01-02", str)
+	if err != nil {
+		http.Error(rw, "Invalid start date", http.StatusBadRequest)
+		return
+	}
+
+	// extract endDate from url
+	str = r.URL.Query().Get("endDate")
+	if str == "" {
+		http.Error(rw, "missing endDate", http.StatusBadRequest)
+		return
+	}
+	endDate, err := time.Parse("2006-01-02", str)
+	if err != nil {
+		http.Error(rw, "Invalid start date", http.StatusBadRequest)
+		return
+	}
+
+	groupMembersGoalContribution, err := c.groupsService.GetGroupMembersGoalContribution(groupID, startDate, endDate)
+	response := dto.GetGroupMembersGoalContributionResponse{
+		Members: groupMembersGoalContribution,
+	}
+	if err != nil {
+		c.l.Printf("Error getting group members goal contribution %v", err)
+		http.Error(rw, "Failed to get group members goal contribution", http.StatusInternalServerError)
 		return
 	}
 

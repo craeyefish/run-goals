@@ -19,7 +19,7 @@
   </div>
   <div class="group-details-container">
     <div class="group-title-container">
-      <span>2025 WOOP WOOP</span>
+      <span *ngIf="selectedGoal() as goal">{{ goal.name }}</span>
     </div>
     <div class="group-progress-container">
       <div class="inner-container">

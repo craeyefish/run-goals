@@ -31,5 +31,6 @@ export class GroupsGoalsTableComponent {
 
   selectGoal(goal: Goal) {
     this.groupService.selectedGoal.set(goal);
+    this.groupService.notifySelectedGoalChange();
   }
 }

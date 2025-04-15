@@ -70,6 +70,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.groupsController.DeleteGroupMember(rw, r)
 			return
 		}
+		if r.Method == http.MethodGet {
+			handler.groupsController.GetGroupMembersGoalContribution(rw, r)
+			return
+		}
 	case "/api/group-goal":
 		if r.Method == http.MethodPost {
 			handler.groupsController.CreateGroupGoal(rw, r)

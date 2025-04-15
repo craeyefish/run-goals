@@ -16,6 +16,7 @@ type GroupServiceInterface interface {
 	CreateGroupMember(member dto.CreateGroupMemberRequest) error
 	UpdateGroupMember(member dto.UpdateGroupMemberRequest) error
 	DeleteGroupMember(userID int64, groupID int64) error
+	GetGroupMembersGoalContribution(groupID int64, startDate time.Time, endDate time.Time) ([]models.GroupMemberGoalContribution, error)
 
 	CreateGroupGoal(goal dto.CreateGroupGoalRequest) (int64, error)
 	UpdateGroupGoal(goal dto.UpdateGroupGoalRequest) error
@@ -23,7 +24,6 @@ type GroupServiceInterface interface {
 
 	GetUserGroups(userID int64) ([]models.Group, error)
 	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
-	// GetGroupGoalDetails() ()
 }
 
 type GroupsService struct {
@@ -195,4 +195,13 @@ func (s *GroupsService) GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
 		return nil, err
 	}
 	return groupGoals, nil
+}
+
+func (s *GroupsService) GetGroupMembersGoalContribution(groupID int64, startDate time.Time, endDate time.Time) ([]models.GroupMemberGoalContribution, error) {
+	groupMembersContribution, err := s.groupsDao.GetGroupMembersGoalContribution(groupID, startDate, endDate)
+	if err != nil {
+		s.l.Printf("Error calling groupsDao.GetGroupMembersGoalContribution: %v", err)
+		return nil, err
+	}
+	return groupMembersContribution, nil
 }

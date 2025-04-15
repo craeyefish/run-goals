@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   GoalProgress,
@@ -6,6 +7,7 @@ import {
 
 @Component({
   selector: 'app-goal-progress',
+  imports: [CommonModule],
   standalone: true,
   templateUrl: './goal-progress.component.html',
   styleUrls: ['./goal-progress.component.scss'],
@@ -13,7 +15,7 @@ import {
 export class GoalProgressComponent implements OnInit {
   goalProgress: GoalProgress | null = null;
 
-  constructor(private progressService: ProgressService) {}
+  constructor(private progressService: ProgressService) { }
 
   ngOnInit(): void {
     this.progressService.getProgress().subscribe({

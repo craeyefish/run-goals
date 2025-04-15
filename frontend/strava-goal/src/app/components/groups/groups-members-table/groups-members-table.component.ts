@@ -1,7 +1,5 @@
-import { Component, effect, inject, signal } from '@angular/core';
-import { GroupService, Member } from 'src/app/services/groups.service';
-import { GroupsTableComponent } from '../groups-table/groups-table.component';
-import { GroupsGoalsTableComponent } from '../groups-goals-table/groups-goals-table.component';
+import { Component, effect, inject } from '@angular/core';
+import { GroupService } from 'src/app/services/groups.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,21 +9,23 @@ import { CommonModule } from '@angular/common';
   styleUrl: './groups-members-table.component.scss',
 })
 export class GroupsMembersTableComponent {
+  public groupService = inject(GroupService);
 
-  members = signal<Member[]>([]);
-
-  constructor(private groupService: GroupService) {
+  constructor() {
     effect(() => {
       const group = this.groupService.selectedGroup();
       const goal = this.groupService.selectedGoal();
+      const selectedGoalChange = this.groupService.selectedGoalChange();
+      const memberChange = this.groupService.memberAddedOrRemoved();
 
-      if (group && goal) {
-        this.groupService.getGoalProgress(group.id, goal.id).subscribe({
-          next: (response) => this.members.set(response.members),
+      if ((selectedGoalChange || memberChange) && (group && goal)) {
+        this.groupService.getGroupMembersGoalContribution(group.id, goal.start_date, goal.end_date).subscribe({
+          next: (response) => this.groupService.membersContribution.set(response.members),
           error: (err) => console.error('Failed to load members', err)
         });
+        this.groupService.resetSelectedGoalChange();
       } else {
-        this.members.set([]);
+        this.groupService.membersContribution.set([]);
       }
     })
   }
