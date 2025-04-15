@@ -9,7 +9,8 @@ INSERT INTO
         map_polyline,
         created_at,
         updated_at,
-        has_summit
+        has_summit,
+        photo_url
     )
 VALUES
     (
@@ -22,7 +23,8 @@ VALUES
         'xyz123',
         NOW (),
         NOW (),
-        TRUE
+        TRUE,
+        ''
     ),
     (
         2,
@@ -34,7 +36,8 @@ VALUES
         'abc456',
         NOW (),
         NOW (),
-        FALSE
+        FALSE,
+        ''
     ),
     (
         3,
@@ -46,7 +49,8 @@ VALUES
         'def789',
         NOW (),
         NOW (),
-        TRUE
+        TRUE,
+        ''
     ),
     (
         4,
@@ -58,7 +62,8 @@ VALUES
         'ghi012',
         NOW (),
         NOW (),
-        FALSE
+        FALSE,
+        ''
     ),
     (
         5,
@@ -70,7 +75,8 @@ VALUES
         'jkl345',
         NOW (),
         NOW (),
-        TRUE
+        TRUE,
+        ''
     ),
     (
         6,
@@ -82,7 +88,8 @@ VALUES
         'mno678',
         NOW (),
         NOW (),
-        FALSE
+        FALSE,
+        ''
     ),
     (
         7,
@@ -94,7 +101,8 @@ VALUES
         'pqr901',
         NOW (),
         NOW (),
-        TRUE
+        TRUE,
+        ''
     ),
     (
         8,
@@ -106,7 +114,8 @@ VALUES
         'stu234',
         NOW (),
         NOW (),
-        FALSE
+        FALSE,
+        ''
     ),
     (
         9,
@@ -118,7 +127,8 @@ VALUES
         'vwx567',
         NOW (),
         NOW (),
-        TRUE
+        TRUE,
+        ''
     ),
     (
         10,
@@ -130,5 +140,6 @@ VALUES
         'yz0123',
         NOW (),
         NOW (),
-        FALSE
+        FALSE,
+        ''
     );

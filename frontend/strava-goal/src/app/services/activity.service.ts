@@ -11,6 +11,7 @@ export interface Activity {
   start_date: string; // or Date if you parse it
   map_polyline: string;
   has_summit: boolean; // true if at least one peak was bagged on this activity
+  photo_url?: string;
 }
 
 @Injectable({ providedIn: 'root' })

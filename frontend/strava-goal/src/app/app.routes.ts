@@ -11,6 +11,7 @@ import { StravaCallbackComponent } from './components/strava-callback/strava-cal
 import { StravaCallbackGuard } from './guards/strava-callback.guard';
 import { NoAuthGuard } from './guards/no-auth.guard';
 import { AuthPageComponent } from './pages/auth/auth.component';
+import { HikeGangComponent } from './components/hike-gang/hike-gang.component';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,7 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: 'hg', component: HikeGangComponent },
   {
     path: '',
     component: MainLayoutComponent,

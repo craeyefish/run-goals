@@ -37,9 +37,10 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 			map_polyline,
 			created_at,
 			updated_at,
-			has_summit
+			has_summit,
+			photo_url
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 		) ON CONFLICT (
 			strava_activity_id
 		) DO UPDATE
@@ -50,7 +51,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
           		start_date = EXCLUDED.start_date,
             	map_polyline = EXCLUDED.map_polyline,
              	updated_at = EXCLUDED.updated_at,
-              	has_summit = EXCLUDED.has_summit;
+              	has_summit = EXCLUDED.has_summit,
+				photo_url = EXCLUDED.photo_url;
 	`
 	_, err := dao.db.Exec(
 		sql,
@@ -64,6 +66,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 		activity.CreatedAt,
 		activity.UpdatedAt,
 		activity.HasSummit,
+		activity.PhotoURL,
 	)
 	if err != nil {
 		dao.l.Printf("Error upserting activity: %v", err)
@@ -83,7 +86,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 			name,
 			distance,
 			start_date,
-			map_polyline
+			map_polyline,
+			photo_url
 		FROM activity
 		WHERE
 			user_id = $1;
@@ -105,6 +109,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 			&activity.Distance,
 			&activity.StartDate,
 			&activity.MapPolyline,
+			&activity.PhotoURL,
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)
@@ -132,7 +137,8 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 			name,
 			distance,
 			start_date,
-			map_polyline
+			map_polyline,
+			photo_url
 		FROM activity
 		WHERE
 			id = $1;
@@ -147,6 +153,7 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 		&activity.Distance,
 		&activity.StartDate,
 		&activity.MapPolyline,
+		&activity.PhotoURL,
 	)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
@@ -167,7 +174,8 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 			name,
 			distance,
 			start_date,
-			map_polyline
+			map_polyline,
+			photo_url
 		FROM activity
 	`
 	rows, err := dao.db.Query(sql)
@@ -187,6 +195,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 			&activity.Distance,
 			&activity.StartDate,
 			&activity.MapPolyline,
+			&activity.PhotoURL,
 		)
 		if err != nil {
 			dao.l.Println("Error parsing query result", err)

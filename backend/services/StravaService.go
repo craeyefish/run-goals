@@ -67,6 +67,12 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 			// upsert (create or update) each activity in DB
 			// first convert stravaActivity into our activity model
 
+			var photoURL string
+			if stravaActivity.Photos.Count > 0 && len(stravaActivity.Photos.Primary.Urls) > 0 {
+				// pick whichever size you want, e.g. "600"
+				photoURL = stravaActivity.Photos.Primary.Urls["600"]
+			}
+
 			t, _ := time.Parse(time.RFC3339, stravaActivity.StartDate) // handle error properly
 			activity := models.Activity{
 				StravaActivityId: stravaActivity.ID,
@@ -76,6 +82,7 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 				Distance:         stravaActivity.Distance, // decide if you store in m or km
 				StartDate:        t,
 				MapPolyline:      stravaActivity.Map.SummaryPolyline,
+				PhotoURL:         photoURL,
 			}
 			if err := service.activityDao.UpsertActivity(&activity); err != nil {
 				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)
