@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { HikeGangComponent } from './hike-gang.component';
+import { HikeGangCoverComponent } from './hike-gang-cover.component';
 
-describe('HikeGangComponent', () => {
-  let component: HikeGangComponent;
-  let fixture: ComponentFixture<HikeGangComponent>;
+describe('HikeGangCoverComponent', () => {
+  let component: HikeGangCoverComponent;
+  let fixture: ComponentFixture<HikeGangCoverComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HikeGangComponent]
+      imports: [HikeGangCoverComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(HikeGangComponent);
+    fixture = TestBed.createComponent(HikeGangCoverComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

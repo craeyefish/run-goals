@@ -6,13 +6,13 @@ import 'leaflet.markercluster';
 import { ActivityService, Activity } from 'src/app/services/activity.service';
 
 @Component({
-  selector: 'app-hike-gang',
+  selector: 'app-hike-gang-activities',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './hike-gang.component.html',
-  styleUrls: ['./hike-gang.component.css'],
+  templateUrl: './hike-gang-activities.component.html',
+  styleUrls: ['./hike-gang-activities.component.css'],
 })
-export class HikeGangComponent implements OnInit {
+export class HikeGangActivitiesComponent implements OnInit {
   map!: L.Map;
   markerClusterGroup!: L.MarkerClusterGroup;
   hgActivities: Activity[] = [];
