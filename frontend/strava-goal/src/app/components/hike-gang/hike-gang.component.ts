@@ -21,6 +21,11 @@ export class HikeGangComponent implements OnInit {
 
   constructor(private activityService: ActivityService) {}
 
+  get totalDistanceKm(): number {
+    // Sum distances (in meters), then convert to kilometers
+    return this.hgActivities.reduce((sum, a) => sum + a.distance, 0) / 1000;
+  }
+
   ngOnInit(): void {
     this.activityService.loadActivities();
     this.activityService.activities$.subscribe((acts) => {

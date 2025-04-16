@@ -1,23 +1,27 @@
-<h1>Hike Gang ({{ hgActivities.length }})</h1>
+<h1>Hike Gang</h1>
 
 <!-- Map container -->
 <div id="hgMap" style="width: 100%; height: 400px"></div>
 
 <!-- Activities Feed -->
-<h2>#hg Activity Feed</h2>
 <div class="table-responsive" style="max-height: 300px; overflow-y: auto">
   <table class="table table-striped">
     <thead>
       <tr>
+        <th>No</th>
         <th>Name</th>
-        <th>Distance (km)</th>
+        <th>Distance ({{ totalDistanceKm | number : "1.2-2" }} km)</th>
         <th>Date</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let act of hgActivities" (click)="highlightActivity(act)">
+      <tr
+        *ngFor="let act of hgActivities; let i = index"
+        (click)="highlightActivity(act)"
+      >
+        <td>{{ hgActivities.length - i }}</td>
         <td>{{ act.name }}</td>
-        <td>{{ act.distance / 1000 | number : "1.2-2" }}</td>
+        <td>{{ act.distance / 1000 | number : "1.2-2" }} km</td>
         <td>{{ act.start_date | date : "short" }}</td>
       </tr>
     </tbody>
