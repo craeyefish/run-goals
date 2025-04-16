@@ -3,9 +3,11 @@ import {
   GoalProgress,
   ProgressService,
 } from 'src/app/services/progress.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-goal-progress',
+  imports: [CommonModule],
   standalone: true,
   templateUrl: './goal-progress.component.html',
   styleUrls: ['./goal-progress.component.scss'],
