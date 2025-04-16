@@ -6,7 +6,7 @@ import { Router, RouterLink } from '@angular/router';
   selector: 'hike-gang-cover',
   imports: [CommonModule, RouterLink],
   templateUrl: './hike-gang-cover.component.html',
-  styleUrl: './hike-gang-cover.component.css',
+  styleUrl: './hike-gang-cover.component.scss',
 })
 export class HikeGangCoverComponent {
   constructor(private router: Router) {}

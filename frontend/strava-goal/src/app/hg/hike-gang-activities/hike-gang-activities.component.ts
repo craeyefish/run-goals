@@ -18,6 +18,7 @@ export class HikeGangActivitiesComponent implements OnInit {
   hgActivities: Activity[] = [];
   private polylinesById: Record<number, L.Polyline> = {};
   private lastHighlightedPolyline: L.Polyline | null = null;
+  private homeBounds!: L.LatLngBounds;
 
   constructor(private activityService: ActivityService) {}
 
@@ -54,12 +55,18 @@ export class HikeGangActivitiesComponent implements OnInit {
       zoom: 12,
     });
 
+    this.homeBounds = this.map.getBounds();
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
     this.markerClusterGroup = L.markerClusterGroup();
     this.map.addLayer(this.markerClusterGroup);
+  }
+
+  resetMap(): void {
+    this.map.fitBounds(this.homeBounds);
   }
 
   displayActivities(): void {
