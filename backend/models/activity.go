@@ -13,6 +13,7 @@ type Activity struct {
 	Distance         float64   `json:"distance"`
 	StartDate        time.Time `json:"start_date"`
 	MapPolyline      string    `json:"map_polyline"`
+	PhotoURL         string    `json:"photo_url"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

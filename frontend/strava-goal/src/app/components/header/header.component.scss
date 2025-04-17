@@ -7,6 +7,31 @@ header {
   background-color: var(--background-color);
   color: --text-color;
 
+  h5 {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  .powered-by {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .nav-logout {
+      padding: 0.35rem 0.8rem;
+      background-color: white;
+      border: solid 2px #e9eded; 
+      border-radius: 2rem;
+      margin-right: 1rem;
+      cursor: pointer;
+      &:hover {
+        background-color: #e9eded;
+        border: solid 2px #e9eded;
+        font-weight: bold;
+      }
+    }
+  }
+
   .title {
     display: flex;
     align-items: center;

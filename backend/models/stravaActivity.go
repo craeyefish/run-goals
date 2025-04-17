@@ -9,5 +9,14 @@ type StravaActivity struct {
 	Map       struct {
 		SummaryPolyline string `json:"summary_polyline"`
 	} `json:"map"`
+	Photos struct {
+		Count   int `json:"count"`
+		Primary struct {
+			ID       string            `json:"id"`
+			Source   int               `json:"source"`
+			UniqueID string            `json:"unique_id"`
+			Urls     map[string]string `json:"urls"`
+		} `json:"primary"`
+	} `json:"photos"`
 	// add other fields if needed
 }

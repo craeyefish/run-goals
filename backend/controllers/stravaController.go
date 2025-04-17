@@ -69,12 +69,18 @@ func (c *StravaController) ProcessCallback(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	tokenString, err := c.jwtService.GenerateToken(user.ID)
+	accessTokenString, err := c.jwtService.GenerateAccessToken(user.ID)
 	if err != nil {
-		http.Error(rw, "Failed to generate token", http.StatusInternalServerError)
+		http.Error(rw, "Failed to generate access token", http.StatusInternalServerError)
+		return
+	}
+
+	refreshTokenString, err := c.jwtService.GenerateRefreshToken(user.ID)
+	if err != nil {
+		http.Error(rw, "Failed to generate refresh token", http.StatusInternalServerError)
 		return
 	}
 
 	rw.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(rw).Encode(map[string]string{"token": tokenString})
+	json.NewEncoder(rw).Encode(map[string]string{"accessToken": accessTokenString, "refreshToken": refreshTokenString})
 }

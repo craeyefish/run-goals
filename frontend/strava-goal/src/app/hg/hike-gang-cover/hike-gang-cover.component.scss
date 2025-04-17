@@ -1,0 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+.cover-container {
+  /* Full viewport height so the background shows fully. */
+  min-height: 100vh;
+
+  /* Position relative to the viewport or container. */
+  background: url("/assets/hike-gang-bg.png") no-repeat;
+  background-size: 100% 100%;
+
+  /* A little padding or margin so your text doesn't float off the screen edges */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* center content horizontally */
+  text-align: center;
+  padding: 2rem;
+
+  font-family: "Press Start 2P", cursive;
+}

@@ -11,7 +11,8 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   constructor(private authService: AuthService) {
-    authService.loadTokenFromStorage();
+    authService.loadAccessTokenFromStorage();
+    authService.loadRefreshTokenFromStorage();
   }
 
   title = 'Summit Seekers';

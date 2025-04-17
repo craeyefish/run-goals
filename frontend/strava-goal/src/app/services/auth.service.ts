@@ -1,50 +1,86 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { map, Observable, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-
   // selectedUserID signal?
 
   private stateKey = 'strava_oath_state';
-  private tokenKey = 'jwt_token';
-  private token: string | null = null;
+  private accessTokenKey = 'jwt_access_token';
+  private refreshTokenKey = 'jwt_refresh_token';
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
-  storeToken(token: string): void {
-    this.token = token;
-    localStorage.setItem(this.tokenKey, token);
+  storeAccessToken(accessToken: string): void {
+    this.accessToken = accessToken;
+    localStorage.setItem(this.accessTokenKey, accessToken);
   }
 
-  loadTokenFromStorage(): void {
-    const saved = localStorage.getItem(this.tokenKey);
+  storeRefreshToken(refreshToken: string): void {
+    this.refreshToken = refreshToken;
+    localStorage.setItem(this.refreshTokenKey, refreshToken);
+  }
+
+  loadAccessTokenFromStorage(): void {
+    const saved = localStorage.getItem(this.accessTokenKey);
     if (saved) {
-      this.token = saved;
+      this.accessToken = saved;
     }
   }
 
-  getToken(): string | null {
-    return this.token;
+  loadRefreshTokenFromStorage(): void {
+    const saved = localStorage.getItem(this.refreshTokenKey);
+    if (saved) {
+      this.refreshToken = saved;
+    }
+  }
+
+  getAccessToken(): string | null {
+    return this.accessToken;
+  }
+
+  doRefresh(): Observable<string> {
+    return this.http
+      .post<{ accessToken: string }>(
+        '/auth/refresh',
+        {},
+        {
+          headers: { Authorization: `Bearer ${this.refreshToken}` },
+        }
+      )
+      .pipe(
+        tap((res) => {
+          this.storeAccessToken(res.accessToken);
+        }),
+        map((res) => res.accessToken)
+      );
   }
 
   isLoggedIn(): boolean {
-    return !!this.token;
+    return !!this.accessToken;
   }
 
   logout(): void {
-    this.token = null;
-    localStorage.removeItem(this.tokenKey);
+    this.accessToken = null;
+    localStorage.removeItem(this.accessTokenKey);
+    localStorage.removeItem(this.refreshTokenKey);
   }
 
-  loginWithStravaAuth(code: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>('/auth/strava/callback', {
-      code,
-    });
+  loginWithStravaAuth(
+    code: string
+  ): Observable<{ accessToken: string; refreshToken: string }> {
+    return this.http.post<{ accessToken: string; refreshToken: string }>(
+      '/auth/strava/callback',
+      {
+        code,
+      }
+    );
   }
 
   login(): void {
