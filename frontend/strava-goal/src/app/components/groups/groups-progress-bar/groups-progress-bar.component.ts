@@ -13,18 +13,6 @@ export class GroupsProgressBarComponent {
   selectedGoal = this.groupService.selectedGoal;
   membersContribution = this.groupService.membersContribution;
 
-  totalDistance = computed(() => {
-    const members = this.membersContribution();
-    return members?.reduce((sum, member) => sum + member.total_distance, 0) ?? 0;
-  })
-
-  distanceProgress = computed(() => {
-    const goal = this.selectedGoal();
-    const total = this.totalDistance();
-    if (!goal) return 0;
-    return Math.min(100, Math.round((total / Number(goal.target_value)) * 100));
-  })
-
   totalSummits = computed(() => {
     const members = this.membersContribution();
     return members?.reduce((sum, member) => sum + member.total_unique_summits, 0) ?? 0;
