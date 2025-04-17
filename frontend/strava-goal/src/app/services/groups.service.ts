@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DatePipe } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
@@ -13,8 +14,11 @@ export class GroupService {
   goals = signal<Goal[]>([]);
   goalCreated = signal<number | null>(null);
   selectedGoal = signal<Goal | null>(null);
+  selectedGoalChange = signal<boolean>(false);
+  membersContribution = signal<MemberContribution[]>([]);
+  memberAddedOrRemoved = signal<boolean>(false);
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
     return this.http.post<CreateGroupResponse>('/api/groups', request);
@@ -34,12 +38,19 @@ export class GroupService {
     return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params })
   }
 
-  getGoalProgress(groupID: number, goalID: number): Observable<GetGroupGoalProgressResponse> {
-    const params = new HttpParams()
-      .set('goalID', goalID)
-      .set('groupID', groupID)
-    // this.http.get<GetGroupGoalProgressResponse>('/api/group-goal-progress', { params })
-    return this.http.get<GetGroupGoalProgressResponse>('/api/group-goals', { params })
+  getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
+    const formattedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
+    const formattedEndDate = this.datePipe.transform(endDate, 'yyyy-MM-dd');
+    if (formattedStartDate && formattedEndDate) {
+      const params = new HttpParams()
+        .set('groupID', groupID)
+        .set('startDate', formattedStartDate)
+        .set('endDate', formattedEndDate);
+      return this.http.get<GetGroupMembersGoalContributionResponse>('/api/group-member', { params })
+    } else {
+      console.log("Failed to format date");
+      throw new Error('Failed to format date');
+    }
   }
 
   loadGroups() {
@@ -72,9 +83,21 @@ export class GroupService {
         } else if (response.goals.length > 0) {
           this.selectedGoal.set(response.goals[0]);
         }
+        this.notifySelectedGoalChange();
       },
       error: (err) => {
         console.error('Failed to load group goals', err)
+      }
+    })
+  }
+
+  loadMembersGoalContribution(groupID: number, startDate: string, endDate: string) {
+    this.getGroupMembersGoalContribution(groupID, startDate, endDate).subscribe({
+      next: (response) => {
+        this.membersContribution.set(response.members);
+      },
+      error: (err) => {
+        console.error('Failed to load members goal contribution', err)
       }
     })
   }
@@ -86,6 +109,13 @@ export class GroupService {
     this.goalCreated.set(null);
   }
 
+  notifySelectedGoalChange() {
+    this.selectedGoalChange.set(true);
+  }
+  resetSelectedGoalChange() {
+    this.selectedGoalChange.set(false);
+  }
+
   notifyGroupCreated(groupID: number) {
     this.groupCreated.set(groupID);
   }
@@ -93,6 +123,12 @@ export class GroupService {
     this.groupCreated.set(null);
   }
 
+  notifyMemberAddedOrRemoved(groupMemberID: number) {
+    this.memberAddedOrRemoved.set(true)
+  }
+  resetMemberAddedOrRemoved() {
+    this.memberAddedOrRemoved.set(false)
+  }
 }
 
 export interface Group {
@@ -112,13 +148,16 @@ export interface Goal {
   create_at: string;
 }
 
-export interface Member {
-  id: number;
-  name: string;
-  activities: number;
-  summits: number;
-  distance: number;
-  contribution: number;
+export interface MemberContribution {
+  group_member_id: number;
+  group_id: number;
+  user_id: number;
+  role: string;
+  joined_at: string;
+  total_activities: number;
+  total_distance: number;
+  total_unique_summits: number;
+  total_summits: number;
 }
 
 export interface CreateGroupRequest {
@@ -150,6 +189,6 @@ export interface GetGroupGoalsResponse {
   goals: Goal[];
 }
 
-export interface GetGroupGoalProgressResponse {
-  members: Member[];
+export interface GetGroupMembersGoalContributionResponse {
+  members: MemberContribution[];
 }

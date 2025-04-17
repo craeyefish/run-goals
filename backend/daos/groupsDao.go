@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"run-goals/models"
+	"time"
 )
 
 type GroupsDaoInterface interface {
@@ -14,6 +15,7 @@ type GroupsDaoInterface interface {
 	CreateGroupMember(member models.GroupMember) error
 	UpdateGroupMember(member models.GroupMember) error
 	DeleteGroupMember(userID int64) error
+	GetGroupMembersGoalContribution(groupID int64, startDate time.Time, endDate time.Time) ([]models.GroupMemberGoalContribution, error)
 
 	CreateGroupGoal(goal models.GroupGoal) (int64, error)
 	UpdateGroupGoal(goal models.GroupGoal) error
@@ -326,4 +328,90 @@ func (dao *GroupsDao) GetGroupGoals(groupID int64) ([]models.GroupGoal, error) {
 	}
 
 	return groupGoals, nil
+}
+
+func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate time.Time, endDate time.Time) ([]models.GroupMemberGoalContribution, error) {
+	groupMembersGoalContribution := []models.GroupMemberGoalContribution{}
+	sql := `
+		WITH members_tbl AS (
+			SELECT
+				id as group_member_id,
+				group_id,
+				user_id,
+				role,
+				joined_at
+			FROM group_members
+			WHERE group_id = $1
+		),
+
+		member_activity_tbl AS (
+			SELECT
+				user_id,
+				count(id) as total_activities,
+				sum(distance) as total_distance
+			FROM activity
+			WHERE user_id in (SELECT user_id FROM members_tbl)
+				AND start_date >= $2
+				AND start_date <= $3
+			GROUP BY user_id
+		),
+
+		member_peaks AS (
+			SELECT
+				user_id,
+				count(distinct peak_id) as total_unique_summits,
+				count(peak_id) as total_summits
+			FROM user_peaks
+			WHERE user_id in (SELECT user_id FROM members_tbl)
+				AND summited_at >= $2
+				AND summited_at <= $3
+			GROUP BY user_id
+		)
+
+		SELECT
+			members_tbl.group_member_id,
+			members_tbl.group_id,
+			members_tbl.user_id,
+			members_tbl.role,
+			members_tbl.joined_at,
+			member_activity_tbl.total_activities,
+			member_activity_tbl.total_distance,
+			member_peaks.total_unique_summits,
+			member_peaks.total_summits
+		FROM members_tbl
+		LEFT JOIN member_activity_tbl ON members_tbl.user_id = member_activity_tbl.user_id
+		LEFT JOIN member_peaks ON members_tbl.user_id = member_peaks.user_id;
+	`
+	rows, err := dao.db.Query(sql, groupID, startDate, endDate)
+	if err != nil {
+		dao.l.Printf("Error getting group members contribution: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		contribution := models.GroupMemberGoalContribution{}
+		err = rows.Scan(
+			&contribution.GroupMemberID,
+			&contribution.GroupID,
+			&contribution.UserID,
+			&contribution.Role,
+			&contribution.JoinedAt,
+			&contribution.TotalActivities,
+			&contribution.TotalDistance,
+			&contribution.TotalUniqueSummits,
+			&contribution.TotalSummits,
+		)
+		if err != nil {
+			dao.l.Printf("Error parsing query result: %f", err)
+			return nil, err
+		}
+		groupMembersGoalContribution = append(groupMembersGoalContribution, contribution)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Printf("Error during iteration: %v", err)
+		return nil, err
+	}
+
+	return groupMembersGoalContribution, nil
 }

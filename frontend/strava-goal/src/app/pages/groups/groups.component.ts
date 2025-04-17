@@ -33,8 +33,10 @@ export class GroupsComponent {
   showCreateGroupForm: WritableSignal<boolean> = signal(false);
   showCreateGoalForm: WritableSignal<boolean> = signal(false);
 
-  openCreateGroupForm = () => this.showCreateGroupForm.set(true)
-  openCreateGoalForm = () => this.showCreateGoalForm.set(true)
+  openCreateGroupForm = () => this.showCreateGroupForm.set(true);
+  openCreateGoalForm = () => this.showCreateGoalForm.set(true);
+
+  selectedGoal = this.groupService.selectedGoal;
 
   onCreateGroupFormSubmit = (data: { name: string }) => {
     const requestPayload: CreateGroupRequest = {

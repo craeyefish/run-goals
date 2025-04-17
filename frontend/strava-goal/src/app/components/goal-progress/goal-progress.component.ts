@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
 export class GoalProgressComponent implements OnInit {
   goalProgress: GoalProgress | null = null;
 
-  constructor(private progressService: ProgressService) {}
+  constructor(private progressService: ProgressService) { }
 
   ngOnInit(): void {
     this.progressService.getProgress().subscribe({

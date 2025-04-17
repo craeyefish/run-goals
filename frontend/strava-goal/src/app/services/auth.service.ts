@@ -15,7 +15,7 @@ export class AuthService {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   storeAccessToken(accessToken: string): void {
     this.accessToken = accessToken;
