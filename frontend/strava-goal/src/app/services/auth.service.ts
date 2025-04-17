@@ -15,7 +15,7 @@ export class AuthService {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   storeAccessToken(accessToken: string): void {
     this.accessToken = accessToken;
@@ -88,8 +88,8 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      // 'https://craeyebytes.com/login/strava/callback'
-      'http://localhost:4200/login/strava/callback'
+      'https://craeyebytes.com/login/strava/callback'
+      // 'http://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();
