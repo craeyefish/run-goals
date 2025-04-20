@@ -5,7 +5,7 @@
   </div>
   <div class="groups-table-container">
     <div class="table-container">
-      <groups-table></groups-table>
+      <groups-table [onEditGroupClick]="openEditGroupForm"></groups-table>
     </div>
   </div>
   <div class="header-container">
@@ -14,7 +14,9 @@
   </div>
   <div class="goals-table-container">
     <div class="table-container">
-      <groups-goals-table></groups-goals-table>
+      <groups-goals-table
+        [onEditGoalClick]="openEditGoalForm"
+      ></groups-goals-table>
     </div>
   </div>
   <div class="group-details-container">
@@ -33,18 +35,38 @@
   </div>
 </div>
 
-<groups-create-form
+<groups-form
   *ngIf="showCreateGroupForm()"
   class="card-container"
   [formVisible]="showCreateGroupForm"
   [onSubmit]="onCreateGroupFormSubmit"
 >
-</groups-create-form>
+</groups-form>
 
-<goals-create-form
+<groups-form
+  *ngIf="showEditGroupForm()"
+  class="card-container"
+  [formVisible]="showEditGroupForm"
+  [onSubmit]="onEditGroupFormSubmit"
+  [initialValues]="selectedGroup()"
+  [mode]="'edit'"
+>
+</groups-form>
+
+<goals-form
   *ngIf="showCreateGoalForm()"
   class="card-container"
   [formVisible]="showCreateGoalForm"
   [onSubmit]="onCreateGoalFormSubmit"
 >
-</goals-create-form>
+</goals-form>
+
+<goals-form
+  *ngIf="showEditGoalForm()"
+  class="card-container"
+  [formVisible]="showEditGoalForm"
+  [onSubmit]="onEditGoalFormSubmit"
+  [initialValues]="selectedGoal()"
+  [mode]="'edit'"
+>
+</goals-form>

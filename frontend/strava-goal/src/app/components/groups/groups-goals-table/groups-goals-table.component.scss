@@ -6,6 +6,7 @@ table {
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.15);
 
   thead tr {
+    height: 2rem;
     background-color: var(--secondary-color);
     color: var(--text-color);
     text-align: left;
@@ -13,14 +14,15 @@ table {
 
   th,
   td {
-    padding: 0.5rem 0.75rem;
+    padding-left: 0.75rem;
   }
 
   // add bottom border to each row
   tbody tr {
-    border-bottom: 0.1rem solid var(--background-shade-color-2);
+    height: 2rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    border-bottom: 0.1rem solid var(--background-shade-color-2);
   }
 
   // add lighter background for every second row
@@ -33,7 +35,43 @@ table {
     cursor: pointer;
   }
 
+  .edit-cell {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 0.5rem;
+    height: 100%;
+  }
+
+  .edit-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    background-color: transparent;
+    cursor: pointer;
+    height: 100%;
+    border: none;
+
+    .edit-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  tr.selected .edit-btn {
+    visibility: visible;
+
+    &:hover {
+      filter: invert(1);
+    }
+  }
+
   tbody tr:hover {
     background-color: color-mix(in srgb, var(--secondary-color) 20%, white);
+  }
+
+  tbody tr.selected:hover {
+    background-color: color-mix(in srgb, var(--secondary-color) 50%, white);
   }
 }

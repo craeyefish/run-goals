@@ -4,6 +4,7 @@
       <th>Group Name</th>
       <th>Created By</th>
       <th>Created At</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -16,6 +17,15 @@
         <td>{{ group.name }}</td>
         <td>{{ group.created_by }}</td>
         <td>{{ group.created_at }}</td>
+        <td class="edit-cell">
+          <button
+            class="edit-btn"
+            *ngIf="group === selectedGroup"
+            (click)="onEditGroupClick?.(group); $event.stopPropagation()"
+          >
+            <img src="assets/icons/settings.svg" alt="Edit" class="edit-icon" />
+          </button>
+        </td>
       </tr>
     </ng-container>
   </tbody>

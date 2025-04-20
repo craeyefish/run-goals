@@ -24,6 +24,10 @@ export class GroupService {
     return this.http.post<CreateGroupResponse>('/api/groups', request);
   }
 
+  updateGroup(request: UpdateGroupRequest): Observable<any> {
+    return this.http.put<any>('/api/groups', request);
+  }
+
   getGroups(userID: number): Observable<GetGroupsResponse> {
     const params = new HttpParams().set('userID', userID)
     return this.http.get<GetGroupsResponse>('/api/groups', { params })
@@ -31,6 +35,10 @@ export class GroupService {
 
   createGoal(request: CreateGoalRequest): Observable<CreateGoalResponse> {
     return this.http.post<CreateGoalResponse>('/api/group-goal', request);
+  }
+
+  updateGoal(request: UpdateGoalRequest): Observable<any> {
+    return this.http.put<any>('/api/group-goal', request);
   }
 
   getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
@@ -145,7 +153,7 @@ export interface Goal {
   target_value: string;
   start_date: string;
   end_date: string;
-  create_at: string;
+  created_at: string;
 }
 
 export interface MemberContribution {
@@ -169,6 +177,13 @@ export interface CreateGroupResponse {
   group_id: number;
 }
 
+export interface UpdateGroupRequest {
+  id: number;
+  name: string;
+  created_by: number;
+  created_at: string;
+}
+
 export interface GetGroupsResponse {
   groups: Group[];
 }
@@ -183,6 +198,16 @@ export interface CreateGoalRequest {
 
 export interface CreateGoalResponse {
   goal_id: number;
+}
+
+export interface UpdateGoalRequest {
+  id: number;
+  group_id: number;
+  name: string;
+  target_value: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
 }
 
 export interface GetGroupGoalsResponse {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, Input, signal } from '@angular/core';
 import { Group, GroupService } from 'src/app/services/groups.service';
 
 @Component({
@@ -10,6 +10,8 @@ import { Group, GroupService } from 'src/app/services/groups.service';
 })
 export class GroupsTableComponent {
   public groupService = inject(GroupService);
+
+  @Input() onEditGroupClick?: (group: Group) => void;
 
   constructor() {
     effect(() => {

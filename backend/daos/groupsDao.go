@@ -170,7 +170,7 @@ func (dao *GroupsDao) UpdateGroupGoal(goal models.GroupGoal) error {
 			group_goals
 		SET
 			name = $2,
-			target_vale = $3,
+			target_value = $3,
 			start_date = $4,
 			end_date = $5,
 			created_at = $6

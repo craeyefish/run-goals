@@ -1,7 +1,7 @@
 <div class="card-container-overlay" (click)="handleClose()">
   <div class="card-container" (click)="$event.stopPropagation()">
     <div class="card">
-      <span>Create Group</span>
+      <span>{{ isEditMode() ? "Edit Group" : "Create Group" }}</span>
 
       <label>
         Name:
@@ -13,7 +13,9 @@
       </label>
 
       <div class="button-row">
-        <button (click)="handleSubmit()">Create</button>
+        <button (click)="handleSubmit()">
+          {{ isEditMode() ? "Update" : "Create" }}
+        </button>
         <button (click)="handleClose()">Cancel</button>
       </div>
     </div>
