@@ -1,21 +1,55 @@
+# ------------------------------------------------------------------
+# 1) Registry – just the repo (no tag)
+# ------------------------------------------------------------------
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
-  name: run-goals-frontend-images
+  name: run-goals-frontend
   namespace: flux-system
 spec:
+  image: ghcr.io/craeyefish/run-goals-frontend
   interval: 1m
-  # The GHCR repo for your frontend image
-  image: ghcr.io/craeyefish/run-goals-frontend:{{ .SHA }}
+
 ---
+# ------------------------------------------------------------------
+# 2) Policy – pick the highest SemVer tag
+# ------------------------------------------------------------------
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
-  name: run-goals-frontend-policy
+  name: run-goals-frontend
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: run-goals-frontend-images
+    name: run-goals-frontend
+  filterTags: # optional: ignore non-SemVer tags if you still push :latest
+    pattern: '^v.*$'
   policy:
     semver:
-      range: '*'
+      range: '>=0.0.0' # “anything” – highest wins
+
+---
+# ------------------------------------------------------------------
+# 3) Automation – write the selected digest back to Git
+# ------------------------------------------------------------------
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: run-goals-frontend
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: Flux Image Automation
+        email: flux@craeyebytes.com
+  update:
+    path: ./k8s
+    strategy: Setters
