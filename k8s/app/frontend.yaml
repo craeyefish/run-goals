@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
+          # {"$imagepolicy": "flux-system:run-goals-frontend"}
           image: ghcr.io/craeyefish/run-goals-frontend:v0.0.0
           ports:
             - containerPort: 80
