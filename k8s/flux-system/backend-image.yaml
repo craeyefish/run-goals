@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  image: ghcr.io/craeyefish/run-goals-backend
+  image: ghcr.io/craeyefish/run-goals-backend:{{ .SHA }}
 ---
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
@@ -17,4 +17,4 @@ spec:
     name: run-goals-backend-images
   policy:
     semver:
-      range: "*"
+      range: '*'
