@@ -22,8 +22,9 @@ metadata:
 spec:
   imageRepositoryRef:
     name: run-goals-frontend
-  filterTags: # optional: ignore non-SemVer tags if you still push :latest
-    pattern: '^frontend-v(?P<version>.*)$'
+  filterTags:
+    pattern: '^frontend-v(?P<v>[0-9]+\.[0-9]+\.[0-9]+.*)$'
+    extract: '$v'
   policy:
     semver:
       range: '>=0.0.0'
