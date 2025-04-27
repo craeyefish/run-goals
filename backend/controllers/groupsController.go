@@ -19,6 +19,7 @@ type GroupsControllerInterface interface {
 	CreateGroupMember(rw http.ResponseWriter, r *http.Request)
 	UpdateGroupMember(rw http.ResponseWriter, r *http.Request)
 	DeleteGroupMember(rw http.ResponseWriter, r *http.Request)
+	GetGroupMembers(rw http.ResponseWriter, r *http.Request)
 	GetGroupMembersGoalContribution(rw http.ResponseWriter, r *http.Request)
 
 	CreateGroupGoal(rw http.ResponseWriter, r *http.Request)
@@ -324,7 +325,7 @@ func (c *GroupsController) GetGroupGoals(rw http.ResponseWriter, r *http.Request
 }
 
 func (c *GroupsController) GetGroupMembersGoalContribution(rw http.ResponseWriter, r *http.Request) {
-	c.l.Printf("Handle GET group-member - get group member goal contributions")
+	c.l.Printf("Handle GET group-members-contribution - get group member goal contributions")
 
 	// extract groupID from url
 	str := r.URL.Query().Get("groupID")
@@ -369,6 +370,38 @@ func (c *GroupsController) GetGroupMembersGoalContribution(rw http.ResponseWrite
 	if err != nil {
 		c.l.Printf("Error getting group members goal contribution %v", err)
 		http.Error(rw, "Failed to get group members goal contribution", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the array of Goals as JSON
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding groups:", err)
+	}
+}
+
+func (c *GroupsController) GetGroupMembers(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle GET group-members - get group members")
+
+	// extract groupID from url
+	str := r.URL.Query().Get("groupID")
+	if str == "" {
+		http.Error(rw, "missing groupID", http.StatusBadRequest)
+		return
+	}
+	groupID, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		http.Error(rw, "Invalid group ID", http.StatusBadRequest)
+		return
+	}
+
+	groupMembers, err := c.groupsService.GetGroupMembers(groupID)
+	response := dto.GetGroupMembersResponse{
+		Members: groupMembers,
+	}
+	if err != nil {
+		c.l.Printf("Error getting group members %v", err)
+		http.Error(rw, "Failed to get group members", http.StatusInternalServerError)
 		return
 	}
 
