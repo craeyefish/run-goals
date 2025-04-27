@@ -20,16 +20,20 @@
     </div>
   </div>
   <div class="group-details-container">
-    <div class="group-title-container">
-      <span *ngIf="selectedGoal() as goal">{{ goal.name }}</span>
+    <div *ngIf="selectedGoal()" class="goal-title-container">
+      <span>{{ selectedGoal()?.name }}</span>
     </div>
-    <div class="group-progress-container">
+    <div *ngIf="selectedGoal()" class="goal-progress-container">
       <div class="inner-container">
         <span>Total Summits</span>
         <groups-progress-bar></groups-progress-bar>
       </div>
     </div>
     <div class="group-members-container">
+      <div class="group-members-header">
+        <span>Members</span>
+        <button>Add</button>
+      </div>
       <groups-members-table></groups-members-table>
     </div>
   </div>

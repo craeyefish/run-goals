@@ -3,22 +3,22 @@
     <tr>
       <th>UserID</th>
       <th>Role</th>
-      <th>Activities</th>
-      <th>Distance</th>
-      <th>Unique Summits</th>
-      <th>Summits</th>
-      <th>Contribution %</th>
+      <th *ngIf="selectedGoal()">Activities</th>
+      <th *ngIf="selectedGoal()">Distance</th>
+      <th *ngIf="selectedGoal()">Unique Summits</th>
+      <th *ngIf="selectedGoal()">Summits</th>
+      <th *ngIf="selectedGoal()">Contribution %</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let member of membersComputed()">
-      <td>{{ member.user_id }}</td>
+      <td>{{ member.userId }}</td>
       <td>{{ member.role }}</td>
-      <td>{{ member.total_activities }}</td>
-      <td>{{ member.total_distance }}</td>
-      <td>{{ member.total_unique_summits }}</td>
-      <td>{{ member.total_summits }}</td>
-      <td>{{ member.contributionPercentage }} %</td>
+      <td *ngIf="selectedGoal()">{{ member.totalActivities }}</td>
+      <td *ngIf="selectedGoal()">{{ member.totalDistance }}</td>
+      <td *ngIf="selectedGoal()">{{ member.totalUniqueSummits }}</td>
+      <td *ngIf="selectedGoal()">{{ member.totalSummits }}</td>
+      <td *ngIf="selectedGoal()">{{ member.contributionPercentage }} %</td>
     </tr>
   </tbody>
 </table>

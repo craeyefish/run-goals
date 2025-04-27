@@ -15,7 +15,7 @@ export class GroupsProgressBarComponent {
 
   totalSummits = computed(() => {
     const members = this.membersContribution();
-    return members?.reduce((sum, member) => sum + member.total_unique_summits, 0) ?? 0;
+    return members?.reduce((sum, member) => sum + (member.total_unique_summits ?? 0), 0) ?? 0;
   })
 
   summitProgress = computed(() => {

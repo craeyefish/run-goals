@@ -42,8 +42,13 @@ export class GroupService {
   }
 
   getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
-    const params = new HttpParams().set('groupID', groupID)
+    const params = new HttpParams().set('groupID', groupID);
     return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params })
+  }
+
+  getGroupMembers(groupID: number): Observable<GetGroupMembersResponse> {
+    const params = new HttpParams().set('groupID', groupID);
+    return this.http.get<GetGroupMembersResponse>('/api/group-members', { params })
   }
 
   getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
@@ -54,7 +59,7 @@ export class GroupService {
         .set('groupID', groupID)
         .set('startDate', formattedStartDate)
         .set('endDate', formattedEndDate);
-      return this.http.get<GetGroupMembersGoalContributionResponse>('/api/group-member', { params })
+      return this.http.get<GetGroupMembersGoalContributionResponse>('/api/group-members-contribution', { params })
     } else {
       console.log("Failed to format date");
       throw new Error('Failed to format date');
@@ -90,6 +95,8 @@ export class GroupService {
           this.resetGoalCreated();
         } else if (response.goals.length > 0) {
           this.selectedGoal.set(response.goals[0]);
+        } else {
+          this.selectedGoal.set(null);
         }
         this.notifySelectedGoalChange();
       },
@@ -156,16 +163,24 @@ export interface Goal {
   created_at: string;
 }
 
+export interface Member {
+  id: number;
+  group_id: number;
+  user_id: number;
+  role: string;
+  joined_at: string;
+}
+
 export interface MemberContribution {
   group_member_id: number;
   group_id: number;
   user_id: number;
   role: string;
   joined_at: string;
-  total_activities: number;
-  total_distance: number;
-  total_unique_summits: number;
-  total_summits: number;
+  total_activities: number | null;
+  total_distance: number | null;
+  total_unique_summits: number | null;
+  total_summits: number | null;
 }
 
 export interface CreateGroupRequest {
@@ -216,4 +231,8 @@ export interface GetGroupGoalsResponse {
 
 export interface GetGroupMembersGoalContributionResponse {
   members: MemberContribution[];
+}
+
+export interface GetGroupMembersResponse {
+  members: Member[];
 }

@@ -81,8 +81,8 @@ export class GroupsComponent {
     this.groupService.updateGroup(requestPayload).subscribe({
       next: () => {
         console.log('Group Updated: ', selectedGroup.id);
-        this.groupService.loadGroups();
         this.showEditGroupForm.set(false);
+        this.groupService.notifyGroupCreated(selectedGroup.id);
       },
       error: (err) => {
         console.error('Error updating group:', err)
@@ -150,8 +150,8 @@ export class GroupsComponent {
     this.groupService.updateGoal(requestPayload).subscribe({
       next: () => {
         console.log('Goal Updated: ', selectedGoal.id);
-        this.groupService.loadGoals(selectedGroup.id);
         this.showEditGoalForm.set(false);
+        this.groupService.notifyGoalCreated(selectedGoal.id);
       },
       error: (err) => {
         console.error('Error updating goal:', err)
