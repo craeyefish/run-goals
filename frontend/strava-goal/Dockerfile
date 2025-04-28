@@ -39,12 +39,11 @@ RUN npm run build -- --configuration production
 # =========================================
 FROM nginx:alpine AS prod
 
-# Copy the compiled Angular dist folder from the build stage
-COPY --from=build /app/dist/strava-goal /usr/share/nginx/html
+# 1) copy ONLY the real web assets
+COPY --from=build /app/dist/strava-goal/browser/ /usr/share/nginx/html/
 
-# Optionally copy your custom nginx.conf
-# (If you have a default.conf or something similar)
-COPY default.conf /etc/nginx/conf.d/default.conf
+# 2) optionally copy your custom nginx.conf here
+# COPY default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
