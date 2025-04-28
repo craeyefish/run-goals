@@ -149,6 +149,7 @@ export class GroupService {
 export interface Group {
   id: number;
   name: string;
+  code: string;
   created_by: number;
   created_at: string;
 }

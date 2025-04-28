@@ -11,6 +11,7 @@ type GroupsDaoInterface interface {
 	CreateGroup(request models.Group) (int64, error)
 	UpdateGroup(group models.Group) error
 	DeleteGroup(groupID int64) error
+	CheckGroupCodeExists(code string) (int64, error)
 
 	CreateGroupMember(member models.GroupMember) error
 	UpdateGroupMember(member models.GroupMember) error
@@ -43,14 +44,15 @@ func (dao *GroupsDao) CreateGroup(group models.Group) (*int64, error) {
 	sql := `
 		INSERT INTO groups (
 			name,
+			code,
 			created_by,
 			created_at
 		) VALUES (
-			$1, $2, $3
+			$1, $2, $3, $4
 		)
 		RETURNING id;
 	`
-	err := dao.db.QueryRow(sql, group.Name, group.CreatedBy, group.CreatedAt).Scan(&id)
+	err := dao.db.QueryRow(sql, group.Name, group.Code, group.CreatedBy, group.CreatedAt).Scan(&id)
 	if err != nil {
 		dao.l.Printf("Error creating group: %v", err)
 		return nil, err
@@ -86,6 +88,25 @@ func (dao *GroupsDao) DeleteGroup(groupID int64) error {
 		return err
 	}
 	return nil
+}
+
+func (dao *GroupsDao) CheckGroupCodeExists(code string) (*int64, error) {
+	var count int64
+	sql := `
+		SELECT
+			COUNT(code)
+	 	FROM
+			groups
+		WHERE code = $1;
+	`
+	row := dao.db.QueryRow(sql, code)
+	err := row.Scan(&count)
+	if err != nil {
+		dao.l.Println("Error checking group code", err)
+		return nil, err
+	}
+
+	return &count, nil
 }
 
 func (dao *GroupsDao) CreateGroupMember(member models.GroupMember) error {
@@ -204,6 +225,7 @@ func (dao *GroupsDao) GetUserGroups(userID int64) ([]models.Group, error) {
 		SELECT
 			id,
 			name,
+			code,
 			created_by,
 			created_at
 		FROM groups
@@ -226,6 +248,7 @@ func (dao *GroupsDao) GetUserGroups(userID int64) ([]models.Group, error) {
 		err = rows.Scan(
 			&group.ID,
 			&group.Name,
+			&group.Code,
 			&group.CreatedBy,
 			&group.CreatedAt,
 		)

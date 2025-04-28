@@ -1,7 +1,17 @@
 <div class="page-container">
   <div class="header-container">
-    <span>Groups</span>
-    <app-button [onClick]="openCreateGroupForm">Create Group</app-button>
+    <span>Groups: {{ selectedGroup()?.name }}</span>
+    <div class="horizontal-button-container">
+      <app-button title="Share Group">
+        <img src="assets/icons/share.svg" alt="Share Group" class="icon" />
+      </app-button>
+      <app-button title="Join Group">
+        <img src="assets/icons/person_add.svg" alt="Join Group" class="icon" />
+      </app-button>
+      <app-button title="Create Group" [onClick]="openCreateGroupForm">
+        <img src="assets/icons/add.svg" alt="Create Group" class="icon" />
+      </app-button>
+    </div>
   </div>
   <div class="groups-table-container">
     <div class="table-container">
@@ -10,7 +20,11 @@
   </div>
   <div class="header-container">
     <span>Goals</span>
-    <app-button [onClick]="openCreateGoalForm">Create Goal</app-button>
+    <div class="horizontal-button-container">
+      <app-button title="Create Goal" [onClick]="openCreateGoalForm">
+        <img src="assets/icons/add.svg" alt="Create Goal" class="icon" />
+      </app-button>
+    </div>
   </div>
   <div class="goals-table-container">
     <div class="table-container">
@@ -32,7 +46,6 @@
     <div class="group-members-container">
       <div class="group-members-header">
         <span>Members</span>
-        <button>Add</button>
       </div>
       <groups-members-table></groups-members-table>
     </div>

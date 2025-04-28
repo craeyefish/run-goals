@@ -1,6 +1,9 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"log"
 	"run-goals/daos"
 	"run-goals/dto"
@@ -43,9 +46,14 @@ func NewGroupsService(
 }
 
 func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) (*int64, error) {
+	code, err := s.GenerateGroupCode()
+	if err != nil {
+		return nil, err
+	}
 	group := models.Group{
 		ID:        0,
 		Name:      request.Name,
+		Code:      code,
 		CreatedBy: request.CreatedBy,
 		CreatedAt: time.Now(),
 	}
@@ -214,4 +222,33 @@ func (s *GroupsService) GetGroupMembers(groupID int64) ([]models.GroupMember, er
 		return nil, err
 	}
 	return groupMembers, nil
+}
+
+func (s *GroupsService) GenerateGroupCode() (string, error) {
+	maxAttempts := 5
+	for i := 0; i < maxAttempts; i++ {
+		bytes := make([]byte, 3)
+		_, err := rand.Read(bytes)
+		if err != nil {
+			return "", err
+		}
+		code := hex.EncodeToString(bytes)
+		exists, err := s.CheckGroupCodeExists(code)
+		if err != nil {
+			return "", err
+		}
+		if !exists {
+			return code, nil
+		}
+	}
+	return "", fmt.Errorf("Failed to generate unique group code after reaching max attemps: %v", maxAttempts)
+}
+
+func (s *GroupsService) CheckGroupCodeExists(code string) (bool, error) {
+	count, err := s.groupsDao.CheckGroupCodeExists(code)
+	if err != nil {
+		s.l.Printf("Error calling groupsDao.CheckGroupCodeExists: %v", err)
+		return false, err
+	}
+	return *count > 0, nil
 }

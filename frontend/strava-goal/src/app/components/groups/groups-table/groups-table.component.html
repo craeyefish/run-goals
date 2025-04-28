@@ -1,7 +1,8 @@
 <table>
   <thead>
     <tr>
-      <th>Group Name</th>
+      <th>Name</th>
+      <th>Code</th>
       <th>Created By</th>
       <th>Created At</th>
       <th></th>
@@ -15,7 +16,8 @@
         [class.selected]="group === selectedGroup"
       >
         <td>{{ group.name }}</td>
-        <td>{{ group.created_by }}</td>
+        <td>{{ group.code }}</td>
+        <td>{{ group.created_at }}</td>
         <td>{{ group.created_at }}</td>
         <td class="edit-cell">
           <button
