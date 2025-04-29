@@ -10,7 +10,7 @@ spec:
   ref:
     branch: main
   secretRef:
-    name: flux-system
+    name: flux-system-writer
   url: ssh://git@github.com/craeyefish/run-goals
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
