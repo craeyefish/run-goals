@@ -51,6 +51,10 @@ spec:
       author:
         name: Flux Image Automation
         email: flux@craeyebytes.com
+    push:
+      branch: main
+      secretRef:
+        name: flux-system-writer
   update:
     path: ./k8s
     strategy: Setters
