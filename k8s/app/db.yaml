@@ -1,19 +1,27 @@
+# --------------------------------------------------------------
+# 1) PersistentVolumeClaim – stored on the cluster’s default SC
+# --------------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: run-goals-db-pvc
+  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: # <-- If you have a default storage class, you can omit this line
   resources:
     requests:
       storage: 1Gi
+
 ---
+# --------------------------------------------------------------
+# 2) Deployment – Postgres with the PVC mounted
+# --------------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: run-goals-db
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -26,16 +34,17 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:13
-          env:
-            - name: POSTGRES_USER
-              value: "postgres"
-            - name: POSTGRES_PASSWORD
-              value: "postgres"
-            - name: POSTGRES_DB
-              value: "run_goals"
+          image: ghcr.io/craeyefish/run-goals-db:db-v0.0.1
+
           ports:
             - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: run_goals
           volumeMounts:
             - name: dbdata
               mountPath: /var/lib/postgresql/data
@@ -43,11 +52,16 @@ spec:
         - name: dbdata
           persistentVolumeClaim:
             claimName: run-goals-db-pvc
+
 ---
+# --------------------------------------------------------------
+# 3) Cluster-internal Service
+# --------------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
   name: run-goals-db
+  namespace: default
 spec:
   selector:
     app: run-goals-db
