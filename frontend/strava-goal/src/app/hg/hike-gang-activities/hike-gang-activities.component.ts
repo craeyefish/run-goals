@@ -4,13 +4,14 @@ import * as L from 'leaflet';
 import * as polyline from '@mapbox/polyline';
 import 'leaflet.markercluster';
 import { ActivityService, Activity } from 'src/app/services/activity.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-hike-gang-activities',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './hike-gang-activities.component.html',
-  styleUrls: ['./hike-gang-activities.component.css'],
+  styleUrls: ['./hike-gang-activities.component.scss'],
 })
 export class HikeGangActivitiesComponent implements OnInit {
   map!: L.Map;
@@ -20,7 +21,10 @@ export class HikeGangActivitiesComponent implements OnInit {
   private lastHighlightedPolyline: L.Polyline | null = null;
   private homeBounds!: L.LatLngBounds;
 
-  constructor(private activityService: ActivityService) {}
+  constructor(
+    private activityService: ActivityService,
+    private router: Router
+  ) {}
 
   get totalDistanceKm(): number {
     // Sum distances (in meters), then convert to kilometers
@@ -65,6 +69,10 @@ export class HikeGangActivitiesComponent implements OnInit {
     this.map.addLayer(this.markerClusterGroup);
   }
 
+  goHome(): void {
+    this.router.navigate(['/hg']);
+  }
+
   resetMap(): void {
     this.map.fitBounds(this.homeBounds);
   }
@@ -82,10 +90,15 @@ export class HikeGangActivitiesComponent implements OnInit {
           weight: 3,
         }).addTo(this.map);
 
-        // Save reference so we can style it later
+        // Save reference
         this.polylinesById[act.id] = poly;
 
-        // Existing popup logic
+        // Add click handler to zoom and highlight
+        poly.on('click', () => {
+          this.highlightActivity(act);
+        });
+
+        // Add popup
         poly.bindPopup(this.buildActivityPopup(act));
       }
     }

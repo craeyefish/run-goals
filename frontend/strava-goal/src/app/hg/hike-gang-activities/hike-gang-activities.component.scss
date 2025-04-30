@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2rem;
+
+  background: url("/assets/hike-gang-bg.png") no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+
+  font-family: "Press Start 2P", cursive;
+  color: #fff;
+}
+
+#hgMap {
+  flex: 0 0 400px; // fixed height for the map
+}
+
+/* Main wrapper to grow and shrink inside the screen */
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.hg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  h1 {
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  button {
+    font-family: "Press Start 2P", cursive;
+    font-size: 0.6rem;
+    padding: 0.5rem 1rem;
+    background-color: #333;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #555;
+    }
+  }
+}
+
+/* Table container */
+.activity-table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #ffffff40;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  margin-top: 1rem;
+  margin-bottom: 2rem; // This gives you visible space below
+  overflow: hidden;
+  min-height: 0;
+}
+
+.activity-table-header table,
+.activity-table-body table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.activity-table-header thead {
+  background-color: #222;
+  color: #fff;
+}
+
+.activity-table-header th,
+.activity-table-body td {
+  border: 1px solid #ffffff20;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 0.6rem;
+}
+
+/* Scrollable content */
+.activity-table-body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.activity-table-body tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}

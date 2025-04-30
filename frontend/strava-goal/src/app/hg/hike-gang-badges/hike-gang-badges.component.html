@@ -1,2 +1,33 @@
-<h2>Hike Gang Badges</h2>
-<p>Display your earned badges here, or logic about how to earn them, etc.</p>
+<div class="badges-container">
+  <h1>Hike Gang Badges</h1>
+
+  <div class="badge-grid">
+    <div
+      class="badge-slot"
+      *ngFor="let badge of badges"
+      (click)="showInfo(badge)"
+    >
+      <img
+        [src]="badge.image"
+        [alt]="badge.name"
+        [ngStyle]="{ filter: getTierFilter(badge.tier) }"
+      />
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div class="badge-popup" *ngIf="selectedBadge" (click)="selectedBadge = null">
+    <div class="popup-inner">
+      <div class="badge-preview" *ngIf="selectedBadge">
+        <img
+          [src]="selectedBadge.image"
+          [alt]="selectedBadge.name"
+          [ngStyle]="{ filter: getTierFilter(selectedBadge.tier) }"
+        />
+      </div>
+      <h2>{{ selectedBadge.name }}</h2>
+      <p>{{ selectedBadge.description }}</p>
+      <small>(Click anywhere to close)</small>
+    </div>
+  </div>
+</div>
