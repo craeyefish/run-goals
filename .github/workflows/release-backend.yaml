@@ -78,7 +78,6 @@ jobs:
         with:
           context: ./backend
           file: backend/Dockerfile
-          target: prod
           platforms: linux/arm64,linux/amd64
           push: true
           tags: |
