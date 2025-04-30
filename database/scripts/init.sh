@@ -15,13 +15,13 @@ done
 
 # TABLES
 TABLE_DIR=../sql/tables
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/users.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/peaks.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/activity.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/userpeaks.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/groups.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/group_members.sql"
-psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/group_goals.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/10_users.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/20_peaks.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/30_activity.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/40_userpeaks.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/50_groups.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/60_group_members.sql"
+psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/70_group_goals.sql"
 
 # LOAD MOCK DATA INTO DATABASE TABLES
 if [ "$ENVIRONMENT" != "production" ]; then
