@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: ghcr.io/craeyefish/run-goals-db:db-v0.0.3
+          image: ghcr.io/craeyefish/run-goals-db:db-v0.0.4
 
           ports:
             - containerPort: 5432
