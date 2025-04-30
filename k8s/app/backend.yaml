@@ -14,22 +14,22 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/craeyefish/run-goals-backend:latest
+          image: ghcr.io/craeyefish/run-goals-backend:backend-v1.2.1 # {"$imagepolicy": "flux-system:run-goals-backend"}
           ports:
             - containerPort: 8080
           env:
             - name: DATABASE_HOST
-              value: "run-goals-db"
+              value: 'run-goals-db'
             - name: DATABASE_PORT
-              value: "5432"
+              value: '5432'
             - name: DATABASE_USER
-              value: "postgres"
+              value: 'postgres'
             - name: DATABASE_PASSWORD
-              value: "postgres"
+              value: 'postgres'
             - name: DATABASE_DBNAME
-              value: "run_goals"
+              value: 'run_goals'
             - name: DATABASE_SSLMODE
-              value: "disable"
+              value: 'disable'
 
             - name: STRAVA_CLIENT_ID
               valueFrom:
@@ -42,9 +42,9 @@ spec:
                   name: strava-credentials
                   key: STRAVA_CLIENT_SECRET
             - name: DISTANCE_CACHE_TTL
-              value: "1"
+              value: '1'
             - name: SUMMIT_THRESHOLD_METERS
-              value: "0.0007"
+              value: '0.0007'
 ---
 apiVersion: v1
 kind: Service
