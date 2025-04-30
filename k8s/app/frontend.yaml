@@ -16,6 +16,13 @@ spec:
       containers:
         - name: frontend
           image: ghcr.io/craeyefish/run-goals-frontend:frontend-v1.2.1 # {"$imagepolicy": "flux-system:run-goals-frontend"}
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '50m'
+            limits:
+              memory: '256Mi'
+              cpu: '250m'
           ports:
             - containerPort: 80
 ---
