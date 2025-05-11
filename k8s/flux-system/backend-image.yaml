@@ -39,18 +39,23 @@ metadata:
   name: run-goals-backend
   namespace: flux-system
 spec:
-  checkout:
-    gitRepositoryRef:
-      name: flux-system
-  push:
-    branch: main
-    secretRef:
-      name: flux-writer
-  commit:
-    author:
-      name: Flux Bot
-      email: flux@example.com
-    messageTemplate: |
-      chore: Update backend image to {{range .Updated.Images}}{{.}}{{end}}
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    push:
+      branch: main
+      secretRef:
+        name: flux-writer
+    commit:
+      author:
+        name: Flux Bot
+        email: flux@example.com
+      messageTemplate: |
+        chore: Update backend image to {{range .Updated.Images}}{{.}}{{end}}
   update:
     strategy: Setters
