@@ -49,13 +49,7 @@ spec:
         branch: main
     push:
       branch: main
-      secretRef:
-        name: flux-writer
-    commit:
-      author:
-        name: Flux Bot
-        email: flux@example.com
-      messageTemplate: |
-        chore: Update backend image to {{range .Updated.Images}}{{.}}{{end}}
+    secretRef:
+      name: flux-writer
   update:
     strategy: Setters
