@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from 'src/app/pages/home/home.component';
 import { GroupsComponent } from 'src/app/pages/groups/groups.component';
-import { SummitsComponent } from 'src/app/pages/summits/summits.component';
+import { SummitsPageComponent } from 'src/app/pages/summits/summits-page.component';
 import { ProfileComponent } from 'src/app/pages/profile/profile.component';
 import { AuthGuard } from 'src/app/guards/auth.guard';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
@@ -14,6 +14,8 @@ import { HikeGangActivitiesComponent } from './hg/hike-gang-activities/hike-gang
 import { HikeGangCoverComponent } from './hg/hike-gang-cover/hike-gang-cover.component';
 import { HikeGangHomeComponent } from './hg/hike-gang-home/hike-gang-home.component';
 import { HikeGangBadgesComponent } from './hg/hike-gang-badges/hike-gang-badges.component';
+import { GroupsDetailsPageComponent } from './pages/groups/group-details/group-details.component';
+import { GroupsListPageComponent } from './pages/groups/group-list/group-list.component';
 
 export const routes: Routes = [
   {
@@ -54,8 +56,13 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
-      { path: 'groups', component: GroupsComponent },
-      { path: 'summits', component: SummitsComponent },
+      {
+        path: 'groups', component: GroupsComponent, children: [
+          { path: '', component: GroupsListPageComponent },
+          { path: ':code', component: GroupsDetailsPageComponent }
+        ]
+      },
+      { path: 'summits', component: SummitsPageComponent },
       { path: 'profile', component: ProfileComponent },
     ],
   },

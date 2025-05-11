@@ -1,8 +1,11 @@
 <nav>
   <ul>
-    <li routerLink="/">Home</li>
-    <li routerLink="/groups">Groups</li>
-    <li routerLink="/summits">Summits</li>
-    <li routerLink="/profile">Profile</li>
+    <li><a routerLink="/">Home</a></li>
+    <li><a routerLink="/groups">Groups</a></li>
+    <li><a routerLink="/summits">Summits</a></li>
+    <li><a routerLink="/profile">Profile</a></li>
+    <li>
+      <button (click)="onLogoutClick(); reloadPage()">Logout</button>
+    </li>
   </ul>
 </nav>

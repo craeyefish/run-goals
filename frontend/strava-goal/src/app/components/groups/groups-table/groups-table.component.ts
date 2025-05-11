@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, Input, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Group, GroupService } from 'src/app/services/groups.service';
 
 @Component({
@@ -13,19 +14,16 @@ export class GroupsTableComponent {
 
   @Input() onEditGroupClick?: (group: Group) => void;
 
-  constructor() {
+  constructor(private router: Router) {
     effect(() => {
-      if (this.groupService.groupCreated()) {
+      if (this.groupService.groupUpdate()) {
         this.groupService.loadGroups();
       }
     })
   }
 
-  ngOnInit() {
-    this.groupService.loadGroups()
-  }
-
   selectGroup(group: Group) {
     this.groupService.selectedGroup.set(group);
+    this.router.navigate(['/groups', group.code])
   }
 }

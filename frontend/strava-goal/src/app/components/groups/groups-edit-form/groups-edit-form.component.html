@@ -1,0 +1,22 @@
+<div class="card-container-overlay" (click)="handleClose()">
+  <div class="card-container" (click)="$event.stopPropagation()">
+    <div class="card">
+      <button class="close-button" (click)="handleClose()">X</button>
+
+      <span>Edit Group</span>
+
+      <label>
+        Name:
+        <input
+          type="text"
+          [value]="groupName()"
+          (input)="groupName.set($any($event.target).value)"
+        />
+      </label>
+
+      <div class="button-container">
+        <button (click)="handleSubmit()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>

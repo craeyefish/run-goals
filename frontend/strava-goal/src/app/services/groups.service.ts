@@ -9,7 +9,7 @@ import { DatePipe } from '@angular/common';
 export class GroupService {
 
   groups = signal<Group[]>([]);
-  groupCreated = signal<number | null>(null);
+  groupUpdate = signal<number | null>(null);
   selectedGroup = signal<Group | null>(null);
   goals = signal<Goal[]>([]);
   goalCreated = signal<number | null>(null);
@@ -21,6 +21,7 @@ export class GroupService {
   constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
+    console.log('create group request: ', request);
     return this.http.post<CreateGroupResponse>('/api/groups', request);
   }
 
@@ -71,13 +72,6 @@ export class GroupService {
     this.getGroups(userID).subscribe({
       next: (response) => {
         this.groups.set(response.groups);
-        const createdGroup = this.groups().find(group => group.id === this.groupCreated());
-        if (createdGroup) {
-          this.selectedGroup.set(createdGroup);
-          this.resetGroupCreated();
-        } else if (response.groups.length > 0) {
-          this.selectedGroup.set(response.groups[0]);
-        }
       },
       error: (err) => {
         console.error('Failed to load groups', err)
@@ -131,11 +125,11 @@ export class GroupService {
     this.selectedGoalChange.set(false);
   }
 
-  notifyGroupCreated(groupID: number) {
-    this.groupCreated.set(groupID);
+  notifyGroupUpdate(groupID: number) {
+    this.groupUpdate.set(groupID);
   }
-  resetGroupCreated() {
-    this.groupCreated.set(null);
+  resetGroupUpdate() {
+    this.groupUpdate.set(null);
   }
 
   notifyMemberAddedOrRemoved(groupMemberID: number) {

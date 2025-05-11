@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { SummitsComponent } from "./summits.component";
+import { SummitsPageComponent } from "./summits-page.component";
 
 describe("GroupsComponent", () => {
-  let component: SummitsComponent;
-  let fixture: ComponentFixture<SummitsComponent>;
+  let component: SummitsPageComponent;
+  let fixture: ComponentFixture<SummitsPageComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [SummitsComponent],
+      declarations: [SummitsPageComponent],
     });
-    fixture = TestBed.createComponent(SummitsComponent);
+    fixture = TestBed.createComponent(SummitsPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
