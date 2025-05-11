@@ -39,22 +39,18 @@ metadata:
   name: run-goals-backend
   namespace: flux-system
 spec:
-  interval: 5m
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  git:
-    checkout:
-      ref:
-        branch: main
-    commit:
-      author:
-        name: Flux Image Automation
-        email: flux@craeyebytes.com
-    push:
-      branch: main
+  checkout:
+    gitRepositoryRef:
+      name: flux-system
+  push:
+    branch: main
     secretRef:
-      name: flux-system-writer
+      name: flux-writer
+  commit:
+    author:
+      name: Flux Bot
+      email: flux@example.com
+    messageTemplate: |
+      chore: Update backend image to {{range .Updated.Images}}{{.}}{{end}}
   update:
-    path: ./k8s
     strategy: Setters
