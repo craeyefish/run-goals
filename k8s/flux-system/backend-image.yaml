@@ -39,17 +39,20 @@ metadata:
   name: run-goals-backend
   namespace: flux-system
 spec:
-  interval: 1m
+  interval: 5m
   sourceRef:
     kind: GitRepository
     name: flux-system
   git:
-    checkout:
-      ref:
-        branch: main
+    commit:
+      author:
+        email: fluxcdbot@users.noreply.github.com
+        name: fluxcdbot
     push:
       branch: main
-    secretRef:
-      name: flux-writer
+    commit:
+      signingKey:
+        secretRef:
+          name: flux-writer
   update:
-    strategy: Setters
+    path: ./
