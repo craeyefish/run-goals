@@ -48,11 +48,10 @@ spec:
       author:
         email: fluxcdbot@users.noreply.github.com
         name: fluxcdbot
-    push:
-      branch: main
-    commit:
       signingKey:
         secretRef:
           name: flux-writer
+    push:
+      branch: main
   update:
     path: ./
