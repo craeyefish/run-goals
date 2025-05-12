@@ -46,8 +46,8 @@ spec:
   git:
     commit:
       author:
-        email: fluxcdbot@users.noreply.github.com
-        name: fluxcdbot
+        name: Flux Image Automation
+        email: flux@craeyebytes.com
       signingKey:
         secretRef:
           name: flux-writer
