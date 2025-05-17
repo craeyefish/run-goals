@@ -1,14 +1,14 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 1rem;
+  font-size: 0.6rem;
   text-align: left;
-  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.15);
+  background-color: var(--background-shade-color-4);
 
   thead tr {
     height: 2rem;
-    background-color: var(--primary-color);
-    color: var(--text-color);
+    background-color: var(--background-secondary);
+    color: var(--text-secondary);
     text-align: left;
   }
 
@@ -19,10 +19,10 @@ table {
 
   // add bottom border to each row
   tbody tr {
-    height: 2rem;
+    height: 2.5rem;
     cursor: pointer;
     transition: background-color 0.2s;
-    border-bottom: 0.1rem solid var(--background-shade-color-2);
+    border-bottom: 0.1rem solid var(--background-secondary);
   }
 
   // add lighter background for every second row
@@ -68,7 +68,7 @@ table {
   }
 
   tbody tr:hover {
-    background-color: color-mix(in srgb, var(--secondary-color) 20%, white);
+    background-color: var(--background-primary);
   }
 
   tbody tr.selected:hover {

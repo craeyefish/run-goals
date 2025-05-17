@@ -1,22 +1,49 @@
-<span>GROUP DETAIL PAGE</span>
+<div class="group-details-outer-container">
+  <div class="goals-outer-container">
+    <div class="goals-header-container">
+      <div class="button-container">
+        <button class="toggle-button">X</button>
+        <div class="text-container">
+          <span>active</span>
+        </div>
+      </div>
+      <div class="button-container">
+        <button class="add-goal-button" (click)="openCreateGoalForm()">
+          +
+        </button>
+      </div>
+    </div>
+    <div class="goals-table-container">
+      <groups-goals-table
+        [onEditGoalClick]="openEditGoalForm"
+      ></groups-goals-table>
+    </div>
+  </div>
+  <div class="members-outer-container">
+    <div class="members-header-container">
+      <span>members</span>
+    </div>
+    <div class="members-table-container">
+      <groups-members-table></groups-members-table>
+    </div>
+  </div>
+</div>
 
-<goals-form
-  *ngIf="showCreateGoalForm()"
+<goals-create-form
+  *ngIf="createGoalFormSignal()?.show"
   class="card-container"
-  [formVisible]="showCreateGoalForm"
+  [formSignal]="createGoalFormSignal"
   [onSubmit]="onCreateGoalFormSubmit"
 >
-</goals-form>
+</goals-create-form>
 
-<goals-form
-  *ngIf="showEditGoalForm()"
+<goals-edit-form
+  *ngIf="editGoalFormSignal()?.show"
   class="card-container"
-  [formVisible]="showEditGoalForm"
+  [formSignal]="editGoalFormSignal"
   [onSubmit]="onEditGoalFormSubmit"
-  [initialValues]="selectedGoal()"
-  [mode]="'edit'"
 >
-</goals-form>
+</goals-edit-form>
 
 <!-- <div class="header-container">
     <span>Groups: {{ selectedGroup()?.name }}</span>

@@ -15,13 +15,9 @@ export class GroupsCreateFormComponent {
   @Input({ required: true }) onSubmit!: (data: { name: string }) => void;
 
   groupName = signal('');
-  isEditMode = signal(false);
 
   ngOnInit(): void {
-    const data = this.formSignal().data;
-    if (data) {
-      this.groupName.set(data.name);
-    }
+
   }
 
   handleClose() {

@@ -1,7 +1,9 @@
 <div class="card-container-overlay" (click)="handleClose()">
   <div class="card-container" (click)="$event.stopPropagation()">
     <div class="card">
-      <span>{{ isEditMode() ? "Edit Goal" : "Create Group Goal" }}</span>
+      <button class="close-button" (click)="handleClose()">X</button>
+
+      <span>Create Group Goal</span>
 
       <label>
         Goal Name:
@@ -40,10 +42,7 @@
       </label>
 
       <div class="button-row">
-        <button (click)="handleSubmit()">
-          {{ isEditMode() ? "Update" : "Create" }}
-        </button>
-        <button (click)="handleClose()">Cancel</button>
+        <button (click)="handleSubmit()">Create</button>
       </div>
     </div>
   </div>

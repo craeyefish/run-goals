@@ -2,16 +2,16 @@ import { Component, Input, signal, WritableSignal } from '@angular/core';
 import { Goal } from 'src/app/services/groups.service';
 
 @Component({
-  selector: 'goals-form',
+  selector: 'goals-create-form',
   standalone: true,
   imports: [],
-  templateUrl: './goals-form.component.html',
-  styleUrl: './goals-form.component.scss',
+  templateUrl: './goals-create-form.component.html',
+  styleUrl: './goals-create-form.component.scss',
 })
-export class GoalsFormComponent {
+export class GoalsCreateFormComponent {
   constructor() { }
 
-  @Input({ required: true }) formVisible!: WritableSignal<boolean>;
+  @Input({ required: true }) formSignal!: WritableSignal<{ show: boolean, data: Goal | null }>;
   @Input({ required: true }) onSubmit!: (
     data: {
       name: string,
@@ -20,8 +20,6 @@ export class GoalsFormComponent {
       endDate: string
     }
   ) => void;
-  @Input() initialValues?: Goal | null;
-  @Input() mode: 'create' | 'edit' = 'create';
 
 
   goalName = signal('');
@@ -31,17 +29,11 @@ export class GoalsFormComponent {
   isEditMode = signal(false);
 
   ngOnInit(): void {
-    if (this.initialValues) {
-      this.goalName.set(this.initialValues.name);
-      this.targetValue.set(this.initialValues.target_value);
-      this.startDate.set(this.initialValues.start_date);
-      this.endDate.set(this.initialValues.end_date);
-      this.isEditMode.set(true);
-    }
+
   }
 
   handleClose() {
-    this.formVisible.set(false);
+    this.formSignal.set({ show: false, data: null });
   }
 
   handleSubmit() {

@@ -1,18 +1,22 @@
 import { CommonModule } from "@angular/common";
 import { Component, signal, WritableSignal } from "@angular/core";
 import { GoalProgressComponent } from "src/app/components/goal-progress/goal-progress.component";
-import { GoalsFormComponent } from "src/app/components/groups/goals-form/goals-form.component";
+import { GoalsCreateFormComponent } from "src/app/components/groups/goals-create-form/goals-create-form.component";
+import { GoalsEditFormComponent } from "src/app/components/groups/goals-edit-form/goals-edit-form.component";
 import { GroupsGoalsTableComponent } from "src/app/components/groups/groups-goals-table/groups-goals-table.component";
-import { CreateGoalRequest, GroupService, UpdateGoalRequest } from "src/app/services/groups.service";
+import { GroupsMembersTableComponent } from "src/app/components/groups/groups-members-table/groups-members-table.component";
+import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/app/services/groups.service";
 
 @Component({
   selector: 'group-details-page',
   standalone: true,
   imports: [
     CommonModule,
-    GoalsFormComponent,
+    GoalsCreateFormComponent,
+    GoalsEditFormComponent,
     GoalProgressComponent,
-    GroupsGoalsTableComponent
+    GroupsGoalsTableComponent,
+    GroupsMembersTableComponent
   ],
   templateUrl: './group-details.component.html',
   styleUrls: ['./group-details.component.scss'],
@@ -23,12 +27,12 @@ export class GroupsDetailsPageComponent {
     private groupService: GroupService
   ) { }
 
-  showCreateGoalForm: WritableSignal<boolean> = signal(false);
-  showEditGoalForm: WritableSignal<boolean> = signal(false);
+  createGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
+  editGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
 
-  openCreateGoalForm = () => this.showCreateGoalForm.set(true);
+  openCreateGoalForm = () => this.createGoalFormSignal.set({ show: true, data: null });
   openEditGoalForm = () => {
-    this.showEditGoalForm.set(true);
+    this.editGoalFormSignal.set({ show: true, data: null });
   }
 
   selectedGroup = this.groupService.selectedGroup;
@@ -58,7 +62,7 @@ export class GroupsDetailsPageComponent {
     this.groupService.createGoal(requestPayload).subscribe({
       next: (response) => {
         console.log('Goal Created:', data);
-        this.showCreateGoalForm.set(false);
+        this.createGoalFormSignal.set({ show: false, data: null });
         this.groupService.notifyGoalCreated(response.goal_id);
       },
       error: (err) => {
@@ -67,14 +71,7 @@ export class GroupsDetailsPageComponent {
     });
   }
 
-  onEditGoalFormSubmit = (
-    data: {
-      name: string,
-      targetValue: string,
-      startDate: string,
-      endDate: string
-    }
-  ) => {
+  onEditGoalFormSubmit = (data: Goal) => {
     const selectedGroup = this.selectedGroup();
     const selectedGoal = this.selectedGoal();
     if (!selectedGroup || !selectedGoal) {
@@ -85,16 +82,16 @@ export class GroupsDetailsPageComponent {
       id: selectedGoal.id,
       group_id: selectedGroup.id,
       name: data.name,
-      target_value: data.targetValue,
-      start_date: data.startDate,
-      end_date: data.endDate,
+      target_value: data.target_value,
+      start_date: data.start_date,
+      end_date: data.end_date,
       created_at: selectedGoal.created_at,
     };
 
     this.groupService.updateGoal(requestPayload).subscribe({
       next: () => {
         console.log('Goal Updated: ', selectedGoal.id);
-        this.showEditGoalForm.set(false);
+        this.editGoalFormSignal.set({ show: false, data: null });
         this.groupService.notifyGoalCreated(selectedGoal.id);
       },
       error: (err) => {
