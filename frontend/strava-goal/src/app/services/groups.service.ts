@@ -127,6 +127,7 @@ export class GroupService {
 
   notifyGroupUpdate(groupID: number) {
     this.groupUpdate.set(groupID);
+    this.loadGroups();
   }
   resetGroupUpdate() {
     this.groupUpdate.set(null);
