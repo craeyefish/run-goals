@@ -26,8 +26,8 @@ export class GoalsEditFormComponent {
     if (data) {
       this.goalName.set(data.name);
       this.targetValue.set(data.target_value);
-      this.startDate.set(data.start_date);
-      this.endDate.set(data.end_date);
+      this.startDate.set(data.start_date!);
+      this.endDate.set(data.end_date!);
     }
   }
 

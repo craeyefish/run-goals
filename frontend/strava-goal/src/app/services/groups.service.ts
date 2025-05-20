@@ -82,7 +82,13 @@ export class GroupService {
   loadGoals(groupID: number) {
     this.getGroupGoals(groupID).subscribe({
       next: (response) => {
-        this.goals.set(response.goals);
+        const goals = response.goals.map((goal) => ({
+          ...goal,
+          start_date: this.datePipe.transform(goal.start_date, 'yyyy-MM-dd'),
+          end_date: this.datePipe.transform(goal.end_date, 'yyyy-MM-dd'),
+          created_at: this.datePipe.transform(goal.created_at, 'yyyy-MM-dd'),
+        }))
+        this.goals.set(goals);
         const createdGoal = this.goals().find(goal => goal.id === this.goalCreated());
         if (createdGoal) {
           this.selectedGoal.set(createdGoal);
@@ -154,9 +160,9 @@ export interface Goal {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string | null;
 }
 
 export interface Member {
@@ -203,8 +209,8 @@ export interface CreateGoalRequest {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
+  start_date: Date;
+  end_date: Date;
 }
 
 export interface CreateGoalResponse {
@@ -216,9 +222,9 @@ export interface UpdateGoalRequest {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
+  start_date: Date;
+  end_date: Date;
+  created_at: Date;
 }
 
 export interface GetGroupGoalsResponse {

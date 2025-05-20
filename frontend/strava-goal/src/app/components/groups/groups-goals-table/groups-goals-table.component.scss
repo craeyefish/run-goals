@@ -3,7 +3,7 @@ table {
   border-collapse: collapse;
   font-size: 0.6rem;
   text-align: left;
-  background-color: var(--background-shade-color-4);
+  background-color: var(--background-light-shade);
 
   thead tr {
     height: 2rem;
@@ -14,24 +14,20 @@ table {
 
   th,
   td {
+    height: 100%;
     padding-left: 0.75rem;
   }
 
   // add bottom border to each row
   tbody tr {
-    height: 2.5rem;
+    height: 2rem;
     cursor: pointer;
     transition: background-color 0.2s;
     border-bottom: 0.1rem solid var(--background-secondary);
   }
 
-  // add lighter background for every second row
-  .tbody tr:nth-of-type(even) {
-    background-color: var(--background-shade-color-2);
-  }
-
   tr.selected {
-    background-color: color-mix(in srgb, var(--secondary-color) 50%, white);
+    background-color: var(--background-primary);
     cursor: pointer;
   }
 
@@ -41,21 +37,21 @@ table {
     align-items: center;
     padding-right: 0.5rem;
     height: 100%;
-  }
 
-  .edit-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    visibility: hidden;
-    background-color: transparent;
-    cursor: pointer;
-    height: 100%;
-    border: none;
+    .edit-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+      background-color: transparent;
+      cursor: pointer;
+      height: 100%;
+      border: none;
 
-    .edit-icon {
-      width: 1.5rem;
-      height: 1.5rem;
+      .edit-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
     }
   }
 
@@ -63,15 +59,11 @@ table {
     visibility: visible;
 
     &:hover {
-      filter: invert(1);
+      background-color: var(--background-shade-color-2);
     }
   }
 
   tbody tr:hover {
     background-color: var(--background-primary);
-  }
-
-  tbody tr.selected:hover {
-    background-color: color-mix(in srgb, var(--secondary-color) 50%, white);
   }
 }

@@ -55,8 +55,8 @@ export class GroupsDetailsPageComponent {
       group_id: selectedGroup.id,
       name: data.name,
       target_value: data.targetValue,
-      start_date: data.startDate,
-      end_date: data.endDate,
+      start_date: new Date(data.startDate),
+      end_date: new Date(data.endDate),
     };
 
     this.groupService.createGoal(requestPayload).subscribe({
@@ -83,9 +83,9 @@ export class GroupsDetailsPageComponent {
       group_id: selectedGroup.id,
       name: data.name,
       target_value: data.target_value,
-      start_date: data.start_date,
-      end_date: data.end_date,
-      created_at: selectedGoal.created_at,
+      start_date: new Date(data.start_date!),
+      end_date: new Date(data.end_date!),
+      created_at: new Date(selectedGoal.created_at!),
     };
 
     this.groupService.updateGoal(requestPayload).subscribe({

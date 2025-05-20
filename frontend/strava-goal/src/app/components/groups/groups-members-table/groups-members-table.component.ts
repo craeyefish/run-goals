@@ -48,7 +48,7 @@ export class GroupsMembersTableComponent {
       const memberChange = this.groupService.memberAddedOrRemoved();
 
       if ((selectedGoalChange || memberChange) && (group && goal)) {
-        this.groupService.getGroupMembersGoalContribution(group.id, goal.start_date, goal.end_date).subscribe({
+        this.groupService.getGroupMembersGoalContribution(group.id, goal.start_date!, goal.end_date!).subscribe({
           next: (response) => this.groupService.membersContribution.set(response.members),
           error: (err) => console.error('Failed to load members', err)
         });

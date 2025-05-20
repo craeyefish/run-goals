@@ -19,14 +19,20 @@
         <td>{{ goal.target_value }}</td>
         <td>{{ goal.start_date }}</td>
         <td>{{ goal.end_date }}</td>
-        <td class="edit-cell">
-          <button
-            class="edit-btn"
-            *ngIf="goal === selectedGoal"
-            (click)="onEditGoalClick?.(goal); $event.stopPropagation()"
-          >
-            <img src="assets/icons/settings.svg" alt="Edit" class="edit-icon" />
-          </button>
+        <td>
+          <div class="edit-cell">
+            <button
+              class="edit-btn"
+              *ngIf="goal === selectedGoal"
+              (click)="onEditGoalClick?.(goal); $event.stopPropagation()"
+            >
+              <img
+                src="assets/icons/settings.svg"
+                alt="Edit"
+                class="edit-icon"
+              />
+            </button>
+          </div>
         </td>
       </tr>
     </ng-container>

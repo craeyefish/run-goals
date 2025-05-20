@@ -3,7 +3,7 @@ table {
   border-collapse: collapse;
   font-size: 1rem;
   text-align: left;
-  background-color: var(--background-shade-color-4);
+  background-color: var(--background-light-shade);
 
   thead tr {
     height: 2rem;
@@ -23,11 +23,6 @@ table {
     cursor: pointer;
     transition: background-color 0.2s;
     border-bottom: 0.1rem solid var(--background-secondary);
-  }
-
-  // add lighter background for every second row
-  .tbody tr:nth-of-type(even) {
-    background-color: var(--background-shade-color-2);
   }
 
   .name-cell {

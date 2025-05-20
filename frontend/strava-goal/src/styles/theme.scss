@@ -9,6 +9,7 @@ $background-shade-2: rgba(0, 0, 0, 0.2);
 $background-shade-3: rgba(0, 0, 0, 0.3);
 $background-shade-4: rgba(0, 0, 0, 0.4);
 $background-shade-5: rgba(0, 0, 0, 0.5);
+$background-light-shade: rgba(255, 255, 255, 0.6);
 $surface: #bed8d4; // Ash Gray
 $text: #ffffff; // Standard dark text
 $text-primary: #000000;
@@ -26,6 +27,7 @@ $accent: #2081c3; // Steel Blue
   $background-shade-3,
   $background-shade-4,
   $background-shade-5,
+  $background-light-shade,
   $surface,
   $text,
   $text-primary,
@@ -42,6 +44,7 @@ $accent: #2081c3; // Steel Blue
   --background-shade-color-3: #{$background-shade-3};
   --background-shade-color-4: #{$background-shade-4};
   --background-shade-color-5: #{$background-shade-5};
+  --background-light-shade: #{$background-light-shade};
   --surface-color: #{$surface};
   --text-color: #{$text};
   --text-primary: #{$text-primary};
@@ -61,6 +64,7 @@ $accent: #2081c3; // Steel Blue
     $background-shade-3,
     $background-shade-4,
     $background-shade-5,
+    $background-light-shade,
     $surface,
     $text,
     $text-primary,
