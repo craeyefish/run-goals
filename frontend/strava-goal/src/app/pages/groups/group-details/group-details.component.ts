@@ -31,8 +31,8 @@ export class GroupsDetailsPageComponent {
   editGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
 
   openCreateGoalForm = () => this.createGoalFormSignal.set({ show: true, data: null });
-  openEditGoalForm = () => {
-    this.editGoalFormSignal.set({ show: true, data: null });
+  openEditGoalForm = (goal: Goal) => {
+    this.editGoalFormSignal.set({ show: true, data: goal });
   }
 
   selectedGroup = this.groupService.selectedGroup;

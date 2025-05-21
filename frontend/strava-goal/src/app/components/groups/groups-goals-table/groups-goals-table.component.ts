@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, Input, signal } from '@angular/core';
 import { Goal, GroupService } from 'src/app/services/groups.service';
+import { GroupsProgressBarComponent } from '../groups-progress-bar/groups-progress-bar.component';
 
 @Component({
   selector: 'groups-goals-table',
-  imports: [CommonModule],
+  imports: [CommonModule, GroupsProgressBarComponent],
   templateUrl: './groups-goals-table.component.html',
   styleUrl: './groups-goals-table.component.scss',
 })

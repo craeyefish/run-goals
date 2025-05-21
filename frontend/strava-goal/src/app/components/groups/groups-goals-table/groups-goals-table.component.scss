@@ -35,14 +35,12 @@ table {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding-right: 0.5rem;
     height: 100%;
 
     .edit-btn {
       display: flex;
       justify-content: center;
       align-items: center;
-      visibility: hidden;
       background-color: transparent;
       cursor: pointer;
       height: 100%;
@@ -56,8 +54,6 @@ table {
   }
 
   tr.selected .edit-btn {
-    visibility: visible;
-
     &:hover {
       background-color: var(--background-shade-color-2);
     }
@@ -65,5 +61,37 @@ table {
 
   tbody tr:hover {
     background-color: var(--background-primary);
+  }
+
+  .progress-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding-right: 1rem;
+
+    groups-progress-bar {
+      flex-grow: 1;
+    }
+  }
+
+  .col-goal {
+    width: 25%;
+  }
+  .col-progress {
+    width: 25%;
+  }
+  .col-target {
+    width: 15%;
+  }
+  .col-start {
+    width: 15%;
+  }
+  .col-end {
+    width: 15%;
+  }
+  .col-settings {
+    width: 5%;
   }
 }

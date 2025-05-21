@@ -1,7 +1,16 @@
 <table>
+  <colgroup>
+    <col class="col-goal" />
+    <col class="col-progress" />
+    <col class="col-target" />
+    <col class="col-start" />
+    <col class="col-end" />
+    <col class="col-settings" />
+  </colgroup>
   <thead>
     <tr>
       <th>Goal</th>
+      <th>Progress</th>
       <th>Target Value</th>
       <th>Start Date</th>
       <th>End Date</th>
@@ -16,6 +25,11 @@
         [class.selected]="goal === selectedGoal"
       >
         <td>{{ goal.name }}</td>
+        <td>
+          <div class="progress-cell">
+            <groups-progress-bar [goal]="goal"></groups-progress-bar>
+          </div>
+        </td>
         <td>{{ goal.target_value }}</td>
         <td>{{ goal.start_date }}</td>
         <td>{{ goal.end_date }}</td>
@@ -23,7 +37,6 @@
           <div class="edit-cell">
             <button
               class="edit-btn"
-              *ngIf="goal === selectedGoal"
               (click)="onEditGoalClick?.(goal); $event.stopPropagation()"
             >
               <img
