@@ -94,6 +94,42 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 	return nil
 }
 
+func (service *StravaService) FetchAndStoreDetailedActivity(user *models.User, activityID int64) error {
+	// Ensure the user's token is valid
+	if err := service.EnsureValidToken(user); err != nil {
+		return fmt.Errorf("token refresh error: %w", err)
+	}
+
+	// Fetch the detailed activity
+	detailedActivity, err := service.FetchDetailedActivity(user.AccessToken, activityID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch detailed activity: %w", err)
+	}
+
+	var photoURL string
+	if detailedActivity.Photos.Count > 0 && len(detailedActivity.Photos.Primary.Urls) > 0 {
+		photoURL = detailedActivity.Photos.Primary.Urls["600"]
+	}
+
+	t, _ := time.Parse(time.RFC3339, detailedActivity.StartDate)
+	activity := models.Activity{
+		StravaActivityId: detailedActivity.ID,
+		StravaAthleteId:  user.StravaAthleteID,
+		UserID:           user.ID,
+		Name:             detailedActivity.Name,
+		Description:      detailedActivity.Description,
+		Distance:         detailedActivity.Distance, // in meters
+		PhotoURL:         photoURL,
+		StartDate:        t,
+		MapPolyline:      detailedActivity.Map.SummaryPolyline,
+	}
+	if err := service.activityDao.UpsertActivity(&activity); err != nil {
+		return fmt.Errorf("failed to upsert activity: %w", err)
+	}
+
+	return nil
+}
+
 func (service *StravaService) EnsureValidToken(u *models.User) error {
 	// 1. Check if token is still valid
 	if time.Now().Before(u.ExpiresAt) {
@@ -156,7 +192,6 @@ func (service *StravaService) GetUserDistance(u *models.User) (*float64, error) 
 
 	// 2. Otherwise, fetch from Strava
 	dist, err := service.FetchUserDistance(u)
-	dist = 0
 	if err != nil {
 		return &dist, err
 	}
@@ -246,6 +281,38 @@ func (service *StravaService) FetchActivitiesPage(accessToken string, page, perP
 	}
 
 	return activities, nil
+}
+
+func (service *StravaService) FetchDetailedActivity(accessToken string, activityID int64) (*models.StravaActivity, error) {
+	// Construct the URL for the detailed activity endpoint
+	url := fmt.Sprintf("https://www.strava.com/api/v3/activities/%d", activityID)
+
+	// Create the HTTP request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	// Execute the HTTP request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch detailed activity: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for non-200 status codes
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch detailed activity status %d", resp.StatusCode)
+	}
+
+	// Decode the response into a StravaActivity struct
+	var detailedActivity models.StravaActivity
+	if err := json.NewDecoder(resp.Body).Decode(&detailedActivity); err != nil {
+		return nil, fmt.Errorf("failed to decode detailed activity response: %w", err)
+	}
+
+	return &detailedActivity, nil
 }
 
 func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload) {

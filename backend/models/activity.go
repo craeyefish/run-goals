@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type Activity struct {
 	StravaAthleteId  int64     `json:"strava_athlete_id"`
 	UserID           int64     `json:"user_id"`
 	Name             string    `json:"name"`
+	Description      string    `json:"description"`
 	Distance         float64   `json:"distance"`
 	StartDate        time.Time `json:"start_date"`
 	MapPolyline      string    `json:"map_polyline"`
@@ -20,4 +22,8 @@ type Activity struct {
 
 	// Non Strava
 	HasSummit bool `json:"has_summit"`
+}
+
+func (a *Activity) IsHG() bool {
+	return strings.Contains(strings.ToLower(a.Name), "#hg")
 }

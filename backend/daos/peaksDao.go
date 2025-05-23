@@ -105,19 +105,19 @@ func (dao *PeaksDao) UpsertPeak(peak *models.Peak) error {
 func (dao *PeaksDao) GetPeaksBetweenLatLon(minLat float64, maxLat float64, minLon float64, maxLon float64) ([]models.Peak, error) {
 	peaks := []models.Peak{}
 	sql := `
-		SELECT
-			id,
-			osm_id,
-			latitude,
-			longitude,
-			name,
-			elevation_meters
-		FROM peaks
-		WHERE
-			lat BETWEEN ? AND ?
-			AND lon BETWEEN ? AND ?
-	`
-	rows, err := dao.db.Query(sql)
+        SELECT
+            id,
+            osm_id,
+            latitude,
+            longitude,
+            name,
+            elevation_meters
+        FROM peaks
+        WHERE
+            latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+    `
+	rows, err := dao.db.Query(sql, minLat, maxLat, minLon, maxLon)
 	if err != nil {
 		dao.l.Println("Error querying peak table", err)
 		return nil, err

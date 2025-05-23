@@ -11,6 +11,8 @@ import (
 	"run-goals/handlers"
 	"run-goals/middleware"
 	"run-goals/services"
+	"run-goals/workflows"
+	"time"
 )
 
 type Server struct {
@@ -67,6 +69,17 @@ func NewServer() *http.Server {
 	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
 	authHandler := handlers.NewAuthHandler(logger, authController, stravaController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
+
+	// backgorund jobs
+	// TODO(cian): Move out of server.
+	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
+	fetcher.FetchUserActivities()
+	go func() {
+		for {
+			time.Sleep(24 * time.Hour)
+			fetcher.FetchUserActivities()
+		}
+	}()
 
 	// create new serve mux and register handlers
 	mux := http.NewServeMux()

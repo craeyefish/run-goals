@@ -110,22 +110,20 @@ func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
 
 func (dao *UserPeaksDao) UpsertUserPeak(userPeak *models.UserPeak) error {
 	sql := `
-		INSERT INTO user_peaks (
-			user_id,
-			peak_id,
-			activity_id,
-			summited_at
-		) VALUES (
-			$1, $2, $3, $4
-		) ON CONFLICT (
-			user_id
-		) DO UPDATE
-			SET
-				user_id = EXCLUDED.user_id,
-				peak_id = EXCLUDED.peak_id,
-				activity_id = EXCLUDED.activity_id,
-				summited_at = EXCLUDED.summited_at;
-	`
+        INSERT INTO user_peaks (
+            user_id,
+            peak_id,
+            activity_id,
+            summited_at
+        ) VALUES (
+            $1, $2, $3, $4
+        ) ON CONFLICT (
+            user_id, peak_id
+        ) DO UPDATE
+            SET
+                activity_id = EXCLUDED.activity_id,
+                summited_at = EXCLUDED.summited_at;
+    `
 	_, err := dao.db.Exec(
 		sql,
 		userPeak.UserID,

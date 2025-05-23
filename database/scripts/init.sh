@@ -24,13 +24,13 @@ psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/60_group_members.sql"
 psql -U $PGUSER -d $PGDATABASE -f "../sql/tables/70_group_goals.sql"
 
 # LOAD MOCK DATA INTO DATABASE TABLES
-if [ "$ENVIRONMENT" != "production" ]; then
-    MOCK_DATA_DIR=../sql/mockdata
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/users.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/peaks.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/activity.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/userpeaks.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/groups.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_members.sql"
-    psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_goals.sql"
-fi
+# if [ "$ENVIRONMENT" != "production" ]; then
+#     MOCK_DATA_DIR=../sql/mockdata
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/users.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/peaks.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/activity.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/userpeaks.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/groups.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_members.sql"
+#     psql -U $PGUSER -d $PGDATABASE -f "../sql/mockdata/group_goals.sql"
+# fi
