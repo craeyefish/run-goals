@@ -7,6 +7,7 @@ export interface Activity {
   strava_activity_id: number;
   user_id: number;
   name: string;
+  description: string;
   distance: number;
   start_date: string; // or Date if you parse it
   map_polyline: string;

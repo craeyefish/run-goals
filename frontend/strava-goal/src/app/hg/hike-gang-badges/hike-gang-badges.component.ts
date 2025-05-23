@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivityService, Activity } from 'src/app/services/activity.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-hike-gang-badges',
@@ -8,7 +10,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './hike-gang-badges.component.html',
   styleUrls: ['./hike-gang-badges.component.scss'],
 })
-export class HikeGangBadgesComponent {
+export class HikeGangBadgesComponent implements OnInit {
   selectedBadge: {
     name: string;
     description: string;
@@ -21,20 +23,14 @@ export class HikeGangBadgesComponent {
       name: 'Long Trek',
       description: 'Complete a hike over 15km',
       image: '/assets/badges/long-trek-gold.png',
-      tier: 'gold',
+      tier: 'unachieved',
     },
     {
       name: 'Dawn Patrol',
       description: 'Start a hike before sunrise',
       image: '/assets/badges/dawn-patrol-gold.png',
-      tier: 'gold',
+      tier: 'unachieved',
     },
-    // {
-    //   name: 'Peak Seeker',
-    //   description: 'Reach the summit of a mountain',
-    //   image: '/assets/badges/peak-seeker-gold.png',
-    //   tier: 'gold',
-    // },
     {
       name: 'Hobbit Feet',
       description: 'Complete a barefoot hike',
@@ -47,22 +43,10 @@ export class HikeGangBadgesComponent {
       image: '/assets/badges/werewalker-gold.png',
       tier: 'unachieved',
     },
-    // {
-    //   name: 'Night Walker',
-    //   description: 'Hike under the stars',
-    //   image: '/assets/badges/night-walker.png',
-    //   tier: 'silver',
-    // },
     {
       name: 'Storm Braver',
-      description: 'Complete a hike in the rain',
+      description: 'Complete a hike in a storm',
       image: '/assets/badges/storm-braver-gold.png',
-      tier: 'unachieved',
-    },
-    {
-      name: 'Tiny Steps',
-      description: 'Join your first hike!',
-      image: '/assets/badges/tiny-steps-gold.png',
       tier: 'unachieved',
     },
     {
@@ -72,12 +56,63 @@ export class HikeGangBadgesComponent {
       tier: 'unachieved',
     },
     {
-      name: 'Bird Spotter',
-      description: 'Spot a certain bird on your travvels',
-      image: '/assets/badges/bird-spotter-gold.png',
+      name: 'Trusted Companion',
+      description: 'Take a shelter dog on a hike',
+      image: '/assets/badges/trusted-companion-gold.png',
+      tier: 'unachieved',
+    },
+    {
+      name: 'Connected Dwellings',
+      description: 'Use the hike routes to connect your homes on the map',
+      image: '/assets/badges/connected-dwellings-gold.png',
       tier: 'unachieved',
     },
   ];
+
+  constructor(
+    private activityService: ActivityService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.activityService.loadActivities();
+    this.activityService.activities$.subscribe((activities) => {
+      if (activities) {
+        // Filter activities tagged with #hg
+        const hgActivities = activities.filter((act) =>
+          act.name?.includes('#hg')
+        );
+
+        // Update badge tiers based on activity descriptions
+        this.updateBadgeTiers(hgActivities);
+      }
+    });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/hg']); // Replace '/hg' with the correct route for your home page
+  }
+
+  updateBadgeTiers(activities: Activity[]): void {
+    activities.forEach((activity) => {
+      if (!activity.description) return;
+
+      // Extract medal tags from the description (e.g., #hobbit_feet-gold)
+      const medalRegex = /#(\w+)-(\w+)/g;
+      let match;
+      while ((match = medalRegex.exec(activity.description)) !== null) {
+        const [_, badgeKey, tier] = match;
+
+        // Find the badge and update its tier
+        const badge = this.badges.find((b) =>
+          b.name.toLowerCase().replace(/\s+/g, '_').includes(badgeKey)
+        );
+        if (badge) {
+          badge.tier = tier as 'bronze' | 'silver' | 'gold';
+        }
+      }
+    });
+  }
 
   showInfo(badge: any) {
     this.selectedBadge = badge;
@@ -86,9 +121,9 @@ export class HikeGangBadgesComponent {
   getTierFilter(tier: string): string {
     switch (tier) {
       case 'silver':
-        return 'grayscale(1) brightness(1.2) contrast(1.1)';
+        return 'grayscale(1) brightness(1.0) contrast(1.3) saturate(1.2)';
       case 'bronze':
-        return 'sepia(1) hue-rotate(-25deg) saturate(3) brightness(0.6)';
+        return 'sepia(0.8) hue-rotate(-18deg) saturate(1.5) brightness(0.8)';
       case 'unachieved':
         return 'grayscale(1) brightness(0.4) contrast(0.8)';
       default:
@@ -96,3 +131,30 @@ export class HikeGangBadgesComponent {
     }
   }
 }
+
+// badges = [
+//   {
+//     name: 'Peak Seeker',
+//     description: 'Reach the summit of a mountain',
+//     image: '/assets/badges/peak-seeker-gold.png',
+//     tier: 'gold',
+//   },
+//   {
+//     name: 'Night Walker',
+//     description: 'Hike under the stars',
+//     image: '/assets/badges/night-walker.png',
+//     tier: 'silver',
+//   },
+//   {
+//     name: 'Tiny Steps',
+//     description: 'Join your first hike!',
+//     image: '/assets/badges/tiny-steps-gold.png',
+//     tier: 'unachieved',
+//   },
+//   {
+//     name: 'Bird Spotter',
+//     description: 'Spot a certain bird on your travels',
+//     image: '/assets/badges/bird-spotter-gold.png',
+//     tier: 'unachieved',
+//   },
+// ];
