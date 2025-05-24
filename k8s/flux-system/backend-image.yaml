@@ -58,4 +58,4 @@ spec:
       branch: main
   update:
     path: ./k8s
-    strategy: Setters
+    strategy: Update
