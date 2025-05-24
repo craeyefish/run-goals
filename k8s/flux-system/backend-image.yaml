@@ -51,9 +51,6 @@ spec:
       author:
         name: Flux Image Automation
         email: flux@craeyebytes.com
-      signingKey:
-        secretRef:
-          name: flux-writer
     push:
       branch: main
   update:
