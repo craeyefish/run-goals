@@ -5,8 +5,8 @@ metadata:
   namespace: default
 data:
   config.yaml: |
-    tunnel: 166497f5-3b46-4ac0-8946-f74d15518980
-    credentials-file: /etc/cloudflared/creds/166497f5-3b46-4ac0-8946-f74d15518980.json
+    tunnel: 019a8612-2d4b-42c7-9c7e-ccd539e4c701
+    credentials-file: /etc/cloudflared/creds/credentials.json
     no-autoupdate: true
     ingress:
       - hostname: craeyebytes.com
