@@ -52,6 +52,10 @@ export class GroupService {
     return this.http.get<GetGroupMembersResponse>('/api/group-members', { params })
   }
 
+  createGroupMember(request: CreateGroupMemberRequest): Observable<any> {
+    return this.http.post<any>('/api/group-member', request);
+  }
+
   getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
     const formattedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
     const formattedEndDate = this.datePipe.transform(endDate, 'yyyy-MM-dd');
@@ -131,8 +135,7 @@ export class GroupService {
     this.selectedGoalChange.set(false);
   }
 
-  notifyGroupUpdate(groupID: number) {
-    this.groupUpdate.set(groupID);
+  notifyGroupUpdate() {
     this.loadGroups();
   }
   resetGroupUpdate() {
@@ -237,4 +240,10 @@ export interface GetGroupMembersGoalContributionResponse {
 
 export interface GetGroupMembersResponse {
   members: Member[];
+}
+
+export interface CreateGroupMemberRequest {
+  group_code: string;
+  user_id: number;
+  role: string;
 }

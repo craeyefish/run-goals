@@ -10,13 +10,13 @@ import { Component, Input, signal, WritableSignal } from "@angular/core";
 export class GroupsJoinFormComponent {
   constructor() { }
 
-  @Input({ required: true }) formVisible!: WritableSignal<boolean>;
+  @Input({ required: true }) formSignal!: WritableSignal<{ show: boolean, code: string | null }>;
   @Input({ required: true }) onSubmit!: (data: { code: string }) => void;
 
   code = signal('');
 
   handleClose() {
-    this.formVisible.set(false);
+    this.formSignal.set({ show: false, code: null });
   }
 
   handleSubmit() {

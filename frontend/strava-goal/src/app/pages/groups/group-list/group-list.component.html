@@ -47,9 +47,9 @@
 </groups-edit-form>
 
 <groups-join-form
-  *ngIf="showJoinGroupForm()"
+  *ngIf="joinGroupFormSignal()?.show"
   class="card-container"
-  [formVisible]="showJoinGroupForm"
+  [formSignal]="joinGroupFormSignal"
   [onSubmit]="onJoinGroupFormSubmit"
 >
 </groups-join-form>

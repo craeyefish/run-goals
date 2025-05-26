@@ -14,6 +14,7 @@ export class AuthService {
   private refreshTokenKey = 'jwt_refresh_token';
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  private userID: number | null = 1;
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -115,5 +116,9 @@ export class AuthService {
     const storedState = localStorage.getItem(this.stateKey);
     localStorage.removeItem(this.stateKey);
     return storedState === returnedState;
+  }
+
+  getUserID(): number | null {
+    return this.userID;
   }
 }

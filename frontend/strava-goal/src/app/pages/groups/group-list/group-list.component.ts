@@ -4,7 +4,8 @@ import { GroupsCreateFormComponent } from "src/app/components/groups/groups-crea
 import { GroupsEditFormComponent } from "src/app/components/groups/groups-edit-form/groups-edit-form.component";
 import { GroupsJoinFormComponent } from "src/app/components/groups/groups-join-form/groups-join-form.component";
 import { GroupsTableComponent } from "src/app/components/groups/groups-table/groups-table.component";
-import { CreateGroupRequest, Group, GroupService, UpdateGroupRequest } from "src/app/services/groups.service";
+import { AuthService } from "src/app/services/auth.service";
+import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, UpdateGroupRequest } from "src/app/services/groups.service";
 
 @Component({
   selector: 'group-list-page',
@@ -21,18 +22,18 @@ import { CreateGroupRequest, Group, GroupService, UpdateGroupRequest } from "src
 })
 export class GroupsListPageComponent {
 
-  constructor(private groupService: GroupService) {
+  constructor(private groupService: GroupService, private authService: AuthService) {
     this.groupService.loadGroups()
   }
 
   groups = this.groupService.groups;
 
   createGroupFormSignal: WritableSignal<{ show: boolean, data: Group | null }> = signal({ show: false, data: null });
-  showJoinGroupForm: WritableSignal<boolean> = signal(false);
+  joinGroupFormSignal: WritableSignal<{ show: boolean, code: string | null }> = signal({ show: false, code: null });
   editGroupFormSignal: WritableSignal<{ show: boolean, data: Group | null }> = signal({ show: false, data: null });
 
   openCreateGroupForm = () => this.createGroupFormSignal.set({ show: true, data: null });
-  openJoinGroupForm = () => this.showJoinGroupForm.set(true);
+  openJoinGroupForm = () => this.joinGroupFormSignal.set({ show: true, code: null });
   openEditGroupForm = (group: Group) => {
     this.editGroupFormSignal.set({ show: true, data: group });
   }
@@ -47,7 +48,7 @@ export class GroupsListPageComponent {
       next: (response) => {
         console.log('Group Created:', response);
         this.createGroupFormSignal.set({ show: false, data: null });
-        this.groupService.notifyGroupUpdate(response.group_id);
+        this.groupService.notifyGroupUpdate();
       },
       error: (err) => {
         console.error('Error creating group:', err)
@@ -71,7 +72,7 @@ export class GroupsListPageComponent {
       next: () => {
         console.log('Group Updated: ', data.id);
         this.editGroupFormSignal.set({ show: false, data: null });
-        this.groupService.notifyGroupUpdate(data.id);
+        this.groupService.notifyGroupUpdate();
       },
       error: (err) => {
         console.error('Error updating group:', err)
@@ -84,7 +85,22 @@ export class GroupsListPageComponent {
       code: string
     }
   ) => {
+    const requestPayload: CreateGroupMemberRequest = {
+      group_code: data.code,
+      user_id: this.authService.getUserID()!,
+      role: 'member',
+    };
 
+    this.groupService.createGroupMember(requestPayload).subscribe({
+      next: () => {
+        console.log('Group Joined');
+        this.joinGroupFormSignal.set({ show: false, code: null });
+        this.groupService.notifyGroupUpdate();
+      },
+      error: (err) => {
+        console.error('Error joining group:', err)
+      }
+    })
   }
 
 }

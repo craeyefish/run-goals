@@ -103,14 +103,19 @@ func (s *GroupsService) DeleteGroup(groupID int64) error {
 }
 
 func (s *GroupsService) CreateGroupMember(request dto.CreateGroupMemberRequest) error {
+	id, err := s.groupsDao.GetGroupIDFromCode(request.GroupCode)
+	if err != nil {
+		s.l.Printf("Error calling groupsDao.GetGroupIDFromCode: %v", err)
+		return err
+	}
 	groupMember := models.GroupMember{
 		ID:       0,
-		GroupID:  request.GroupID,
+		GroupID:  *id,
 		UserID:   request.UserID,
 		Role:     request.Role,
 		JoinedAt: time.Now(),
 	}
-	err := s.groupsDao.CreateGroupMember(groupMember)
+	err = s.groupsDao.CreateGroupMember(groupMember)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.CreateMember: %v", err)
 		return err
