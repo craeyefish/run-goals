@@ -30,9 +30,9 @@ spec:
       range: '>=0.0.0'
 
 ---
-# ------------------------------------------------------------------
+# ────────────────────────────────────────────────────────────────
 # 3) Automation – write the selected digest back to Git
-# ------------------------------------------------------------------
+# ────────────────────────────────────────────────────────────────
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageUpdateAutomation
 metadata:
@@ -53,8 +53,6 @@ spec:
         email: flux@craeyebytes.com
     push:
       branch: main
-    secretRef:
-      name: flux-system-writer
   update:
     path: ./k8s
     strategy: Setters

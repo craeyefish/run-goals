@@ -5,8 +5,8 @@ metadata:
   name: run-goals-backend-ingress
   namespace: default
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.priority: "10"
+    kubernetes.io/ingress.class: 'traefik'
+    traefik.ingress.kubernetes.io/router.priority: '30'
 spec:
   ingressClassName: traefik
   rules:
@@ -43,8 +43,8 @@ metadata:
   name: run-goals-frontend-ingress
   namespace: default
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.priority: "1"
+    kubernetes.io/ingress.class: 'traefik'
+    traefik.ingress.kubernetes.io/router.priority: '10'
 spec:
   ingressClassName: traefik
   rules:

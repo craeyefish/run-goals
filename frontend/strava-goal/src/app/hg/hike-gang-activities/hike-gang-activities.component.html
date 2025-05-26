@@ -1,6 +1,7 @@
 <div class="main-wrapper">
   <div class="hg-header">
-    <h1 (click)="goHome()">Hike Gang</h1>
+    <button class="back-button" (click)="goBack()">← Back</button>
+    <h1>Hike Gang Activities</h1>
     <button (click)="resetMap()">↻ Refresh Map</button>
   </div>
 
@@ -30,7 +31,7 @@
             (click)="highlightActivity(act)"
           >
             <td>{{ hgActivities.length - i }}</td>
-            <td>{{ act.name }}</td>
+            <td>{{ act.name.replace("#hg", "").trim() }}</td>
             <td>{{ act.distance / 1000 | number : "1.2-2" }} km</td>
             <td>{{ act.start_date | date : "short" }}</td>
           </tr>

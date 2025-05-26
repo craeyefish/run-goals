@@ -166,8 +166,6 @@ func (s *SummitService) PopulateSummitedPeaks() error {
 	}
 
 	// Only do this if there is no data in user peaks.
-	// TODO(cian): Replace with a loop that syncs things up daily,
-	// it should get populated as activities get added.
 	peaks, err := s.userPeaksDao.GetUserPeaks()
 	if err != nil {
 		return fmt.Errorf("failed to clear user_peaks: %w", err)
@@ -177,25 +175,26 @@ func (s *SummitService) PopulateSummitedPeaks() error {
 		return nil
 	}
 
-	// fetch all activities
+	// Fetch all activities
 	activities, err := s.activityDao.GetActivities()
 	if err != nil {
 		return fmt.Errorf("failed to fetch activities: %w", err)
 	}
 
-	// loop through activities
+	// Loop through activities
 	for _, activity := range activities {
-		peaks, err := s.CandidatePeaks(activity.MapPolyline)
-		if err != nil {
-			fmt.Println("failed to fetch candidate peaks: %w", err)
+		// Check if the route (MapPolyline) is empty
+		if activity.MapPolyline == "" {
+			s.l.Printf("Skipping activity %d for user %d: no route provided\n", activity.ID, activity.UserID)
 			continue
 		}
 
-		// a) get candidate peaks
-		// b) is peak visited
-		// c) mark user summited peak
-		//
-		// upsert activity
+		// Fetch candidate peaks
+		peaks, err := s.CandidatePeaks(activity.MapPolyline)
+		if err != nil {
+			s.l.Printf("Failed to fetch candidate peaks for activity %d: %v\n", activity.ID, err)
+			continue
+		}
 
 		var hasSummit bool
 		for _, peak := range peaks {
@@ -208,7 +207,7 @@ func (s *SummitService) PopulateSummitedPeaks() error {
 				}
 				err = s.userPeaksDao.UpsertUserPeak(&userPeak)
 				if err != nil {
-					log.Printf("Failed to mark summit for user=%d peak=%d: %v\n", activity.UserID, peak.ID, err)
+					s.l.Printf("Failed to mark summit for user=%d peak=%d: %v\n", activity.UserID, peak.ID, err)
 				}
 
 				hasSummit = true
@@ -218,7 +217,7 @@ func (s *SummitService) PopulateSummitedPeaks() error {
 		activity.HasSummit = hasSummit
 		err = s.activityDao.UpsertActivity(&activity)
 		if err != nil {
-			log.Printf("Failed to update activity=%d: %v\n", activity.ID, err)
+			s.l.Printf("Failed to update activity=%d: %v\n", activity.ID, err)
 		}
 	}
 

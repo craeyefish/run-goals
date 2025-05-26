@@ -53,6 +53,10 @@ export class HikeGangActivitiesComponent implements OnInit {
     });
   }
 
+  goBack(): void {
+    this.router.navigate(['/hg']); // Replace '/hg' with the correct route for your home page
+  }
+
   initMap(): void {
     this.map = L.map('hgMap', {
       center: [-33.83, 18.6], // e.g., near Cape Town
@@ -67,10 +71,6 @@ export class HikeGangActivitiesComponent implements OnInit {
 
     this.markerClusterGroup = L.markerClusterGroup();
     this.map.addLayer(this.markerClusterGroup);
-  }
-
-  goHome(): void {
-    this.router.navigate(['/hg']);
   }
 
   resetMap(): void {
