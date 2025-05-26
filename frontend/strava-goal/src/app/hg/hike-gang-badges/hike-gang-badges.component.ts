@@ -26,9 +26,9 @@ export class HikeGangBadgesComponent implements OnInit {
       tier: 'unachieved',
     },
     {
-      name: 'Dawn Patrol',
-      description: 'Start a hike before sunrise',
-      image: '/assets/badges/dawn-patrol-gold.png',
+      name: 'Arbor Day',
+      description: 'Plant a tree during your hike',
+      image: '/assets/badges/arbor-day-gold.png',
       tier: 'unachieved',
     },
     {
@@ -157,4 +157,10 @@ export class HikeGangBadgesComponent implements OnInit {
 //     image: '/assets/badges/bird-spotter-gold.png',
 //     tier: 'unachieved',
 //   },
+// {
+//   name: 'Dawn Patrol',
+//   description: 'Start a hike before sunrise',
+//   image: '/assets/badges/dawn-patrol-gold.png',
+//   tier: 'unachieved',
+// },
 // ];
