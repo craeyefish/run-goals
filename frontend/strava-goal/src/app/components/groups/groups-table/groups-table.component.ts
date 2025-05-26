@@ -13,6 +13,7 @@ export class GroupsTableComponent {
   public groupService = inject(GroupService);
 
   @Input() onEditGroupClick?: (group: Group) => void;
+  @Input() onLeaveGroupClick?: (group: Group) => void;
 
   constructor(private router: Router) {
     effect(() => {

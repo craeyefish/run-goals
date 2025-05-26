@@ -20,7 +20,10 @@
   <div class="show-group-outer-container">
     <div class="groups-table-outer-container">
       <div class="groups-table-inner-container">
-        <groups-table [onEditGroupClick]="openEditGroupForm"></groups-table>
+        <groups-table
+          [onEditGroupClick]="openEditGroupForm"
+          [onLeaveGroupClick]="openLeaveGroupForm"
+        ></groups-table>
         <div class="button-container">
           <button (click)="openCreateGroupForm()">CREATE</button>
           <button (click)="openJoinGroupForm()">JOIN</button>
@@ -53,3 +56,11 @@
   [onSubmit]="onJoinGroupFormSubmit"
 >
 </groups-join-form>
+
+<groups-leave-form
+  *ngIf="leaveGroupFormSignal()?.show"
+  class="card-container"
+  [formSignal]="leaveGroupFormSignal"
+  [onSubmit]="onLeaveGroupFormSubmit"
+>
+</groups-leave-form>

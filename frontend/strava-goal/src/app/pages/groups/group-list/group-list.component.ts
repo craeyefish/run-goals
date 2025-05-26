@@ -3,9 +3,10 @@ import { Component, signal, WritableSignal } from "@angular/core";
 import { GroupsCreateFormComponent } from "src/app/components/groups/groups-create-form/groups-create-form.component";
 import { GroupsEditFormComponent } from "src/app/components/groups/groups-edit-form/groups-edit-form.component";
 import { GroupsJoinFormComponent } from "src/app/components/groups/groups-join-form/groups-join-form.component";
+import { GroupsLeaveFormComponent } from "src/app/components/groups/groups-leave-form/groups-leave-form.component";
 import { GroupsTableComponent } from "src/app/components/groups/groups-table/groups-table.component";
 import { AuthService } from "src/app/services/auth.service";
-import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, UpdateGroupRequest } from "src/app/services/groups.service";
+import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, LeaveGroupRequest, UpdateGroupRequest } from "src/app/services/groups.service";
 
 @Component({
   selector: 'group-list-page',
@@ -15,7 +16,8 @@ import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, Upda
     GroupsTableComponent,
     GroupsCreateFormComponent,
     GroupsEditFormComponent,
-    GroupsJoinFormComponent
+    GroupsJoinFormComponent,
+    GroupsLeaveFormComponent
   ],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.scss'],
@@ -31,12 +33,12 @@ export class GroupsListPageComponent {
   createGroupFormSignal: WritableSignal<{ show: boolean, data: Group | null }> = signal({ show: false, data: null });
   joinGroupFormSignal: WritableSignal<{ show: boolean, code: string | null }> = signal({ show: false, code: null });
   editGroupFormSignal: WritableSignal<{ show: boolean, data: Group | null }> = signal({ show: false, data: null });
+  leaveGroupFormSignal: WritableSignal<{ show: boolean, data: Group | null }> = signal({ show: false, data: null });
 
   openCreateGroupForm = () => this.createGroupFormSignal.set({ show: true, data: null });
   openJoinGroupForm = () => this.joinGroupFormSignal.set({ show: true, code: null });
-  openEditGroupForm = (group: Group) => {
-    this.editGroupFormSignal.set({ show: true, data: group });
-  }
+  openEditGroupForm = (group: Group) => this.editGroupFormSignal.set({ show: true, data: group });
+  openLeaveGroupForm = (group: Group) => this.leaveGroupFormSignal.set({ show: true, data: group });
 
   onCreateGroupFormSubmit = (data: { name: string }) => {
     const requestPayload: CreateGroupRequest = {
@@ -99,6 +101,24 @@ export class GroupsListPageComponent {
       },
       error: (err) => {
         console.error('Error joining group:', err)
+      }
+    })
+  }
+
+  onLeaveGroupFormSubmit = (data: Group) => {
+    const requestPayload: LeaveGroupRequest = {
+      groupID: data.id,
+      userID: this.authService.getUserID()!,
+    };
+
+    this.groupService.leaveGroup(requestPayload).subscribe({
+      next: () => {
+        console.log('Left Group: ', data.name);
+        this.leaveGroupFormSignal.set({ show: false, data: null });
+        this.groupService.notifyGroupUpdate();
+      },
+      error: (err) => {
+        console.error('Error leaving group:', err)
       }
     })
   }

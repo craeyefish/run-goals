@@ -14,7 +14,6 @@ import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/ap
     CommonModule,
     GoalsCreateFormComponent,
     GoalsEditFormComponent,
-    GoalProgressComponent,
     GroupsGoalsTableComponent,
     GroupsMembersTableComponent
   ],

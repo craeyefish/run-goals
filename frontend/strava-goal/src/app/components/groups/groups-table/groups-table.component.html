@@ -21,6 +21,12 @@
           >
             <img src="assets/icons/settings.svg" alt="Edit" class="edit-icon" />
           </button>
+          <button
+            class="leave-btn"
+            (click)="onLeaveGroupClick?.(group); $event.stopPropagation()"
+          >
+            <img src="assets/icons/leave.svg" alt="Leave" class="leave-icon" />
+          </button>
         </div>
       </td>
     </tr>

@@ -26,7 +26,7 @@ table {
   }
 
   .name-cell {
-    width: 70%;
+    width: 65%;
   }
 
   .code-cell {
@@ -35,7 +35,7 @@ table {
 
   .edit-cell {
     height: 100%;
-    width: 10%;
+    width: 15%;
     padding-right: 0.5rem;
 
     .cell-container {
@@ -64,6 +64,24 @@ table {
   }
 
   .edit-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+.leave-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+
+  &:hover {
+    background-color: var(--background-shade-color-2);
+  }
+
+  .leave-icon {
     width: 1.75rem;
     height: 1.75rem;
   }

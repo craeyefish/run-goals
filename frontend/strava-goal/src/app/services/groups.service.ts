@@ -56,6 +56,13 @@ export class GroupService {
     return this.http.post<any>('/api/group-member', request);
   }
 
+  leaveGroup(request: LeaveGroupRequest): Observable<any> {
+    const params = new HttpParams()
+      .set('groupID', request.groupID)
+      .set('userID', request.userID);
+    return this.http.delete<any>('/api/group-member', { params });
+  }
+
   getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
     const formattedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
     const formattedEndDate = this.datePipe.transform(endDate, 'yyyy-MM-dd');
@@ -246,4 +253,9 @@ export interface CreateGroupMemberRequest {
   group_code: string;
   user_id: number;
   role: string;
+}
+
+export interface LeaveGroupRequest {
+  userID: number;
+  groupID: number;
 }
