@@ -1,7 +1,7 @@
 <div class="page-container">
   <div class="breadcrumb-container">
     <nav>
-      <a routerLink="/" (click)="resetSelectedGroup()">Groups</a>
+      <a routerLink="/" (click)="resetSelectedGroup()">GROUPS</a>
       <ng-container *ngIf="selectedGroup()">
         <span class="separator"> -> </span>
         <span class="current">{{ selectedGroup()?.name }}</span>
