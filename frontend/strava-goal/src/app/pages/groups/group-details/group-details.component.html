@@ -1,0 +1,108 @@
+<div class="group-details-outer-container">
+  <div class="goals-outer-container">
+    <div class="goals-header-container">
+      <div class="button-container">
+        <div class="text-container">
+          <span></span>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="text-container">
+          <span>new goal</span>
+        </div>
+        <button class="add-goal-button" (click)="openCreateGoalForm()">
+          +
+        </button>
+      </div>
+    </div>
+    <div class="goals-table-container">
+      <groups-goals-table
+        [onEditGoalClick]="openEditGoalForm"
+      ></groups-goals-table>
+    </div>
+  </div>
+  <div class="members-outer-container">
+    <div class="members-header-container">
+      <span>members</span>
+    </div>
+    <div class="members-table-container">
+      <groups-members-table></groups-members-table>
+    </div>
+  </div>
+</div>
+
+<goals-create-form
+  *ngIf="createGoalFormSignal()?.show"
+  class="card-container"
+  [formSignal]="createGoalFormSignal"
+  [onSubmit]="onCreateGoalFormSubmit"
+>
+</goals-create-form>
+
+<goals-edit-form
+  *ngIf="editGoalFormSignal()?.show"
+  class="card-container"
+  [formSignal]="editGoalFormSignal"
+  [onSubmit]="onEditGoalFormSubmit"
+>
+</goals-edit-form>
+
+<!-- <div class="header-container">
+    <span>Groups: {{ selectedGroup()?.name }}</span>
+    <div class="horizontal-button-container">
+      <app-button title="Share Group">
+        <img src="assets/icons/share.svg" alt="Share Group" class="icon" />
+      </app-button>
+      <app-button title="Join Group">
+        <img
+          src="assets/icons/person_add.svg"
+          alt="Join Group"
+          class="icon"
+        />
+      </app-button>
+      <app-button title="Create Group" [onClick]="openCreateGroupForm">
+        <img src="assets/icons/add.svg" alt="Create Group" class="icon" />
+      </app-button>
+    </div>
+  </div>
+
+  <div class="groups-table-container">
+    <div class="table-container">
+      <groups-table [onEditGroupClick]="openEditGroupForm"></groups-table>
+    </div>
+  </div>
+
+  <div class="header-container">
+    <span>Goals</span>
+    <div class="horizontal-button-container">
+      <app-button title="Create Goal" [onClick]="openCreateGoalForm">
+        <img src="assets/icons/add.svg" alt="Create Goal" class="icon" />
+      </app-button>
+    </div>
+  </div>
+
+  <div class="goals-table-container">
+    <div class="table-container">
+      <groups-goals-table
+        [onEditGoalClick]="openEditGoalForm"
+      ></groups-goals-table>
+    </div>
+  </div>
+
+  <div class="group-details-container">
+    <div *ngIf="selectedGoal()" class="goal-title-container">
+      <span>{{ selectedGoal()?.name }}</span>
+    </div>
+    <div *ngIf="selectedGoal()" class="goal-progress-container">
+      <div class="inner-container">
+        <span>Total Summits</span>
+        <groups-progress-bar></groups-progress-bar>
+      </div>
+    </div>
+    <div class="group-members-container">
+      <div class="group-members-header">
+        <span>Members</span>
+      </div>
+      <groups-members-table></groups-members-table>
+    </div>
+  </div> -->

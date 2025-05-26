@@ -3,32 +3,32 @@
     <tr>
       <th>Name</th>
       <th>Code</th>
-      <th>Created By</th>
-      <th>Created At</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
-    <ng-container *ngIf="groupService.selectedGroup() as selectedGroup">
-      <tr
-        *ngFor="let group of groupService.groups()"
-        (click)="selectGroup(group)"
-        [class.selected]="group === selectedGroup"
-      >
-        <td>{{ group.name }}</td>
-        <td>{{ group.code }}</td>
-        <td>{{ group.created_at }}</td>
-        <td>{{ group.created_at }}</td>
-        <td class="edit-cell">
+    <tr
+      *ngFor="let group of groupService.groups()"
+      (click)="selectGroup(group)"
+    >
+      <td class="name-cell">{{ group.name }}</td>
+      <td class="code-cell">{{ group.code }}</td>
+      <td class="edit-cell">
+        <div class="cell-container">
           <button
             class="edit-btn"
-            *ngIf="group === selectedGroup"
             (click)="onEditGroupClick?.(group); $event.stopPropagation()"
           >
             <img src="assets/icons/settings.svg" alt="Edit" class="edit-icon" />
           </button>
-        </td>
-      </tr>
-    </ng-container>
+          <button
+            class="leave-btn"
+            (click)="onLeaveGroupClick?.(group); $event.stopPropagation()"
+          >
+            <img src="assets/icons/leave.svg" alt="Leave" class="leave-icon" />
+          </button>
+        </div>
+      </td>
+    </tr>
   </tbody>
 </table>

@@ -1,26 +1,29 @@
 .progress-bar-container {
   width: 100%;
-  height: 2.5rem;
-  background-color: var(--surface-color);
-  border-radius: 10rem;
+  height: 1.5rem;
+  background-color: var(--background-primary);
+  border-radius: 0;
   overflow: hidden;
   position: relative;
+  border: 1px solid var(--background-secondary);
+  box-shadow: 0 0 0.25rem #000 inset;
 
   .progress-bar-fill {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
-    background-color: var(--primary-color);
+    background-color: #00ff00;
     width: 10%; // default, set dynamically
-    border-radius: 10rem;
+    border-radius: 0;
+    box-shadow: 0 0 0.25rem #000 inset;
+  }
 
-    span {
-      color: var(--text-color);
-      font-weight: bold;
-      padding: 0.5rem 1rem;
-      position: absolute;
-      right: 0;
-    }
+  span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-primary);
   }
 }

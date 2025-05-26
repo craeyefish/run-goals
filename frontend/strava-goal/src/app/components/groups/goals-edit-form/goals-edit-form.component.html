@@ -1,0 +1,49 @@
+<div class="card-container-overlay" (click)="handleClose()">
+  <div class="card-container" (click)="$event.stopPropagation()">
+    <div class="card">
+      <button class="close-button" (click)="handleClose()">X</button>
+
+      <span>Edit Goal</span>
+
+      <label>
+        Goal Name:
+        <input
+          type="text"
+          [value]="goalName()"
+          (input)="goalName.set($any($event.target).value)"
+        />
+      </label>
+
+      <label>
+        Target Value:
+        <input
+          type="text"
+          [value]="targetValue()"
+          (input)="targetValue.set($any($event.target).value)"
+        />
+      </label>
+
+      <label>
+        Start Date:
+        <input
+          type="text"
+          [value]="startDate()"
+          (input)="startDate.set($any($event.target).value)"
+        />
+      </label>
+
+      <label>
+        End Date:
+        <input
+          type="text"
+          [value]="endDate()"
+          (input)="endDate.set($any($event.target).value)"
+        />
+      </label>
+
+      <div class="button-row">
+        <button (click)="handleSubmit()">Update</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="card-container-overlay" (click)="handleClose()">
+  <div class="card-container" (click)="$event.stopPropagation()">
+    <div class="card">
+      <button class="close-button" (click)="handleClose()">X</button>
+
+      <span>Enter group code to join!</span>
+
+      <label>
+        Code:
+        <input
+          type="text"
+          [value]="code()"
+          (input)="code.set($any($event.target).value)"
+        />
+      </label>
+
+      <div class="button-container">
+        <button (click)="handleSubmit()">Join</button>
+      </div>
+    </div>
+  </div>
+</div>

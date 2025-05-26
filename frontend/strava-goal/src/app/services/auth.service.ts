@@ -14,6 +14,7 @@ export class AuthService {
   private refreshTokenKey = 'jwt_refresh_token';
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  private userID: number | null = 1;
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -88,8 +89,8 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      'https://craeyebytes.com/login/strava/callback'
-      // 'http://localhost:4200/login/strava/callback'
+      // 'https://craeyebytes.com/login/strava/callback'
+      'http://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();
@@ -115,5 +116,9 @@ export class AuthService {
     const storedState = localStorage.getItem(this.stateKey);
     localStorage.removeItem(this.stateKey);
     return storedState === returnedState;
+  }
+
+  getUserID(): number | null {
+    return this.userID;
   }
 }

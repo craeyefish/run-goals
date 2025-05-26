@@ -1,0 +1,66 @@
+<ng-container *ngIf="(groups() ?? []).length > 0; else noGroup">
+  <ng-container *ngTemplateOutlet="showGroup"></ng-container>
+</ng-container>
+
+<ng-template #noGroup>
+  <div class="no-group-outer-container">
+    <div class="no-group-inner-container">
+      <div class="text-container">
+        <span>You're not connected to a group yet!</span>
+      </div>
+      <div class="button-container">
+        <button (click)="openCreateGroupForm()">CREATE</button>
+        <button (click)="openJoinGroupForm()">JOIN</button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #showGroup>
+  <div class="show-group-outer-container">
+    <div class="groups-table-outer-container">
+      <div class="groups-table-inner-container">
+        <groups-table
+          [onEditGroupClick]="openEditGroupForm"
+          [onLeaveGroupClick]="openLeaveGroupForm"
+        ></groups-table>
+        <div class="button-container">
+          <button (click)="openCreateGroupForm()">CREATE</button>
+          <button (click)="openJoinGroupForm()">JOIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<groups-create-form
+  *ngIf="createGroupFormSignal()?.show"
+  class="card-container"
+  [formSignal]="createGroupFormSignal"
+  [onSubmit]="onCreateGroupFormSubmit"
+>
+</groups-create-form>
+
+<groups-edit-form
+  *ngIf="editGroupFormSignal()?.show"
+  class="card-container"
+  [formSignal]="editGroupFormSignal"
+  [onSubmit]="onEditGroupFormSubmit"
+>
+</groups-edit-form>
+
+<groups-join-form
+  *ngIf="joinGroupFormSignal()?.show"
+  class="card-container"
+  [formSignal]="joinGroupFormSignal"
+  [onSubmit]="onJoinGroupFormSubmit"
+>
+</groups-join-form>
+
+<groups-leave-form
+  *ngIf="leaveGroupFormSignal()?.show"
+  class="card-container"
+  [formSignal]="leaveGroupFormSignal"
+  [onSubmit]="onLeaveGroupFormSubmit"
+>
+</groups-leave-form>

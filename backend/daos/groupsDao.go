@@ -90,6 +90,24 @@ func (dao *GroupsDao) DeleteGroup(groupID int64) error {
 	return nil
 }
 
+func (dao *GroupsDao) GetGroupIDFromCode(code string) (*int64, error) {
+	var id int64
+	sql := `
+		SELECT
+			id
+		FROM groups
+		WHERE code = $1;
+	`
+	row := dao.db.QueryRow(sql, code)
+	err := row.Scan(&id)
+	if err != nil {
+		dao.l.Printf("Error getting group id: %v", err)
+		return nil, err
+	}
+
+	return &id, nil
+}
+
 func (dao *GroupsDao) CheckGroupCodeExists(code string) (*int64, error) {
 	var count int64
 	sql := `

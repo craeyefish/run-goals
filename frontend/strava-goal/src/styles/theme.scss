@@ -1,30 +1,54 @@
 // Light Theme Colors
-$primary: #63d2ff; // Pale Azure
+$primary: #000000;
 $secondary: #78d5d7; // Tiffany Blue
 $background: #f7f9f9; // Seasalt
-$background-shade-1: #f4f6f6; // Seasalt shade 1
-$background-shade-2: #e9eded; // Seasalt shade 2
+$background-primary: #fcfcfc;
+$background-secondary: #000000;
+$background-shade-1: rgba(0, 0, 0, 0.1);
+$background-shade-2: rgba(0, 0, 0, 0.2);
+$background-shade-3: rgba(0, 0, 0, 0.3);
+$background-shade-4: rgba(0, 0, 0, 0.4);
+$background-shade-5: rgba(0, 0, 0, 0.5);
+$background-light-shade: rgba(255, 255, 255, 0.6);
 $surface: #bed8d4; // Ash Gray
-$text: #212529; // Standard dark text
+$text: #ffffff; // Standard dark text
+$text-primary: #000000;
+$text-secondary: #fcfcfc;
 $accent: #2081c3; // Steel Blue
 
 @mixin theme(
   $primary,
   $secondary,
   $background,
+  $background-primary,
+  $background-secondary,
   $background-shade-1,
   $background-shade-2,
+  $background-shade-3,
+  $background-shade-4,
+  $background-shade-5,
+  $background-light-shade,
   $surface,
   $text,
+  $text-primary,
+  $text-secondary,
   $accent
 ) {
   --primary-color: #{$primary};
   --secondary-color: #{$secondary};
   --background-color: #{$background};
+  --background-primary: #{$background-primary};
+  --background-secondary: #{$background-secondary};
   --background-shade-color-1: #{$background-shade-1};
   --background-shade-color-2: #{$background-shade-2};
+  --background-shade-color-3: #{$background-shade-3};
+  --background-shade-color-4: #{$background-shade-4};
+  --background-shade-color-5: #{$background-shade-5};
+  --background-light-shade: #{$background-light-shade};
   --surface-color: #{$surface};
   --text-color: #{$text};
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
   --accent-color: #{$accent};
 }
 
@@ -33,10 +57,18 @@ $accent: #2081c3; // Steel Blue
     $primary,
     $secondary,
     $background,
+    $background-primary,
+    $background-secondary,
     $background-shade-1,
     $background-shade-2,
+    $background-shade-3,
+    $background-shade-4,
+    $background-shade-5,
+    $background-light-shade,
     $surface,
     $text,
+    $text-primary,
+    $text-secondary,
     $accent
   );
 }

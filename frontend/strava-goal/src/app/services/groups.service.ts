@@ -9,7 +9,7 @@ import { DatePipe } from '@angular/common';
 export class GroupService {
 
   groups = signal<Group[]>([]);
-  groupCreated = signal<number | null>(null);
+  groupUpdate = signal<number | null>(null);
   selectedGroup = signal<Group | null>(null);
   goals = signal<Goal[]>([]);
   goalCreated = signal<number | null>(null);
@@ -21,6 +21,7 @@ export class GroupService {
   constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
+    console.log('create group request: ', request);
     return this.http.post<CreateGroupResponse>('/api/groups', request);
   }
 
@@ -51,6 +52,17 @@ export class GroupService {
     return this.http.get<GetGroupMembersResponse>('/api/group-members', { params })
   }
 
+  createGroupMember(request: CreateGroupMemberRequest): Observable<any> {
+    return this.http.post<any>('/api/group-member', request);
+  }
+
+  leaveGroup(request: LeaveGroupRequest): Observable<any> {
+    const params = new HttpParams()
+      .set('groupID', request.groupID)
+      .set('userID', request.userID);
+    return this.http.delete<any>('/api/group-member', { params });
+  }
+
   getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
     const formattedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
     const formattedEndDate = this.datePipe.transform(endDate, 'yyyy-MM-dd');
@@ -71,13 +83,6 @@ export class GroupService {
     this.getGroups(userID).subscribe({
       next: (response) => {
         this.groups.set(response.groups);
-        const createdGroup = this.groups().find(group => group.id === this.groupCreated());
-        if (createdGroup) {
-          this.selectedGroup.set(createdGroup);
-          this.resetGroupCreated();
-        } else if (response.groups.length > 0) {
-          this.selectedGroup.set(response.groups[0]);
-        }
       },
       error: (err) => {
         console.error('Failed to load groups', err)
@@ -88,7 +93,13 @@ export class GroupService {
   loadGoals(groupID: number) {
     this.getGroupGoals(groupID).subscribe({
       next: (response) => {
-        this.goals.set(response.goals);
+        const goals = response.goals.map((goal) => ({
+          ...goal,
+          start_date: this.datePipe.transform(goal.start_date, 'yyyy-MM-dd'),
+          end_date: this.datePipe.transform(goal.end_date, 'yyyy-MM-dd'),
+          created_at: this.datePipe.transform(goal.created_at, 'yyyy-MM-dd'),
+        }))
+        this.goals.set(goals);
         const createdGoal = this.goals().find(goal => goal.id === this.goalCreated());
         if (createdGoal) {
           this.selectedGoal.set(createdGoal);
@@ -131,11 +142,11 @@ export class GroupService {
     this.selectedGoalChange.set(false);
   }
 
-  notifyGroupCreated(groupID: number) {
-    this.groupCreated.set(groupID);
+  notifyGroupUpdate() {
+    this.loadGroups();
   }
-  resetGroupCreated() {
-    this.groupCreated.set(null);
+  resetGroupUpdate() {
+    this.groupUpdate.set(null);
   }
 
   notifyMemberAddedOrRemoved(groupMemberID: number) {
@@ -159,9 +170,9 @@ export interface Goal {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string | null;
 }
 
 export interface Member {
@@ -208,8 +219,8 @@ export interface CreateGoalRequest {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
+  start_date: Date;
+  end_date: Date;
 }
 
 export interface CreateGoalResponse {
@@ -221,9 +232,9 @@ export interface UpdateGoalRequest {
   group_id: number;
   name: string;
   target_value: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
+  start_date: Date;
+  end_date: Date;
+  created_at: Date;
 }
 
 export interface GetGroupGoalsResponse {
@@ -236,4 +247,15 @@ export interface GetGroupMembersGoalContributionResponse {
 
 export interface GetGroupMembersResponse {
   members: Member[];
+}
+
+export interface CreateGroupMemberRequest {
+  group_code: string;
+  user_id: number;
+  role: string;
+}
+
+export interface LeaveGroupRequest {
+  userID: number;
+  groupID: number;
 }

@@ -1,24 +1,28 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 1rem;
+  font-size: 0.6rem;
   text-align: left;
-  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.15);
+  background-color: var(--background-light-shade);
 
   thead tr {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
+    height: 2rem;
+    background-color: var(--background-secondary);
+    color: var(--text-secondary);
     text-align: left;
   }
 
   th,
   td {
-    padding: 0.5rem 0.75rem;
+    padding-left: 0.75rem;
   }
 
   // add bottom border to each row
   tbody tr {
-    border-bottom: 0.1rem solid var(--background-shade-color-2);
+    height: 2.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 0.1rem solid var(--background-secondary);
   }
 
   // add lighter background for every second row

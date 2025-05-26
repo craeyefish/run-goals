@@ -1,89 +1,14 @@
 <div class="page-container">
-  <div class="header-container">
-    <span>Groups: {{ selectedGroup()?.name }}</span>
-    <div class="horizontal-button-container">
-      <app-button title="Share Group">
-        <img src="assets/icons/share.svg" alt="Share Group" class="icon" />
-      </app-button>
-      <app-button title="Join Group">
-        <img src="assets/icons/person_add.svg" alt="Join Group" class="icon" />
-      </app-button>
-      <app-button title="Create Group" [onClick]="openCreateGroupForm">
-        <img src="assets/icons/add.svg" alt="Create Group" class="icon" />
-      </app-button>
-    </div>
+  <div class="breadcrumb-container">
+    <nav>
+      <a routerLink="/" (click)="resetSelectedGroup()">GROUPS</a>
+      <ng-container *ngIf="selectedGroup()">
+        <span class="separator"> -> </span>
+        <span class="current">{{ selectedGroup()?.name }}</span>
+      </ng-container>
+    </nav>
   </div>
-  <div class="groups-table-container">
-    <div class="table-container">
-      <groups-table [onEditGroupClick]="openEditGroupForm"></groups-table>
-    </div>
-  </div>
-  <div class="header-container">
-    <span>Goals</span>
-    <div class="horizontal-button-container">
-      <app-button title="Create Goal" [onClick]="openCreateGoalForm">
-        <img src="assets/icons/add.svg" alt="Create Goal" class="icon" />
-      </app-button>
-    </div>
-  </div>
-  <div class="goals-table-container">
-    <div class="table-container">
-      <groups-goals-table
-        [onEditGoalClick]="openEditGoalForm"
-      ></groups-goals-table>
-    </div>
-  </div>
-  <div class="group-details-container">
-    <div *ngIf="selectedGoal()" class="goal-title-container">
-      <span>{{ selectedGoal()?.name }}</span>
-    </div>
-    <div *ngIf="selectedGoal()" class="goal-progress-container">
-      <div class="inner-container">
-        <span>Total Summits</span>
-        <groups-progress-bar></groups-progress-bar>
-      </div>
-    </div>
-    <div class="group-members-container">
-      <div class="group-members-header">
-        <span>Members</span>
-      </div>
-      <groups-members-table></groups-members-table>
-    </div>
+  <div class="content-container">
+    <router-outlet></router-outlet>
   </div>
 </div>
-
-<groups-form
-  *ngIf="showCreateGroupForm()"
-  class="card-container"
-  [formVisible]="showCreateGroupForm"
-  [onSubmit]="onCreateGroupFormSubmit"
->
-</groups-form>
-
-<groups-form
-  *ngIf="showEditGroupForm()"
-  class="card-container"
-  [formVisible]="showEditGroupForm"
-  [onSubmit]="onEditGroupFormSubmit"
-  [initialValues]="selectedGroup()"
-  [mode]="'edit'"
->
-</groups-form>
-
-<goals-form
-  *ngIf="showCreateGoalForm()"
-  class="card-container"
-  [formVisible]="showCreateGoalForm"
-  [onSubmit]="onCreateGoalFormSubmit"
->
-</goals-form>
-
-<goals-form
-  *ngIf="showEditGoalForm()"
-  class="card-container"
-  [formVisible]="showEditGoalForm"
-  [onSubmit]="onEditGoalFormSubmit"
-  [initialValues]="selectedGoal()"
-  [mode]="'edit'"
->
-</goals-form>
