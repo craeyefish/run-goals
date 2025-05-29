@@ -25,7 +25,7 @@ func NewHgHandler(
 func (handler *HgHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// handle request to get activities
 	switch r.URL.Path {
-	case "/hg/activities":
+	case "/hikegang/activities":
 		handler.HgController.ListHikeGangActivities(rw, r)
 		return
 	default:

@@ -88,7 +88,7 @@ func NewServer() *http.Server {
 	mux.Handle("/api/", middleware.JWT(jwtService, apiHandler))
 	mux.Handle("/webhook/", stravaHandler)
 	mux.Handle("/auth/", authHandler)
-	mux.Handle("/hg/", hgHandler)
+	mux.Handle("/hikegang/", hgHandler)
 
 	return &http.Server{
 		Addr:    ":8080",

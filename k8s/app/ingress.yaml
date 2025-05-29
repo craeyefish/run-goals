@@ -27,7 +27,7 @@ spec:
                 name: run-goals-backend
                 port:
                   number: 8080
-          - path: /hg
+          - path: /hikegang
             pathType: Prefix
             backend:
               service:
