@@ -53,6 +53,8 @@ spec:
         email: flux@craeyebytes.com
     push:
       branch: main
+      secretRef:
+        name: flux-writer
   update:
     path: ./k8s
     strategy: Setters
