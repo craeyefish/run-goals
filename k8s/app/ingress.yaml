@@ -27,6 +27,13 @@ spec:
                 name: run-goals-backend
                 port:
                   number: 8080
+          - path: /hg
+            pathType: Prefix
+            backend:
+              service:
+                name: run-goals-backend
+                port:
+                  number: 8080
           - path: /webhook
             pathType: Prefix
             backend:

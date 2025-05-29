@@ -63,11 +63,13 @@ func NewServer() *http.Server {
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService)
+	hgController := controllers.NewHgController(logger, activityService, userDao)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
 
 	// initialise handlers
 	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
 	authHandler := handlers.NewAuthHandler(logger, authController, stravaController)
+	hgHandler := handlers.NewHgHandler(logger, hgController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
 
 	// backgorund jobs
@@ -86,6 +88,7 @@ func NewServer() *http.Server {
 	mux.Handle("/api/", middleware.JWT(jwtService, apiHandler))
 	mux.Handle("/webhook/", stravaHandler)
 	mux.Handle("/auth/", authHandler)
+	mux.Handle("/hg/", hgHandler)
 
 	return &http.Server{
 		Addr:    ":8080",
