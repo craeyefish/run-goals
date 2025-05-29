@@ -36,7 +36,7 @@ func NewHgController(
 func (c *HgController) ListHikeGangActivities(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET ListHikeGangActivities")
 
-	u, err := c.userDao.GetUserByStravaAthleteID(3630433)
+	u, err := c.userDao.GetUserByStravaAthleteID(int64(3630433))
 	if err != nil {
 		c.l.Println("Error fetching user", err)
 		http.Error(rw, "Failed to fetch user", http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (c *HgController) ListHikeGangActivities(rw http.ResponseWriter, r *http.Re
 	// Filter out activities that don't have #hg in the title
 	var hgActivities []models.Activity
 	for _, activity := range activities {
-		titleWords := strings.Split(activity.Name, "")
+		titleWords := strings.Split(activity.Name, " ")
 		for _, word := range titleWords {
 			if strings.ToLower(word) == "#hg" {
 				hgActivities = append(hgActivities, activity)

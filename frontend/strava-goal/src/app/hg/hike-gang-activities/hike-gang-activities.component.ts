@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import * as polyline from '@mapbox/polyline';
 import 'leaflet.markercluster';
-import { ActivityService, Activity } from 'src/app/services/activity.service';
 import { Router } from '@angular/router';
+import { Activity, HgService } from 'src/app/services/hg.service';
 
 @Component({
   selector: 'app-hike-gang-activities',
@@ -21,10 +21,7 @@ export class HikeGangActivitiesComponent implements OnInit {
   private lastHighlightedPolyline: L.Polyline | null = null;
   private homeBounds!: L.LatLngBounds;
 
-  constructor(
-    private activityService: ActivityService,
-    private router: Router
-  ) {}
+  constructor(private hgService: HgService, private router: Router) {}
 
   get totalDistanceKm(): number {
     // Sum distances (in meters), then convert to kilometers
@@ -32,8 +29,8 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.activityService.loadActivities();
-    this.activityService.activities$.subscribe((acts) => {
+    this.hgService.loadActivities();
+    this.hgService.activities$.subscribe((acts) => {
       if (acts) {
         // 1) Filter them by "#hg"
         this.hgActivities = acts.filter((act) => act.name?.includes('#hg'));

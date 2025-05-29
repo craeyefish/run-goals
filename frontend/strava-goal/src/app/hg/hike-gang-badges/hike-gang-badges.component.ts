@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivityService, Activity } from 'src/app/services/activity.service';
 import { Router } from '@angular/router';
+import { Activity, HgService } from 'src/app/services/hg.service';
 
 @Component({
   selector: 'app-hike-gang-badges',
@@ -69,14 +69,11 @@ export class HikeGangBadgesComponent implements OnInit {
     },
   ];
 
-  constructor(
-    private activityService: ActivityService,
-    private router: Router
-  ) {}
+  constructor(private hgService: HgService, private router: Router) {}
 
   ngOnInit(): void {
-    this.activityService.loadActivities();
-    this.activityService.activities$.subscribe((activities) => {
+    this.hgService.loadActivities();
+    this.hgService.activities$.subscribe((activities) => {
       if (activities) {
         // Filter activities tagged with #hg
         const hgActivities = activities.filter((act) =>
