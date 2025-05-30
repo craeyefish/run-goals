@@ -54,7 +54,7 @@ spec:
     push:
       branch: main
       secretRef:
-        name: flux-writer
+        name: flux-system
   update:
     path: ./k8s
     strategy: Setters
