@@ -1,11 +1,13 @@
 import { CommonModule } from "@angular/common";
 import { Component, signal, WritableSignal } from "@angular/core";
+import { Router } from "@angular/router";
 import { GroupsCreateFormComponent } from "src/app/components/groups/groups-create-form/groups-create-form.component";
 import { GroupsEditFormComponent } from "src/app/components/groups/groups-edit-form/groups-edit-form.component";
 import { GroupsJoinFormComponent } from "src/app/components/groups/groups-join-form/groups-join-form.component";
 import { GroupsLeaveFormComponent } from "src/app/components/groups/groups-leave-form/groups-leave-form.component";
 import { GroupsTableComponent } from "src/app/components/groups/groups-table/groups-table.component";
 import { AuthService } from "src/app/services/auth.service";
+import { BreadcrumbService } from "src/app/services/breadcrumb.service";
 import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, LeaveGroupRequest, UpdateGroupRequest } from "src/app/services/groups.service";
 
 @Component({
@@ -24,7 +26,12 @@ import { CreateGroupMemberRequest, CreateGroupRequest, Group, GroupService, Leav
 })
 export class GroupsListPageComponent {
 
-  constructor(private groupService: GroupService, private authService: AuthService) {
+  constructor(
+    private groupService: GroupService,
+    private authService: AuthService,
+    private breadcrumbService: BreadcrumbService,
+    private router: Router,
+  ) {
     this.groupService.loadGroups()
   }
 
@@ -39,6 +46,19 @@ export class GroupsListPageComponent {
   openJoinGroupForm = () => this.joinGroupFormSignal.set({ show: true, code: null });
   openEditGroupForm = (group: Group) => this.editGroupFormSignal.set({ show: true, data: group });
   openLeaveGroupForm = (group: Group) => this.leaveGroupFormSignal.set({ show: true, data: group });
+
+  ngOnInit() {
+    this.breadcrumbService.setItems(
+      [
+        {
+          label: 'Groups', routerLink: '/groups', callback: () => {
+            this.groupService.selectedGroup.set(null);
+            this.router.navigate(['/groups']);
+          }
+        }
+      ]
+    )
+  }
 
   onCreateGroupFormSubmit = (data: { name: string }) => {
     const requestPayload: CreateGroupRequest = {

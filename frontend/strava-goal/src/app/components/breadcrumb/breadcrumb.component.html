@@ -1,0 +1,21 @@
+<nav>
+  <ng-container *ngFor="let item of breadcrumbItems(); let last = last">
+    <ng-container *ngIf="item.routerLink && !last; else nonLink">
+      <a
+        class="breadcrumb-label"
+        [routerLink]="item.routerLink"
+        (click)="item.callback?.()"
+      >
+        {{ item.label }}
+      </a>
+    </ng-container>
+
+    <ng-template #nonLink>
+      <span class="breadcrumb-label-last" (click)="item.callback?.()">
+        {{ item.label }}
+      </span>
+    </ng-template>
+
+    <span *ngIf="!last" class="separator">{{ separator }}</span>
+  </ng-container>
+</nav>

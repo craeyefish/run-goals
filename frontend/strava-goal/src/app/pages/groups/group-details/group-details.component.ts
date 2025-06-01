@@ -5,6 +5,7 @@ import { GoalsCreateFormComponent } from "src/app/components/groups/goals-create
 import { GoalsEditFormComponent } from "src/app/components/groups/goals-edit-form/goals-edit-form.component";
 import { GroupsGoalsTableComponent } from "src/app/components/groups/groups-goals-table/groups-goals-table.component";
 import { GroupsMembersTableComponent } from "src/app/components/groups/groups-members-table/groups-members-table.component";
+import { BreadcrumbService } from "src/app/services/breadcrumb.service";
 import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/app/services/groups.service";
 
 @Component({
@@ -23,7 +24,8 @@ import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/ap
 export class GroupsDetailsPageComponent {
 
   constructor(
-    private groupService: GroupService
+    private groupService: GroupService,
+    private breadcrumbService: BreadcrumbService
   ) { }
 
   createGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
@@ -36,6 +38,14 @@ export class GroupsDetailsPageComponent {
 
   selectedGroup = this.groupService.selectedGroup;
   selectedGoal = this.groupService.selectedGoal;
+
+  ngOnInit() {
+    this.breadcrumbService.addItem(
+      {
+        label: this.groupService.selectedGroup()!.name
+      }
+    )
+  }
 
   onCreateGoalFormSubmit = (
     data: {
