@@ -3,10 +3,7 @@ nav {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  padding: 0;
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
 
   ul {
     flex: 1;
@@ -14,7 +11,7 @@ nav {
     flex-direction: column;
     padding: 1rem;
     list-style: none;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   li {
@@ -22,18 +19,18 @@ nav {
     button {
       background-color: var(--background-shade-color-5);
       border: 2px solid transparent;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.25rem;
       color: white;
       text-decoration: none;
       display: inline-block;
       width: 100%;
       text-align: center;
+      border-radius: 5px;
 
       cursor: pointer;
       &:hover {
         color: var(--text-primary);
         background-color: var(--background-light-shade);
-        font-weight: bold;
         border: 2px solid black;
       }
     }
