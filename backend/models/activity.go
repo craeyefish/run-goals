@@ -13,6 +13,8 @@ type Activity struct {
 	Name             string    `json:"name"`
 	Description      string    `json:"description"`
 	Distance         float64   `json:"distance"`
+	Elevation        float64   `json:"total_elevation_gain"`
+	MovingTime       float64   `json:"moving_time"`
 	StartDate        time.Time `json:"start_date"`
 	MapPolyline      string    `json:"map_polyline"`
 	PhotoURL         string    `json:"photo_url"`

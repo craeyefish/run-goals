@@ -9,6 +9,8 @@ export interface Activity {
   name: string;
   description: string;
   distance: number;
+  total_elevation_gain: number;
+  moving_time: number;
   start_date: string; // or Date if you parse it
   map_polyline: string;
   has_summit: boolean; // true if at least one peak was bagged on this activity

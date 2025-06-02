@@ -2,16 +2,32 @@
   <table>
     <thead>
       <tr>
-        <th scope="col">ID</th>
+        <th scope="col">Strava ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Time</th>
+        <th scope="col">Distance</th>
+        <th scope="col">Elevation</th>
         <th scope="col">Date</th>
-        <th scope="col">KM</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let act of paginatedActivities">
-        <td>{{ act.id }}</td>
-        <td>{{ act.start_date }}</td>
-        <td>{{ act.distance }}</td>
+        <td>
+          <a
+            [href]="
+              'https://www.strava.com/activities/' + act.strava_activity_id
+            "
+            target="_blank"
+            rel="noopener"
+          >
+            {{ act.strava_activity_id }}
+          </a>
+        </td>
+        <td>{{ truncateName(act.name) }}</td>
+        <td>{{ formatMovingTime(act.moving_time) }}</td>
+        <td>{{ formatDistance(act.distance) }}</td>
+        <td>{{ formatElevation(act.total_elevation_gain) }}</td>
+        <td>{{ act.start_date | date : "yyyy-MM-dd" }}</td>
       </tr>
     </tbody>
   </table>

@@ -69,4 +69,25 @@ export class ActivitiesListComponent {
 
     return pages;
   }
+
+  truncateName(name: string, maxLength: number = 30): string {
+    if (!name) return '';
+    return name.length > maxLength ? name.slice(0, maxLength) + '...' : name;
+  }
+
+  formatMovingTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map((v) => (v < 10 ? '0' + v : v)).join(':');
+  }
+
+  formatDistance(meters: number): string {
+    const km = meters / 1000;
+    return km.toFixed(2).replace('.', ',') + 'km';
+  }
+
+  formatElevation(meters: number): string {
+    return Math.round(meters) + 'm';
+  }
 }

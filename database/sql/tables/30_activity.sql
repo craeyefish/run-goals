@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS activity (
     name VARCHAR,
     description VARCHAR,
     distance NUMERIC,
+    elevation NUMERIC,
+    moving_time NUMERIC,
     start_date TIMESTAMPTZ,
     map_polyline VARCHAR,
     created_at TIMESTAMPTZ,

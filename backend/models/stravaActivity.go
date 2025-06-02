@@ -4,7 +4,9 @@ package models
 type StravaActivity struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
-	Distance    float64 `json:"distance"` // in meters
+	Distance    float64 `json:"distance"`             // in meters
+	Elevation   float64 `json:"total_elevation_gain"` // in meters
+	MovingTime  int     `json:"moving_time"`          // in seconds
 	Description string  `json:"description"`
 	StartDate   string  `json:"start_date_local"`
 	Map         struct {

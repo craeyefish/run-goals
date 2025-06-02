@@ -34,6 +34,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
             name,
             description,
             distance,
+            elevation,
+            moving_time,
             start_date,
             map_polyline,
             created_at,
@@ -41,7 +43,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
             has_summit,
             photo_url
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
         ) ON CONFLICT (
             strava_activity_id
         ) DO UPDATE
@@ -50,6 +52,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
                 distance = EXCLUDED.distance,
+                elevation = EXCLUDED.elevation,
+                moving_time = EXCLUDED.moving_time,
                 start_date = EXCLUDED.start_date,
                 map_polyline = EXCLUDED.map_polyline,
                 updated_at = EXCLUDED.updated_at,
@@ -64,6 +68,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 		activity.Name,
 		activity.Description,
 		activity.Distance,
+		activity.Elevation,
+		activity.MovingTime,
 		activity.StartDate,
 		activity.MapPolyline,
 		activity.CreatedAt,
@@ -89,6 +95,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
             name,
             description,
             distance,
+            elevation,
+            moving_time,
             start_date,
             map_polyline,
             photo_url
@@ -112,6 +120,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 			&activity.Name,
 			&activity.Description,
 			&activity.Distance,
+			&activity.Elevation,
+			&activity.MovingTime,
 			&activity.StartDate,
 			&activity.MapPolyline,
 			&activity.PhotoURL,
@@ -142,6 +152,8 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
             name,
             description,
             distance,
+            elevation,
+            moving_time,
             start_date,
             map_polyline,
             photo_url
@@ -158,6 +170,8 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 		&activity.Name,
 		&activity.Description,
 		&activity.Distance,
+		&activity.Elevation,
+		&activity.MovingTime,
 		&activity.StartDate,
 		&activity.MapPolyline,
 		&activity.PhotoURL,
@@ -181,6 +195,8 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
             name,
             description,
             distance,
+            elevation,
+            moving_time,
             start_date,
             map_polyline,
             photo_url
@@ -202,6 +218,8 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 			&activity.Name,
 			&activity.Description,
 			&activity.Distance,
+			&activity.Elevation,
+			&activity.MovingTime,
 			&activity.StartDate,
 			&activity.MapPolyline,
 			&activity.PhotoURL,
