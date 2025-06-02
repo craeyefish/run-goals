@@ -1,31 +1,28 @@
-<div class="container mt-3">
-  <h2 class="mb-3">Peak Summits</h2>
-  <table class="table table-striped table-bordered">
-    <thead class="table-dark">
-      <tr>
-        <th>Peak</th>
-        <th>User</th>
-        <th>Activity</th>
-        <th>Summited At</th>
+<table>
+  <thead>
+    <tr>
+      <th>Peak</th>
+      <th>User</th>
+      <th>Activity</th>
+      <th>Summited At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let peak of peakSummaries">
+      <tr *ngFor="let summit of peak.summits; let i = index">
+        <td
+          *ngIf="i === 0"
+          [attr.rowspan]="peak.summits.length"
+          class="align-middle"
+        >
+          {{ peak.peak_name }}
+        </td>
+        <td class="align-middle">{{ summit.user_name }}</td>
+        <td class="align-middle">{{ summit.activity_id }}</td>
+        <td class="align-middle">
+          {{ summit.summited_at | date : "medium" }}
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      <ng-container *ngFor="let peak of peakSummaries">
-        <tr *ngFor="let summit of peak.summits; let i = index">
-          <td
-            *ngIf="i === 0"
-            [attr.rowspan]="peak.summits.length"
-            class="align-middle"
-          >
-            {{ peak.peak_name }}
-          </td>
-          <td class="align-middle">{{ summit.user_name }}</td>
-          <td class="align-middle">{{ summit.activity_id }}</td>
-          <td class="align-middle">
-            {{ summit.summited_at | date : "medium" }}
-          </td>
-        </tr>
-      </ng-container>
-    </tbody>
-  </table>
-</div>
+    </ng-container>
+  </tbody>
+</table>

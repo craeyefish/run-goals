@@ -1,35 +1,5 @@
 table {
-  width: 100%;
-  border-collapse: collapse;
   font-size: 0.6rem;
-  text-align: left;
-  background-color: var(--background-light-shade);
-
-  thead tr {
-    height: 2rem;
-    background-color: var(--background-secondary);
-    color: var(--text-secondary);
-    text-align: left;
-  }
-
-  th,
-  td {
-    height: 100%;
-    padding-left: 0.75rem;
-  }
-
-  // add bottom border to each row
-  tbody tr {
-    height: 2rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    border-bottom: 0.1rem solid var(--background-secondary);
-  }
-
-  tr.selected {
-    background-color: var(--background-primary);
-    cursor: pointer;
-  }
 
   .edit-cell {
     display: flex;
@@ -51,16 +21,6 @@ table {
         height: 1.5rem;
       }
     }
-  }
-
-  tr.selected .edit-btn {
-    &:hover {
-      background-color: var(--background-shade-color-2);
-    }
-  }
-
-  tbody tr:hover {
-    background-color: var(--background-primary);
   }
 
   .progress-cell {

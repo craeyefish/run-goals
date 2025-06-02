@@ -17,6 +17,7 @@ import { HikeGangBadgesComponent } from './hg/hike-gang-badges/hike-gang-badges.
 import { GroupsDetailsPageComponent } from './pages/groups/group-details/group-details.component';
 import { GroupsListPageComponent } from './pages/groups/group-list/group-list.component';
 import { MapPageComponent } from './pages/map-page/map-page.component';
+import { ActivitiesPageComponent } from './pages/activities-page/activities-page.component';
 
 export const routes: Routes = [
   {
@@ -65,6 +66,7 @@ export const routes: Routes = [
           { path: ':code', component: GroupsDetailsPageComponent },
         ],
       },
+      { path: 'activities', component: ActivitiesPageComponent },
       { path: 'summits', component: SummitsPageComponent },
       { path: 'map', component: MapPageComponent },
       { path: 'profile', component: ProfileComponent },

@@ -12,7 +12,7 @@ import { Activity, ActivityService } from 'src/app/services/activity.service';
 })
 export class ActivitiesListComponent {
   activities: Activity[] = [];
-  pageSize = 5;
+  pageSize = 14;
   currentPage = 1;
 
   constructor(private activityService: ActivityService) {}

@@ -14,3 +14,44 @@ body {
 *::after {
   box-sizing: inherit;
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  text-align: left;
+  background-color: var(--background-light-shade);
+
+  thead tr {
+    height: 2rem;
+    background-color: var(--background-secondary);
+    color: var(--text-secondary);
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding-left: 0.75rem;
+  }
+
+  tbody tr {
+    height: 2.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 0.1rem solid var(--background-secondary);
+  }
+
+  // add lighter background for every second row
+  .tbody tr:nth-of-type(even) {
+    background-color: var(--background-shade-color-2);
+  }
+
+  tr.selected {
+    background-color: var(--background-primary);
+    cursor: pointer;
+  }
+
+  tbody tr:hover {
+    background-color: var(--background-primary);
+  }
+}
