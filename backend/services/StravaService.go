@@ -346,16 +346,18 @@ func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload)
 }
 
 func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
-	// 1. Excahnge code for tokens
+	// 1. Exchange code for tokens
 	tokenRes, err := s.exchangeCodeForToken(code)
 	if err != nil {
 		s.l.Println("Failed to exchange code", err)
 		return nil, err
 	}
+	s.l.Printf("Code exchanged for tokens: %+v\n", tokenRes)
 
 	// 2. Store (or update) the user in the DB
 	var newUser bool
 	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
+	s.l.Printf("Result for finding user: %+v\n", user)
 	if errors.Is(err, daos.ErrUserNotFound) {
 		// NoReturnErr: User not found, continue and create one.
 		user = &models.User{}
