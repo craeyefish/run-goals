@@ -60,7 +60,7 @@ func (dao *GroupsDao) CreateGroup(group models.Group) (*int64, error) {
 	return &id, nil
 }
 
-func (dao *GroupsDao) UpdateGroup(group models.Group) error {
+func (dao *GroupsDao) UpdateGroup(groupID int64, name string) error {
 	sql := `
 		UPDATE
 			groups
@@ -68,7 +68,7 @@ func (dao *GroupsDao) UpdateGroup(group models.Group) error {
 			name = $2
 		WHERE id = $1;
 	`
-	_, err := dao.db.Exec(sql, group.ID, group.Name)
+	_, err := dao.db.Exec(sql, groupID, name)
 	if err != nil {
 		dao.l.Printf("Error updating group: %v", err)
 		return err
@@ -146,7 +146,7 @@ func (dao *GroupsDao) CreateGroupMember(member models.GroupMember) error {
 	return nil
 }
 
-func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
+func (dao *GroupsDao) UpdateGroupMember(groupID int64, userID int64, role string) error {
 	sql := `
 		UPDATE
 			group_members
@@ -156,7 +156,7 @@ func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
 			group_id = $2
 			AND user_id = $3;
 	`
-	_, err := dao.db.Exec(sql, member.Role, member.GroupID, member.UserID)
+	_, err := dao.db.Exec(sql, role, groupID, userID)
 	if err != nil {
 		dao.l.Printf("Error updating group member: %v", err)
 		return err

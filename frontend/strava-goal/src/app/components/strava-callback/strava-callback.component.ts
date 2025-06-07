@@ -13,7 +13,9 @@ export class StravaCallbackComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
+
+  // userID = this.authService.userID;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -24,6 +26,7 @@ export class StravaCallbackComponent implements OnInit {
           next: (res) => {
             this.authService.storeAccessToken(res.accessToken);
             this.authService.storeRefreshToken(res.refreshToken);
+            this.authService.userID.set(res.userID);
             // Now the user is logged in, navigate to the main page
             this.router.navigate(['/']);
           },

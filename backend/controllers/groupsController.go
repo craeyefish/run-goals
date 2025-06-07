@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"run-goals/dto"
+	"run-goals/meta"
 	"run-goals/services"
 	"strconv"
 	"time"
@@ -46,6 +47,8 @@ func NewGroupsController(
 func (c *GroupsController) CreateGroup(rw http.ResponseWriter, r *http.Request) {
 	c.l.Printf("Handle POST groups - creating new group")
 
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
 	// read and decode the json body
 	var request dto.CreateGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -55,7 +58,7 @@ func (c *GroupsController) CreateGroup(rw http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	groupID, err := c.groupsService.CreateGroup(request)
+	groupID, err := c.groupsService.CreateGroup(request.Name, userID)
 	if err != nil {
 		c.l.Printf("Error creating group: %v", err)
 		http.Error(rw, "Failed to create group", http.StatusInternalServerError)
@@ -84,7 +87,7 @@ func (c *GroupsController) UpdateGroup(rw http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	err := c.groupsService.UpdateGroup(request)
+	err := c.groupsService.UpdateGroup(request.ID, request.Name)
 	if err != nil {
 		c.l.Printf("Error updating group: %v", err)
 		http.Error(rw, "Failed to update group", http.StatusInternalServerError)
@@ -118,6 +121,8 @@ func (c *GroupsController) DeleteGroup(rw http.ResponseWriter, r *http.Request) 
 func (c *GroupsController) CreateGroupMember(rw http.ResponseWriter, r *http.Request) {
 	c.l.Printf("Handle POST group-member - creating new group member")
 
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
 	// read and decode the json body
 	var request dto.CreateGroupMemberRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -127,7 +132,7 @@ func (c *GroupsController) CreateGroupMember(rw http.ResponseWriter, r *http.Req
 	}
 	defer r.Body.Close()
 
-	err := c.groupsService.CreateGroupMember(request)
+	err := c.groupsService.CreateGroupMember(request.GroupCode, userID, request.Role)
 	if err != nil {
 		c.l.Printf("Error creating group member: %v", err)
 		http.Error(rw, "Failed to create group member", http.StatusInternalServerError)
@@ -147,7 +152,7 @@ func (c *GroupsController) UpdateGroupMember(rw http.ResponseWriter, r *http.Req
 	}
 	defer r.Body.Close()
 
-	err := c.groupsService.UpdateGroupMember(request)
+	err := c.groupsService.UpdateGroupMember(request.GroupID, request.UserID, request.Role)
 	if err != nil {
 		c.l.Printf("Error updating group member: %v", err)
 		http.Error(rw, "Failed to update group member", http.StatusInternalServerError)
@@ -158,17 +163,8 @@ func (c *GroupsController) UpdateGroupMember(rw http.ResponseWriter, r *http.Req
 func (c *GroupsController) DeleteGroupMember(rw http.ResponseWriter, r *http.Request) {
 	c.l.Printf("Handle DELETE group-member - deleting existing group member")
 
-	// extract userID from url
-	strUserID := r.URL.Query().Get("userID")
-	if strUserID == "" {
-		http.Error(rw, "missing userID", http.StatusBadRequest)
-		return
-	}
-	userID, err := strconv.ParseInt(strUserID, 10, 64)
-	if err != nil {
-		http.Error(rw, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
 	// extract groupID from url
 	strGroupID := r.URL.Query().Get("groupID")
 	if strGroupID == "" {
@@ -264,19 +260,9 @@ func (c *GroupsController) DeleteGroupGoal(rw http.ResponseWriter, r *http.Reque
 func (c *GroupsController) GetUserGroups(rw http.ResponseWriter, r *http.Request) {
 	c.l.Printf("Handle GET groups - get user groups")
 
-	// extract userID from url
-	strID := r.URL.Query().Get("userID")
-	if strID == "" {
-		http.Error(rw, "missing userID", http.StatusBadRequest)
-		return
-	}
-	id, err := strconv.ParseInt(strID, 10, 64)
-	if err != nil {
-		http.Error(rw, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userID, _ := meta.GetUserIDFromContext(r.Context())
 
-	groups, err := c.groupsService.GetUserGroups(id)
+	groups, err := c.groupsService.GetUserGroups(userID)
 	response := dto.GetUserGroupsResponse{
 		Groups: groups,
 	}

@@ -45,16 +45,16 @@ func NewGroupsService(
 	}
 }
 
-func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) (*int64, error) {
+func (s *GroupsService) CreateGroup(name string, userID int64) (*int64, error) {
 	code, err := s.GenerateGroupCode()
 	if err != nil {
 		return nil, err
 	}
 	group := models.Group{
 		ID:        0,
-		Name:      request.Name,
+		Name:      name,
 		Code:      code,
-		CreatedBy: request.CreatedBy,
+		CreatedBy: userID,
 		CreatedAt: time.Now(),
 	}
 	groupID, err := s.groupsDao.CreateGroup(group)
@@ -78,14 +78,8 @@ func (s *GroupsService) CreateGroup(request dto.CreateGroupRequest) (*int64, err
 	return groupID, nil
 }
 
-func (s *GroupsService) UpdateGroup(request dto.UpdateGroupRequest) error {
-	group := models.Group{
-		ID:        request.ID,
-		Name:      request.Name,
-		CreatedBy: request.CreatedBy,
-		CreatedAt: request.CreatedAt,
-	}
-	err := s.groupsDao.UpdateGroup(group)
+func (s *GroupsService) UpdateGroup(groupID int64, name string) error {
+	err := s.groupsDao.UpdateGroup(groupID, name)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.UpdateGroup: %v", err)
 		return err
@@ -102,8 +96,8 @@ func (s *GroupsService) DeleteGroup(groupID int64) error {
 	return nil
 }
 
-func (s *GroupsService) CreateGroupMember(request dto.CreateGroupMemberRequest) error {
-	id, err := s.groupsDao.GetGroupIDFromCode(request.GroupCode)
+func (s *GroupsService) CreateGroupMember(groupCode string, userID int64, role string) error {
+	id, err := s.groupsDao.GetGroupIDFromCode(groupCode)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.GetGroupIDFromCode: %v", err)
 		return err
@@ -111,8 +105,8 @@ func (s *GroupsService) CreateGroupMember(request dto.CreateGroupMemberRequest) 
 	groupMember := models.GroupMember{
 		ID:       0,
 		GroupID:  *id,
-		UserID:   request.UserID,
-		Role:     request.Role,
+		UserID:   userID,
+		Role:     role,
 		JoinedAt: time.Now(),
 	}
 	err = s.groupsDao.CreateGroupMember(groupMember)
@@ -123,15 +117,8 @@ func (s *GroupsService) CreateGroupMember(request dto.CreateGroupMemberRequest) 
 	return nil
 }
 
-func (s *GroupsService) UpdateGroupMember(request dto.UpdateGroupMemberRequest) error {
-	member := models.GroupMember{
-		ID:       0,
-		GroupID:  request.GroupID,
-		UserID:   request.UserID,
-		Role:     request.Role,
-		JoinedAt: request.JoinedAt,
-	}
-	err := s.groupsDao.UpdateGroupMember(member)
+func (s *GroupsService) UpdateGroupMember(groupID int64, userID int64, role string) error {
+	err := s.groupsDao.UpdateGroupMember(groupID, userID, role)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.UpdateGroupMember: %v", err)
 		return err
