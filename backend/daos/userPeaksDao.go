@@ -117,12 +117,8 @@ func (dao *UserPeaksDao) UpsertUserPeak(userPeak *models.UserPeak) error {
             summited_at
         ) VALUES (
             $1, $2, $3, $4
-        ) ON CONFLICT (
-            user_id, peak_id
-        ) DO UPDATE
-            SET
-                activity_id = EXCLUDED.activity_id,
-                summited_at = EXCLUDED.summited_at;
+        ) ON CONFLICT (user_id, peak_id, activity_id) 
+        DO UPDATE SET summited_at = EXCLUDED.summited_at;
     `
 	_, err := dao.db.Exec(
 		sql,

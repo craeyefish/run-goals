@@ -4,7 +4,6 @@ import (
 	"log"
 	"run-goals/daos"
 	"run-goals/models"
-	"strconv"
 )
 
 type SummariesServiceInterface interface {
@@ -47,34 +46,28 @@ func (s *SummariesService) GetPeakSummaries() ([]models.PeakSummary, error) {
 		return nil, err
 	}
 
-	// 3. Build a map: peak_id -> []SummitedActivity
-	summitsByPeak := make(map[int64][]models.SummitedActivity)
+	// 3. Build a map: peak_id -> []Activity
+	activitiesByPeak := make(map[int64][]models.Activity)
 	for _, row := range userPeakJoined {
-		// Fetch the actual Activity for more details (like StravaActivityID).
+		// Fetch the actual Activity for all the details
 		activity, err := s.activityDao.GetActivityByID(row.ActivityID)
 		if err != nil {
-			s.l.Printf("Error calling activityDao.GetActivitiesByID: %v", err)
+			s.l.Printf("Error calling activityDao.GetActivityByID: %v", err)
 			continue
 		}
-		summit := models.SummitedActivity{
-			UserName:   strconv.Itoa(int(row.UserName)), // if you want a string
-			UserID:     row.UserID,
-			ActivityID: activity.ID,
-			SummitedAt: row.SummitedAt,
-		}
-		summitsByPeak[row.PeakID] = append(summitsByPeak[row.PeakID], summit)
+		activitiesByPeak[row.PeakID] = append(activitiesByPeak[row.PeakID], activity)
 	}
 
 	// 4. Build the final JSON structure by iterating over all peaks
 	var peakSummaries []models.PeakSummary
 	for _, p := range peaks {
-		if len(summitsByPeak[p.ID]) == 0 {
+		if len(activitiesByPeak[p.ID]) == 0 {
 			continue
 		}
 		peakSummaries = append(peakSummaries, models.PeakSummary{
-			PeakID:   p.ID,
-			PeakName: p.Name,
-			Summits:  summitsByPeak[p.ID], // may be nil or empty if no summits
+			PeakID:     p.ID,
+			PeakName:   p.Name,
+			Activities: activitiesByPeak[p.ID],
 		})
 	}
 	return peakSummaries, nil

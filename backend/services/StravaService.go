@@ -85,6 +85,8 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 				StartDate:        t,
 				MapPolyline:      stravaActivity.Map.SummaryPolyline,
 				PhotoURL:         photoURL,
+				CreatedAt:        time.Now(),
+				UpdatedAt:        time.Now(),
 			}
 			if err := service.activityDao.UpsertActivity(&activity); err != nil {
 				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)

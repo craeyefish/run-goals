@@ -75,7 +75,7 @@ func NewServer() *http.Server {
 	// backgorund jobs
 	// TODO(cian): Move out of server.
 	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
-	fetcher.FetchUserActivities()
+	// fetcher.FetchUserActivities()
 	go func() {
 		for {
 			time.Sleep(24 * time.Hour)
