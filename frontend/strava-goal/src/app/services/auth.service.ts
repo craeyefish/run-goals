@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
@@ -14,9 +14,9 @@ export class AuthService {
   private refreshTokenKey = 'jwt_refresh_token';
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
-  private userID: number | null = 1;
+  userID = signal<number | null>(null);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   storeAccessToken(accessToken: string): void {
     this.accessToken = accessToken;
@@ -75,8 +75,8 @@ export class AuthService {
 
   loginWithStravaAuth(
     code: string
-  ): Observable<{ accessToken: string; refreshToken: string }> {
-    return this.http.post<{ accessToken: string; refreshToken: string }>(
+  ): Observable<{ accessToken: string; refreshToken: string; userID: number }> {
+    return this.http.post<{ accessToken: string; refreshToken: string; userID: number }>(
       '/auth/strava/callback',
       {
         code,
@@ -89,8 +89,8 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      'https://craeyebytes.com/login/strava/callback'
-      // 'http://localhost:4200/login/strava/callback'
+      // 'https://craeyebytes.com/login/strava/callback'
+      'http://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();
@@ -119,6 +119,6 @@ export class AuthService {
   }
 
   getUserID(): number | null {
-    return this.userID;
+    return this.userID();
   }
 }

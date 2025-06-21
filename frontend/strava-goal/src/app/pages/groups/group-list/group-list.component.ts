@@ -61,10 +61,7 @@ export class GroupsListPageComponent {
   }
 
   onCreateGroupFormSubmit = (data: { name: string }) => {
-    const requestPayload: CreateGroupRequest = {
-      name: data.name,
-      created_by: 1,
-    };
+    const requestPayload: CreateGroupRequest = { name: data.name };
 
     this.groupService.createGroup(requestPayload).subscribe({
       next: (response) => {
@@ -85,9 +82,7 @@ export class GroupsListPageComponent {
     }
     const requestPayload: UpdateGroupRequest = {
       id: data.id,
-      name: data.name,
-      created_by: data.created_by,
-      created_at: data.created_at,
+      name: data.name
     };
 
     this.groupService.updateGroup(requestPayload).subscribe({
@@ -109,8 +104,7 @@ export class GroupsListPageComponent {
   ) => {
     const requestPayload: CreateGroupMemberRequest = {
       group_code: data.code,
-      user_id: this.authService.getUserID()!,
-      role: 'member',
+      role: 'member'
     };
 
     this.groupService.createGroupMember(requestPayload).subscribe({
@@ -126,10 +120,7 @@ export class GroupsListPageComponent {
   }
 
   onLeaveGroupFormSubmit = (data: Group) => {
-    const requestPayload: LeaveGroupRequest = {
-      groupID: data.id,
-      userID: this.authService.getUserID()!,
-    };
+    const requestPayload: LeaveGroupRequest = { groupID: data.id };
 
     this.groupService.leaveGroup(requestPayload).subscribe({
       next: () => {

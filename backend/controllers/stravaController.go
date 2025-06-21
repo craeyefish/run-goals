@@ -58,11 +58,13 @@ func (c *StravaController) ProcessCallback(rw http.ResponseWriter, r *http.Reque
 	var payload struct {
 		Code string `json:"code"`
 	}
+	c.l.Printf("Received Strava callback payload: %+v\n", payload)
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(rw, "failed to parse callback payload", http.StatusBadRequest)
 		return
 	}
 
+	c.l.Printf("processing strava callback")
 	user, err := c.stravaService.ProcessCallback(payload.Code)
 	if err != nil {
 		http.Error(rw, "Failed to process callback", http.StatusInternalServerError)
