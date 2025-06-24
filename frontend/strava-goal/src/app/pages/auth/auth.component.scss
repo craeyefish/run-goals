@@ -5,7 +5,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-image: url("/assets/hike-gang.svg");
+  background-image: url("/assets/hike-gang-bg.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -27,12 +27,12 @@
 }
 
 .game-window {
-  background: rgba(42, 42, 62, 0.95); // Semi-transparent dark background
-  backdrop-filter: blur(10px); // Blur effect for glassmorphism
-  border: 4px solid rgba(58, 58, 94, 0.8);
+  background: rgba(0, 0, 0, 0.3); // Main window background
+  backdrop-filter: blur(10px);
+  border: 4px solid rgba(255, 255, 255, 0.2);
   border-radius: 0;
-  box-shadow: 0 0 0 2px rgba(74, 74, 110, 0.6), 8px 8px 0 rgba(26, 26, 46, 0.8),
-    0 20px 40px rgba(0, 0, 0, 0.3); // Added depth shadow
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 8px 8px 0 rgba(0, 0, 0, 0.5),
+    0 20px 40px rgba(0, 0, 0, 0.4);
   max-width: 600px;
   width: 100%;
   position: relative;
@@ -40,12 +40,12 @@
 }
 
 .window-header {
-  background: rgba(58, 58, 94, 0.9);
+  background: rgba(0, 0, 0, 0.2); // Slightly more see-through
   padding: 8px 12px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 2px solid rgba(74, 74, 110, 0.8);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .header-dots {
@@ -77,13 +77,12 @@
 
 .game-screen {
   padding: 20px;
-  background: rgba(58, 58, 94, 0.9); // Semi-transparent
-  min-height: 400px;
+  background: rgba(0, 0, 0, 0.02); // More see-through
+  min-height: 200px;
 }
 
 .title-section {
   text-align: center;
-  margin-bottom: 30px;
 }
 
 .pixel-art-mountain {
@@ -104,7 +103,7 @@
     height: 0;
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
-    border-bottom: 35px solid rgba(26, 26, 46, 0.8);
+    border-bottom: 35px solid rgba(255, 255, 255, 0.3); // Light for contrast
   }
 
   &.layer-2 {
@@ -113,7 +112,7 @@
     height: 0;
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
-    border-bottom: 25px solid rgba(42, 42, 62, 0.8);
+    border-bottom: 25px solid rgba(255, 255, 255, 0.2);
   }
 
   &.layer-3 {
@@ -122,7 +121,7 @@
     height: 0;
     border-left: 12px solid transparent;
     border-right: 12px solid transparent;
-    border-bottom: 20px solid rgba(74, 74, 110, 0.8);
+    border-bottom: 20px solid rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -133,118 +132,6 @@
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
   letter-spacing: 2px;
   animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
-  }
-  to {
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8), 0 0 10px #fc4c02;
-  }
-}
-
-.subtitle {
-  color: #cccccc;
-  font-size: 10px;
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-.game-content {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.quest-log {
-  background: rgba(42, 42, 62, 0.8);
-  border: 2px solid rgba(74, 74, 110, 0.8);
-  padding: 15px;
-  backdrop-filter: blur(5px);
-}
-
-.quest-header {
-  color: #fc4c02;
-  font-size: 12px;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  .quest-icon {
-    font-size: 14px;
-  }
-}
-
-.quest-item {
-  color: #ffffff;
-  font-size: 10px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &.disabled {
-    color: #888888;
-    opacity: 0.7;
-  }
-
-  .checkmark {
-    width: 12px;
-    color: #fc4c02;
-  }
-}
-
-.login-section {
-  text-align: center;
-  background: rgba(42, 42, 62, 0.8);
-  border: 2px solid rgba(74, 74, 110, 0.8);
-  padding: 20px;
-  backdrop-filter: blur(5px);
-}
-
-.game-text {
-  margin-bottom: 20px;
-
-  p {
-    color: #ffffff;
-    font-size: 12px;
-    margin: 0 0 8px 0;
-    letter-spacing: 1px;
-  }
-
-  .small-text {
-    font-size: 10px;
-    color: #cccccc;
-  }
-}
-
-.stats-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.stat-box {
-  background: rgba(42, 42, 62, 0.8);
-  border: 2px solid rgba(74, 74, 110, 0.8);
-  padding: 12px 8px;
-  text-align: center;
-  backdrop-filter: blur(5px);
-}
-
-.stat-label {
-  color: #cccccc;
-  font-size: 8px;
-  margin-bottom: 5px;
-  letter-spacing: 1px;
-}
-
-.stat-value {
-  color: #fc4c02;
-  font-size: 12px;
-  font-weight: bold;
 }
 
 // Responsive design
@@ -264,11 +151,6 @@
   .game-title {
     font-size: 16px;
   }
-
-  .stats-preview {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -278,10 +160,5 @@
 
   .window-title {
     font-size: 8px;
-  }
-
-  .quest-item,
-  .game-text p {
-    font-size: 9px;
   }
 }

@@ -1,1 +1,77 @@
-<p>Loading...</p>
+<div class="callback-container">
+  <div class="loading-window">
+    <div class="window-header">
+      <div class="header-dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="window-title">SYNCHRONIZING DATA v1.0</div>
+    </div>
+
+    <div class="loading-screen">
+      <div class="title-section">
+        <div class="pixel-mountain">⛰️</div>
+        <h1 class="loading-title">SUMMIT SEEKERS</h1>
+        <p class="status-text">{{ currentStatus }}</p>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-container">
+          <div class="progress-label">SYNCING ACTIVITIES...</div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="progressPercentage"
+            ></div>
+            <div class="progress-text">{{ progressPercentage }}%</div>
+          </div>
+        </div>
+
+        <div class="loading-steps">
+          <div
+            class="step"
+            [class.active]="currentStep >= 1"
+            [class.complete]="currentStep > 1"
+          >
+            <span class="step-icon">🔐</span>
+            <span class="step-text">Authenticating with Strava</span>
+          </div>
+          <div
+            class="step"
+            [class.active]="currentStep >= 2"
+            [class.complete]="currentStep > 2"
+          >
+            <span class="step-icon">👤</span>
+            <span class="step-text">Creating your profile</span>
+          </div>
+          <div
+            class="step"
+            [class.active]="currentStep >= 3"
+            [class.complete]="currentStep > 3"
+          >
+            <span class="step-icon">🏃</span>
+            <span class="step-text">Syncing your activities</span>
+          </div>
+          <div
+            class="step"
+            [class.active]="currentStep >= 4"
+            [class.complete]="currentStep > 4"
+          >
+            <span class="step-icon">🏔️</span>
+            <span class="step-text">Detecting peak summits</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fun-facts">
+        <div class="fact-box">
+          <div class="fact-title">DID YOU KNOW?</div>
+          <div class="fact-text">{{ currentFact }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="background-pattern"></div>
+</div>

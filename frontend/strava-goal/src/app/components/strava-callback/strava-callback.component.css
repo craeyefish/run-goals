@@ -1,0 +1,334 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+.callback-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url("/assets/hike-gang-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  padding: 20px;
+  font-family: "Press Start 2P", monospace;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+}
+
+.background-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.loading-window {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), 8px 8px 0 rgba(0, 0, 0, 0.5),
+    0 20px 40px rgba(0, 0, 0, 0.4);
+  max-width: 700px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.window-header {
+  background: rgba(0, 0, 0, 0.9);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.red {
+    background: #ff5f56;
+  }
+  &.yellow {
+    background: #ffbd2e;
+  }
+  &.green {
+    background: #27ca3f;
+  }
+}
+
+.window-title {
+  color: #ffffff;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.loading-screen {
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.7);
+  min-height: 500px;
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pixel-mountain {
+  font-size: 48px;
+  margin-bottom: 15px;
+  display: block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.loading-title {
+  color: #fc4c02;
+  font-size: 20px;
+  margin: 0 0 15px 0;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  }
+  to {
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8), 0 0 10px #fc4c02;
+  }
+}
+
+.status-text {
+  color: #ffffff;
+  font-size: 10px;
+  margin: 0;
+  letter-spacing: 1px;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.progress-section {
+  margin-bottom: 40px;
+}
+
+.progress-container {
+  margin-bottom: 30px;
+}
+
+.progress-label {
+  color: #fc4c02;
+  font-size: 10px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  height: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #fc4c02, #ff6b35);
+  height: 100%;
+  transition: width 0.5s ease;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: bold;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+
+  &.active {
+    opacity: 1;
+    border-color: #fc4c02;
+    background: rgba(252, 76, 2, 0.1);
+  }
+
+  &.complete {
+    opacity: 1;
+    border-color: #27ca3f;
+    background: rgba(39, 202, 63, 0.1);
+
+    .step-icon {
+      filter: grayscale(0);
+    }
+  }
+}
+
+.step-icon {
+  font-size: 16px;
+  filter: grayscale(1);
+  transition: filter 0.3s ease;
+}
+
+.step-text {
+  color: #ffffff;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.fun-facts {
+  margin-top: 30px;
+}
+
+.fact-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  text-align: center;
+}
+
+.fact-title {
+  color: #fc4c02;
+  font-size: 8px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.fact-text {
+  color: #ffffff;
+  font-size: 9px;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .loading-screen {
+    padding: 20px;
+  }
+
+  .loading-title {
+    font-size: 16px;
+  }
+
+  .loading-steps {
+    gap: 10px;
+  }
+
+  .step {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .loading-title {
+    font-size: 14px;
+  }
+
+  .step-text {
+    font-size: 8px;
+  }
+
+  .fact-text {
+    font-size: 8px;
+  }
+}
