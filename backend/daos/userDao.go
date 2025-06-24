@@ -119,6 +119,46 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 	return users, nil
 }
 
+func (dao *UserDao) GetUserByID(id int64) (*models.User, error) {
+	user := models.User{}
+	query := `
+		SELECT
+			id,
+			strava_athlete_id,
+			access_token,
+			refresh_token,
+			expires_at,
+			last_distance,
+			last_updated,
+			created_at,
+			updated_at
+		FROM users
+		WHERE
+			id = $1;
+	`
+	row := dao.db.QueryRow(query, id)
+	err := row.Scan(
+		&user.ID,
+		&user.StravaAthleteID,
+		&user.AccessToken,
+		&user.RefreshToken,
+		&user.ExpiresAt,
+		&user.LastDistance,
+		&user.LastUpdated,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		dao.l.Printf("No user found with id=%d", id)
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		dao.l.Println("Error querying user table", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 	user := models.User{}
 	query := `

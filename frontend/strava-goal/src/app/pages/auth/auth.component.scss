@@ -1,21 +1,287 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
 .auth-page-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: var(--background-color);
+  min-height: 100vh;
+  background-image: url("/assets/hike-gang.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  padding: 20px;
+  font-family: "Press Start 2P", monospace;
 
-  .card {
-    background: var(--seasalt); // Light background from your theme
-    padding: 2.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.1);
-    min-width: 22rem;
-    text-align: center;
+  // Dark overlay for better contrast
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+}
 
-    h1 {
-      color: var(--text-color);
-      margin-bottom: 20px;
-    }
+.game-window {
+  background: rgba(42, 42, 62, 0.95); // Semi-transparent dark background
+  backdrop-filter: blur(10px); // Blur effect for glassmorphism
+  border: 4px solid rgba(58, 58, 94, 0.8);
+  border-radius: 0;
+  box-shadow: 0 0 0 2px rgba(74, 74, 110, 0.6), 8px 8px 0 rgba(26, 26, 46, 0.8),
+    0 20px 40px rgba(0, 0, 0, 0.3); // Added depth shadow
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.window-header {
+  background: rgba(58, 58, 94, 0.9);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid rgba(74, 74, 110, 0.8);
+}
+
+.header-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.red {
+    background: #ff5f56;
+  }
+  &.yellow {
+    background: #ffbd2e;
+  }
+  &.green {
+    background: #27ca3f;
+  }
+}
+
+.window-title {
+  color: #ffffff;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.game-screen {
+  padding: 20px;
+  background: rgba(58, 58, 94, 0.9); // Semi-transparent
+  min-height: 400px;
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.pixel-art-mountain {
+  position: relative;
+  height: 40px;
+  margin: 0 auto 20px;
+  width: 100px;
+}
+
+.mountain-layer {
+  position: absolute;
+  bottom: 0;
+
+  &.layer-1 {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 35px solid rgba(26, 26, 46, 0.8);
+  }
+
+  &.layer-2 {
+    left: 20%;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 25px solid rgba(42, 42, 62, 0.8);
+  }
+
+  &.layer-3 {
+    right: 20%;
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 20px solid rgba(74, 74, 110, 0.8);
+  }
+}
+
+.game-title {
+  color: #fc4c02;
+  font-size: 18px;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+  }
+  to {
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8), 0 0 10px #fc4c02;
+  }
+}
+
+.subtitle {
+  color: #cccccc;
+  font-size: 10px;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.quest-log {
+  background: rgba(42, 42, 62, 0.8);
+  border: 2px solid rgba(74, 74, 110, 0.8);
+  padding: 15px;
+  backdrop-filter: blur(5px);
+}
+
+.quest-header {
+  color: #fc4c02;
+  font-size: 12px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .quest-icon {
+    font-size: 14px;
+  }
+}
+
+.quest-item {
+  color: #ffffff;
+  font-size: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &.disabled {
+    color: #888888;
+    opacity: 0.7;
+  }
+
+  .checkmark {
+    width: 12px;
+    color: #fc4c02;
+  }
+}
+
+.login-section {
+  text-align: center;
+  background: rgba(42, 42, 62, 0.8);
+  border: 2px solid rgba(74, 74, 110, 0.8);
+  padding: 20px;
+  backdrop-filter: blur(5px);
+}
+
+.game-text {
+  margin-bottom: 20px;
+
+  p {
+    color: #ffffff;
+    font-size: 12px;
+    margin: 0 0 8px 0;
+    letter-spacing: 1px;
+  }
+
+  .small-text {
+    font-size: 10px;
+    color: #cccccc;
+  }
+}
+
+.stats-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.stat-box {
+  background: rgba(42, 42, 62, 0.8);
+  border: 2px solid rgba(74, 74, 110, 0.8);
+  padding: 12px 8px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+}
+
+.stat-label {
+  color: #cccccc;
+  font-size: 8px;
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  color: #fc4c02;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .auth-page-container {
+    padding: 15px;
+  }
+
+  .game-window {
+    max-width: 100%;
+  }
+
+  .game-screen {
+    padding: 15px;
+  }
+
+  .game-title {
+    font-size: 16px;
+  }
+
+  .stats-preview {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 14px;
+  }
+
+  .window-title {
+    font-size: 8px;
+  }
+
+  .quest-item,
+  .game-text p {
+    font-size: 9px;
   }
 }

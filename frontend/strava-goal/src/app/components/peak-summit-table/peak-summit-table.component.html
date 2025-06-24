@@ -26,7 +26,13 @@
           </td>
           <td class="peak-name">{{ peak.peak_name }}</td>
           <td>{{ peak.activities.length }}</td>
-          <td>{{ peak.activities[0]?.start_date | date : "yyyy-MM-dd" }}</td>
+          <td>
+            {{
+              peak.activities.length > 0
+                ? (peak.activities[0].start_date | date : "yyyy-MM-dd")
+                : "-"
+            }}
+          </td>
         </tr>
 
         <!-- Activity sub-rows (shown when expanded) -->

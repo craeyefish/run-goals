@@ -44,6 +44,7 @@ func NewServer() *http.Server {
 	summariesService := services.NewSummariesService(logger, peaksDao, userPeaksDao, activityDao)
 	progressService := services.NewProgressService(logger, userDao, stravaService)
 	groupsService := services.NewGroupsService(logger, groupsDao)
+	userService := services.NewUserService(logger, userDao)
 
 	// once off data population
 	// TODO(cian): Update to sync processes
@@ -60,6 +61,7 @@ func NewServer() *http.Server {
 		progressService,
 		peakService,
 		summariesService,
+		userService,
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService)

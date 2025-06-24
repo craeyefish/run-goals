@@ -37,6 +37,9 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "/api/progress":
 		handler.apiController.GetProgress(rw, r)
 		return
+	case "/api/profile":
+		handler.apiController.GetUserProfile(rw, r)
+		return
 	case "/api/peak-summaries":
 		handler.apiController.GetPeakSummaries(rw, r)
 		return

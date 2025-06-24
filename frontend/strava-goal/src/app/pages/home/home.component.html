@@ -1,11 +1,105 @@
 <div class="home-container">
-  <div class="home-inner-container">
-    <app-goal-progress></app-goal-progress>
+  <div class="home-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Your {{ currentYear }} Running Overview</p>
   </div>
-  <div class="home-inner-container">
-    <app-activities-list></app-activities-list>
+
+  <div *ngIf="loading" class="loading">Loading dashboard...</div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
   </div>
-  <div class="home-inner-container">
-    <app-activity-map></app-activity-map>
+
+  <div *ngIf="!loading" class="dashboard-content">
+    <!-- Progress Chart -->
+    <div class="dashboard-card chart-card">
+      <h2>📈 Distance Progress</h2>
+      <div class="chart-container">
+        <canvas #progressChart></canvas>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-card stats-card">
+      <h2>📊 Year Stats</h2>
+      <div class="quick-stats-grid">
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalDistance }}</div>
+          <div class="stat-label">Total Distance (km)</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalActivities }}</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalSummits }}</div>
+          <div class="stat-label">Peak Summits</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ avgDistance }}</div>
+          <div class="stat-label">Avg Distance (km)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals Progress -->
+    <div class="dashboard-card goals-card">
+      <h2>🎯 Goals Progress</h2>
+      <div class="goals-list">
+        <div class="goal-item">
+          <div class="goal-header">
+            <span class="goal-name">Annual Distance Goal</span>
+            <span class="goal-percentage">{{ distanceGoalPercentage }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="distanceGoalPercentage"
+            ></div>
+          </div>
+          <div class="goal-details">
+            {{ totalDistance }}km / {{ distanceGoal }}km
+          </div>
+        </div>
+
+        <div class="goal-item">
+          <div class="goal-header">
+            <span class="goal-name">Peak Summit Goal</span>
+            <span class="goal-percentage">{{ summitGoalPercentage }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="summitGoalPercentage"
+            ></div>
+          </div>
+          <div class="goal-details">
+            {{ totalSummits }} / {{ summitGoal }} peaks
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="dashboard-card recent-card">
+      <h2>🏃 Recent Activity</h2>
+      <div class="recent-activities" *ngIf="recentActivities.length > 0">
+        <div class="activity-item" *ngFor="let activity of recentActivities">
+          <div class="activity-info">
+            <div class="activity-name">{{ activity.name }}</div>
+            <div class="activity-details">
+              {{ activity.distance / 1000 | number : "1.1-1" }}km •
+              {{ activity.start_date | date : "MMM dd" }}
+              <span *ngIf="activity.has_summit" class="summit-badge"
+                >🏔️ Summit!</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="recentActivities.length === 0" class="no-activities">
+        No recent activities found
+      </div>
+    </div>
   </div>
 </div>

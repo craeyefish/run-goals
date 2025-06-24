@@ -1,14 +1,34 @@
 button {
-  background-color: var(--primary-color);
-  color: --text-color;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  background: var(--secondary-color);
+  color: var(--text-primary);
+  border: 3px solid var(--background-secondary);
+  padding: 12px 20px;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 16px;
-  transition: 0.3s;
+  font-size: 10px;
+  font-family: "Press Start 2P", monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.1s;
+  box-shadow: 4px 4px 0 var(--background-shade-color-4);
+  position: relative;
 
   &:hover {
-    background-color: var(--accent-color);
+    background: #ff6b35;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--background-shade-color-4);
+  }
+
+  &:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  // Ensure text is always visible
+  &,
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--text-primary) !important;
   }
 }

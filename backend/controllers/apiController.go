@@ -13,6 +13,7 @@ type ApiControllerInterface interface {
 	ListPeaks(rw http.ResponseWriter, r *http.Request)
 	GetProgress(rw http.ResponseWriter, r *http.Request)
 	GetPeakSummaries(rw http.ResponseWriter, r *http.Request)
+	GetUserProfile(rw http.ResponseWriter, r *http.Request)
 }
 
 type ApiController struct {
@@ -21,6 +22,7 @@ type ApiController struct {
 	progressService  *services.ProgressService
 	peakService      *services.PeakService
 	summariesService *services.SummariesService
+	userService      *services.UserService
 }
 
 func NewApiController(
@@ -29,6 +31,7 @@ func NewApiController(
 	progressService *services.ProgressService,
 	peakService *services.PeakService,
 	summariesService *services.SummariesService,
+	userService *services.UserService,
 ) *ApiController {
 	return &ApiController{
 		l:                l,
@@ -36,6 +39,7 @@ func NewApiController(
 		progressService:  progressService,
 		peakService:      peakService,
 		summariesService: summariesService,
+		userService:      userService,
 	}
 }
 
@@ -104,5 +108,23 @@ func (c *ApiController) GetPeakSummaries(rw http.ResponseWriter, r *http.Request
 	rw.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(rw).Encode(response); err != nil {
 		log.Println("Error encoding Peak Summaries response:", err)
+	}
+}
+
+func (c *ApiController) GetUserProfile(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle GET UserProfile")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	response, err := c.userService.GetUserProfile(userID)
+	if err != nil {
+		c.l.Println("Error fetching user profile", err)
+		http.Error(rw, "Failed to fetch user profile", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding user profile response:", err)
 	}
 }
