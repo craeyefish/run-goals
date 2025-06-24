@@ -104,7 +104,9 @@ export class StravaCallbackComponent implements OnInit, OnDestroy {
         const increment = Math.random() * 15 + 5; // 5-20% increments
         this.progressPercentage = Math.min(
           90,
-          this.progressPercentage + increment
+          (this.progressPercentage + increment).toPrecision(
+            0
+          ) as unknown as number
         );
 
         // Update status message
@@ -128,7 +130,7 @@ export class StravaCallbackComponent implements OnInit, OnDestroy {
     this.currentFact = this.facts[0];
     let factIndex = 0;
 
-    this.factSubscription = interval(3000).subscribe(() => {
+    this.factSubscription = interval(6000).subscribe(() => {
       factIndex = (factIndex + 1) % this.facts.length;
       this.currentFact = this.facts[factIndex];
     });

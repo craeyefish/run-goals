@@ -42,7 +42,7 @@
 }
 
 .loading-window {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   border: 4px solid rgba(255, 255, 255, 0.2);
   border-radius: 0;
@@ -55,7 +55,7 @@
 }
 
 .window-header {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.4);
   padding: 8px 12px;
   display: flex;
   align-items: center;
@@ -92,7 +92,7 @@
 
 .loading-screen {
   padding: 30px;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.2);
   min-height: 500px;
 }
 
@@ -271,7 +271,7 @@
 }
 
 .fact-box {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.2);
   padding: 20px;
   text-align: center;
