@@ -1,32 +1,37 @@
-import { Component, Input, signal, WritableSignal } from '@angular/core';
-import { Group } from 'src/app/services/groups.service';
+import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CreateGroupRequest } from '../../../services/groups.service';
 
 @Component({
   selector: 'groups-create-form',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule],
   templateUrl: './groups-create-form.component.html',
-  styleUrl: './groups-create-form.component.scss',
+  styleUrls: ['./groups-create-form.component.scss'],
 })
 export class GroupsCreateFormComponent {
-  constructor() { }
-
-  @Input({ required: true }) formSignal!: WritableSignal<{ show: boolean, data: Group | null }>;
-  @Input({ required: true }) onSubmit!: (data: { name: string }) => void;
+  @Output() onSubmit = new EventEmitter<CreateGroupRequest>();
+  @Output() onCancel = new EventEmitter<void>();
 
   groupName = signal('');
 
-  ngOnInit(): void {
-
-  }
-
   handleClose() {
-    this.formSignal.set({ show: false, data: null });
+    this.onCancel.emit();
   }
 
   handleSubmit() {
-    this.onSubmit({
-      name: this.groupName(),
-    })
+    // Validation
+    if (!this.groupName().trim()) {
+      alert('Please enter a group name');
+      return;
+    }
+
+    const groupData: CreateGroupRequest = {
+      name: this.groupName().trim(),
+      created_by: 0, // This will be set by the parent component with actual user ID
+    };
+
+    this.onSubmit.emit(groupData);
   }
 }

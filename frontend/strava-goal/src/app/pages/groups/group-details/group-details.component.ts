@@ -1,12 +1,18 @@
-import { CommonModule } from "@angular/common";
-import { Component, signal, WritableSignal } from "@angular/core";
-import { GoalProgressComponent } from "src/app/components/goal-progress/goal-progress.component";
-import { GoalsCreateFormComponent } from "src/app/components/groups/goals-create-form/goals-create-form.component";
-import { GoalsEditFormComponent } from "src/app/components/groups/goals-edit-form/goals-edit-form.component";
-import { GroupsGoalsTableComponent } from "src/app/components/groups/groups-goals-table/groups-goals-table.component";
-import { GroupsMembersTableComponent } from "src/app/components/groups/groups-members-table/groups-members-table.component";
-import { BreadcrumbService } from "src/app/services/breadcrumb.service";
-import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/app/services/groups.service";
+import { CommonModule } from '@angular/common';
+import { Component, signal, WritableSignal, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { GoalProgressComponent } from 'src/app/components/goal-progress/goal-progress.component';
+import { GoalsCreateFormComponent } from 'src/app/components/groups/goals-create-form/goals-create-form.component';
+import { GoalsEditFormComponent } from 'src/app/components/groups/goals-edit-form/goals-edit-form.component';
+import { GroupsGoalsTableComponent } from 'src/app/components/groups/groups-goals-table/groups-goals-table.component';
+import { GroupsMembersTableComponent } from 'src/app/components/groups/groups-members-table/groups-members-table.component';
+import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import {
+  CreateGoalRequest,
+  Goal,
+  GroupService,
+  UpdateGoalRequest,
+} from 'src/app/services/groups.service';
 
 @Component({
   selector: 'group-details-page',
@@ -16,97 +22,105 @@ import { CreateGoalRequest, Goal, GroupService, UpdateGoalRequest } from "src/ap
     GoalsCreateFormComponent,
     GoalsEditFormComponent,
     GroupsGoalsTableComponent,
-    GroupsMembersTableComponent
+    GroupsMembersTableComponent,
   ],
   templateUrl: './group-details.component.html',
   styleUrls: ['./group-details.component.scss'],
 })
-export class GroupsDetailsPageComponent {
-
+export class GroupsDetailsPageComponent implements OnInit {
   constructor(
     private groupService: GroupService,
-    private breadcrumbService: BreadcrumbService
-  ) { }
+    private breadcrumbService: BreadcrumbService,
+    private router: Router
+  ) {}
 
-  createGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
-  editGoalFormSignal: WritableSignal<{ show: boolean, data: Goal | null }> = signal({ show: false, data: null });
+  createGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
+    signal({ show: false, data: null });
+  editGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
+    signal({ show: false, data: null });
 
-  openCreateGoalForm = () => this.createGoalFormSignal.set({ show: true, data: null });
+  openCreateGoalForm = () =>
+    this.createGoalFormSignal.set({ show: true, data: null });
   openEditGoalForm = (goal: Goal) => {
     this.editGoalFormSignal.set({ show: true, data: goal });
-  }
+  };
 
   selectedGroup = this.groupService.selectedGroup;
   selectedGoal = this.groupService.selectedGoal;
 
   ngOnInit() {
-    this.breadcrumbService.addItem(
-      {
-        label: this.groupService.selectedGroup()!.name
-      }
-    )
-  }
-
-  onCreateGoalFormSubmit = (
-    data: {
-      name: string,
-      targetValue: string,
-      startDate: string,
-      endDate: string
-    }
-  ) => {
     const selectedGroup = this.groupService.selectedGroup();
+
+    // Check if we have a selected group
     if (!selectedGroup) {
-      console.log('No selectedGroup');
+      console.warn('No group selected, redirecting to groups list');
+      // Redirect to groups list if no group is selected
+      this.router.navigate(['/groups']);
       return;
     }
+
+    // Set breadcrumb with the group name
+    this.breadcrumbService.addItem({
+      label: selectedGroup.name,
+    });
+
+    // Load group data if needed
+    this.groupService.loadGoals(selectedGroup.id);
+    this.groupService.getGroupMembers(selectedGroup.id);
+  }
+
+  onCreateGoalFormSubmit = (data: CreateGoalRequest) => {
+    const selectedGroup = this.groupService.selectedGroup();
+    if (!selectedGroup) {
+      console.error('No selectedGroup available');
+      return;
+    }
+
     const requestPayload: CreateGoalRequest = {
       group_id: selectedGroup.id,
       name: data.name,
-      target_value: data.targetValue,
-      start_date: new Date(data.startDate),
-      end_date: new Date(data.endDate),
+      description: data.description || '',
+      goal_type: data.goal_type,
+      target_summits: data.target_summits || [],
+      target_value: Number(data.target_value),
+      start_date: data.start_date,
+      end_date: data.end_date,
     };
 
     this.groupService.createGoal(requestPayload).subscribe({
       next: (response) => {
-        console.log('Goal Created:', data);
+        console.log('Goal Created:', response);
         this.createGoalFormSignal.set({ show: false, data: null });
+
+        // Store the created goal ID and refresh
         this.groupService.notifyGoalCreated(response.goal_id);
+        this.groupService.refreshGoals(selectedGroup.id);
       },
       error: (err) => {
-        console.error('Error creating group goal:', err)
-      }
+        console.error('Error creating group goal:', err);
+      },
     });
-  }
+  };
 
-  onEditGoalFormSubmit = (data: Goal) => {
+  onEditGoalFormSubmit = (updateData: UpdateGoalRequest) => {
     const selectedGroup = this.selectedGroup();
-    const selectedGoal = this.selectedGoal();
-    if (!selectedGroup || !selectedGoal) {
-      console.log('Goal or group not selected');
+
+    if (!selectedGroup) {
+      console.error('No group selected');
       return;
     }
-    const requestPayload: UpdateGoalRequest = {
-      id: selectedGoal.id,
-      group_id: selectedGroup.id,
-      name: data.name,
-      target_value: data.target_value,
-      start_date: new Date(data.start_date!),
-      end_date: new Date(data.end_date!),
-      created_at: new Date(selectedGoal.created_at!),
-    };
 
-    this.groupService.updateGoal(requestPayload).subscribe({
-      next: () => {
-        console.log('Goal Updated: ', selectedGoal.id);
+    this.groupService.updateGoal(updateData).subscribe({
+      next: (response) => {
+        console.log('Goal Updated:', updateData.id);
         this.editGoalFormSignal.set({ show: false, data: null });
-        this.groupService.notifyGoalCreated(selectedGoal.id);
+
+        // Use the new refresh method
+        this.groupService.refreshGoals(selectedGroup.id);
       },
       error: (err) => {
-        console.error('Error updating goal:', err)
-      }
-    })
-  }
-
+        console.error('Error updating goal:', err);
+      },
+    });
+  };
 }

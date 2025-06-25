@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"run-goals/models"
+	"time"
+
+	"github.com/lib/pq"
 )
 
 type UserPeaksDaoInterface interface {
@@ -11,6 +14,8 @@ type UserPeaksDaoInterface interface {
 	GetUserPeaksJoin() ([]models.UserPeakJoin, error)
 	UpsertUserPeak(userPeak *models.UserPeak) error
 	ClearUserPeaks() error
+	GetUserSummitsInDateRange(userID int64, peakIDs []int64, startDate time.Time, endDate time.Time) ([]models.UserPeak, error)
+	GetUserSummitsInDateRangeAll(userID int64, startDate time.Time, endDate time.Time) ([]models.UserPeak, error)
 }
 
 type UserPeaksDao struct {
@@ -144,4 +149,110 @@ func (dao *UserPeaksDao) ClearUserPeaks() error {
 		return err
 	}
 	return nil
+}
+
+func (dao *UserPeaksDao) GetUserSummitsInDateRange(userID int64, peakIDs []int64, startDate time.Time, endDate time.Time) ([]models.UserPeak, error) {
+	userPeaks := []models.UserPeak{}
+
+	// If no specific peaks are provided, return empty result
+	if len(peakIDs) == 0 {
+		return userPeaks, nil
+	}
+
+	sql := `
+        SELECT
+            id,
+            user_id,
+            peak_id,
+            activity_id,
+            summited_at
+        FROM user_peaks
+        WHERE 
+            user_id = $1
+            AND peak_id = ANY($2)
+            AND summited_at >= $3
+            AND summited_at <= $4
+        ORDER BY summited_at DESC
+    `
+
+	rows, err := dao.db.Query(sql, userID, pq.Array(peakIDs), startDate, endDate)
+	if err != nil {
+		dao.l.Printf("Error querying user summits in date range: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		userPeak := models.UserPeak{}
+		err = rows.Scan(
+			&userPeak.ID,
+			&userPeak.UserID,
+			&userPeak.PeakID,
+			&userPeak.ActivityID,
+			&userPeak.SummitedAt,
+		)
+		if err != nil {
+			dao.l.Printf("Error parsing user summit result: %v", err)
+			return nil, err
+		}
+		userPeaks = append(userPeaks, userPeak)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		dao.l.Printf("Error during user summits iteration: %v", err)
+		return nil, err
+	}
+
+	return userPeaks, nil
+}
+
+func (dao *UserPeaksDao) GetUserSummitsInDateRangeAll(userID int64, startDate time.Time, endDate time.Time) ([]models.UserPeak, error) {
+	userPeaks := []models.UserPeak{}
+
+	sql := `
+        SELECT
+            id,
+            user_id,
+            peak_id,
+            activity_id,
+            summited_at
+        FROM user_peaks
+        WHERE 
+            user_id = $1
+            AND summited_at >= $2
+            AND summited_at <= $3
+        ORDER BY summited_at DESC
+    `
+
+	rows, err := dao.db.Query(sql, userID, startDate, endDate)
+	if err != nil {
+		dao.l.Printf("Error querying all user summits: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		userPeak := models.UserPeak{}
+		err = rows.Scan(
+			&userPeak.ID,
+			&userPeak.UserID,
+			&userPeak.PeakID,
+			&userPeak.ActivityID,
+			&userPeak.SummitedAt,
+		)
+		if err != nil {
+			dao.l.Printf("Error parsing user summit result: %v", err)
+			return nil, err
+		}
+		userPeaks = append(userPeaks, userPeak)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		dao.l.Printf("Error during user summits iteration: %v", err)
+		return nil, err
+	}
+
+	return userPeaks, nil
 }

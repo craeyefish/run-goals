@@ -9,6 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivityService, Activity } from '../../services/activity.service';
 import { PeakSummitService } from '../../services/peak-summit.service';
+import { GroupService, Group, Goal } from '../../services/groups.service';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import {
@@ -38,18 +39,19 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Stats
   totalDistance = 0;
+  totalElevation = 0; // New stat
   totalActivities = 0;
   totalSummits = 0;
   avgDistance = 0;
 
-  // Goals (you can make these configurable later)
+  // Personal goals (keeping the old ones for now)
   distanceGoal = 1000; // 1000km goal
   summitGoal = 20; // 20 peaks goal
   distanceGoalPercentage = 0;
   summitGoalPercentage = 0;
 
-  // Recent activities
-  recentActivities: Activity[] = [];
+  // Group goals
+  groupGoals: GroupGoalDisplay[] = [];
 
   // Chart
   chart: Chart | null = null;
@@ -58,7 +60,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private activityService: ActivityService,
-    private peakSummitService: PeakSummitService
+    private peakSummitService: PeakSummitService,
+    private groupService: GroupService
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +83,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   loadDashboardData(): void {
     console.log('Loading dashboard data...');
     this.activityService.loadActivities();
+    this.groupService.loadGroups();
 
     combineLatest([
       this.activityService.activities$.pipe(
@@ -94,11 +98,17 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
             activities: activities?.length,
             peakSummaries: peakSummaries?.length,
           });
-          this.calculateStats(activities!, peakSummaries);
+
+          // Ensure we have valid data before calculating stats
+          const validActivities = activities || [];
+          const validPeakSummaries = peakSummaries || [];
+
+          this.calculateStats(validActivities, validPeakSummaries);
+          this.loadGroupGoals();
 
           // Ensure the view has been initialized before creating chart
           setTimeout(() => {
-            this.createProgressChart(activities!);
+            this.createProgressChart(validActivities);
           }, 100);
 
           this.loading = false;
@@ -109,6 +119,51 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           console.error('Error loading dashboard:', err);
         },
       });
+  }
+
+  loadGroupGoals(): void {
+    const groups = this.groupService.groups();
+    this.groupGoals = [];
+
+    if (groups.length === 0) {
+      return;
+    }
+
+    // For each group, load its goals
+    groups.forEach((group) => {
+      this.groupService.getGroupGoals(group.id).subscribe({
+        next: (response) => {
+          if (response.goals.length > 0) {
+            this.groupGoals.push({
+              groupName: group.name,
+              goals: response.goals.map((goal) => ({
+                ...goal,
+                progressPercentage: this.calculateGoalProgress(goal),
+              })),
+            });
+          }
+        },
+        error: (err) => {
+          console.error(`Failed to load goals for group ${group.name}:`, err);
+        },
+      });
+    });
+  }
+
+  calculateGoalProgress(goal: Goal): number {
+    // This is a simplified calculation - you might want to implement
+    // more sophisticated logic based on goal type and current user stats
+    const today = new Date();
+    const startDate = new Date(goal.start_date || today);
+    const endDate = new Date(goal.end_date || today);
+
+    if (startDate > today) return 0; // Goal hasn't started yet
+    if (endDate < today) return 100; // Goal has ended
+
+    // Calculate time-based progress as a fallback
+    const totalTime = endDate.getTime() - startDate.getTime();
+    const elapsedTime = today.getTime() - startDate.getTime();
+    return Math.min(100, Math.max(0, (elapsedTime / totalTime) * 100));
   }
 
   calculateStats(activities: Activity[], peakSummaries: any[]): void {
@@ -130,38 +185,43 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         .toFixed(1)
     );
 
+    // Calculate total elevation gain
+    this.totalElevation = parseFloat(
+      yearActivities
+        .reduce((total, activity) => {
+          return total + (activity.total_elevation_gain || 0);
+        }, 0)
+        .toFixed(0)
+    );
+
     this.avgDistance =
       this.totalActivities > 0
         ? parseFloat((this.totalDistance / this.totalActivities).toFixed(1))
         : 0;
 
-    // Calculate summits
+    // Calculate summits - add null check
     let summitCount = 0;
-    peakSummaries.forEach((peak) => {
-      peak.activities.forEach((activity: any) => {
-        const activityYear = new Date(activity.start_date).getFullYear();
-        if (activityYear === currentYear) {
-          summitCount++;
+    if (peakSummaries && Array.isArray(peakSummaries)) {
+      peakSummaries.forEach((peak) => {
+        if (peak.activities && Array.isArray(peak.activities)) {
+          peak.activities.forEach((activity: any) => {
+            const activityYear = new Date(activity.start_date).getFullYear();
+            if (activityYear === currentYear) {
+              summitCount++;
+            }
+          });
         }
       });
-    });
+    }
     this.totalSummits = summitCount;
 
-    // Calculate goal percentages - fixed to 2 decimal places
+    // Calculate personal goal percentages - fixed to 2 decimal places
     this.distanceGoalPercentage = parseFloat(
       Math.min(100, (this.totalDistance / this.distanceGoal) * 100).toFixed(2)
     );
     this.summitGoalPercentage = parseFloat(
       Math.min(100, (this.totalSummits / this.summitGoal) * 100).toFixed(2)
     );
-
-    // Get recent activities (last 5)
-    this.recentActivities = yearActivities
-      .sort(
-        (a, b) =>
-          new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
-      )
-      .slice(0, 5);
   }
 
   createProgressChart(activities: Activity[]): void {
@@ -359,4 +419,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.chart = new Chart(ctx, config);
   }
+}
+
+// Interface for displaying group goals
+interface GroupGoalDisplay {
+  groupName: string;
+  goals: (Goal & { progressPercentage: number })[];
 }

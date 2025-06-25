@@ -5,6 +5,8 @@ import (
 	"log"
 	"run-goals/models"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type GroupsDaoInterface interface {
@@ -183,19 +185,33 @@ func (dao *GroupsDao) DeleteGroupMember(userID int64, groupID int64) error {
 func (dao *GroupsDao) CreateGroupGoal(goal models.GroupGoal) (*int64, error) {
 	var id int64
 	sql := `
-		INSERT INTO group_goals (
-			group_id,
-			name,
-			target_value,
-			start_date,
-			end_date,
-			created_at
-		) VALUES (
-			$1, $2, $3, $4, $5, $6
-		)
-		RETURNING id;
-	`
-	err := dao.db.QueryRow(sql, goal.GroupID, goal.Name, goal.TargetValue, goal.StartDate, goal.EndDate, goal.CreatedAt).Scan(&id)
+        INSERT INTO group_goals (
+            group_id,
+            name,
+            description,
+            goal_type,
+            target_value,
+            target_summits,
+            start_date,
+            end_date,
+            created_at
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9
+        )
+        RETURNING id;
+    `
+	err := dao.db.QueryRow(
+		sql,
+		goal.GroupID,
+		goal.Name,
+		goal.Description,
+		goal.GoalType,
+		goal.TargetValue,
+		pq.Array(goal.TargetSummits),
+		goal.StartDate,
+		goal.EndDate,
+		goal.CreatedAt,
+	).Scan(&id)
 	if err != nil {
 		dao.l.Printf("Error adding group goal: %v", err)
 		return nil, err
@@ -205,17 +221,29 @@ func (dao *GroupsDao) CreateGroupGoal(goal models.GroupGoal) (*int64, error) {
 
 func (dao *GroupsDao) UpdateGroupGoal(goal models.GroupGoal) error {
 	sql := `
-		UPDATE
-			group_goals
-		SET
-			name = $2,
-			target_value = $3,
-			start_date = $4,
-			end_date = $5,
-			created_at = $6
-		WHERE id = $1;
-	`
-	_, err := dao.db.Exec(sql, goal.ID, goal.Name, goal.TargetValue, goal.StartDate, goal.EndDate, goal.CreatedAt)
+        UPDATE
+            group_goals
+        SET
+            name = $2,
+            description = $3,
+            goal_type = $4,
+            target_value = $5,
+            target_summits = $6,
+            start_date = $7,
+            end_date = $8
+        WHERE id = $1;
+    `
+	_, err := dao.db.Exec(
+		sql,
+		goal.ID,
+		goal.Name,
+		goal.Description,
+		goal.GoalType,
+		goal.TargetValue,
+		pq.Array(goal.TargetSummits),
+		goal.StartDate,
+		goal.EndDate,
+	)
 	if err != nil {
 		dao.l.Printf("Error updating group goal: %v", err)
 		return err
@@ -328,40 +356,54 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 func (dao *GroupsDao) GetGroupGoals(groupID int64) ([]models.GroupGoal, error) {
 	groupGoals := []models.GroupGoal{}
 	sql := `
-		SELECT
-			id,
-			group_id,
-			name,
-			target_value,
-			start_date,
-			end_date,
-			created_at
-		FROM group_goals
-		WHERE group_id = $1;
-	`
+        SELECT
+            id,
+            group_id,
+            name,
+            description,
+            goal_type,
+            target_value,
+            target_summits,
+            start_date,
+            end_date,
+            created_at
+        FROM group_goals
+        WHERE group_id = $1;
+    `
 	rows, err := dao.db.Query(sql, groupID)
 	if err != nil {
 		dao.l.Printf("Error getting group goals: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		groupGoal := models.GroupGoal{}
+		var targetSummits pq.Int64Array
+
 		err = rows.Scan(
 			&groupGoal.ID,
 			&groupGoal.GroupID,
 			&groupGoal.Name,
+			&groupGoal.Description,
+			&groupGoal.GoalType,
 			&groupGoal.TargetValue,
+			&targetSummits,
 			&groupGoal.StartDate,
 			&groupGoal.EndDate,
 			&groupGoal.CreatedAt,
 		)
 		if err != nil {
-			dao.l.Printf("Error parsing query result: %f", err)
+			dao.l.Printf("Error parsing query result: %v", err)
 			return nil, err
 		}
+
+		// Convert pq.Int64Array to []int64
+		groupGoal.TargetSummits = []int64(targetSummits)
+
 		groupGoals = append(groupGoals, groupGoal)
 	}
+
 	err = rows.Err()
 	if err != nil {
 		dao.l.Printf("Error during iteration: %v", err)

@@ -3,19 +3,20 @@
     <div class="card">
       <button class="close-button" (click)="handleClose()">X</button>
 
-      <span>Create Group</span>
+      <span>Create New Group</span>
 
       <label>
-        Name:
+        Group Name:
         <input
           type="text"
           [value]="groupName()"
           (input)="groupName.set($any($event.target).value)"
+          placeholder="e.g., Weekend Warriors"
         />
       </label>
 
       <div class="button-container">
-        <button (click)="handleSubmit()">Create</button>
+        <button (click)="handleSubmit()">Create Group</button>
       </div>
     </div>
   </div>

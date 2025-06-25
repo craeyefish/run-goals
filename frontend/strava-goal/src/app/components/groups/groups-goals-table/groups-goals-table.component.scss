@@ -1,6 +1,39 @@
 table {
   font-size: 0.6rem;
 
+  tbody {
+    tr {
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: var(--background-shade-color-1);
+      }
+
+      &.selected {
+        background-color: var(--secondary-color-light);
+        border-left: 4px solid var(--secondary-color);
+      }
+
+      &.specific-summits.selected {
+        background-color: rgba(252, 76, 2, 0.1);
+        border-left: 4px solid #fc4c02;
+      }
+
+      // Special styling for expandable rows
+      &.expandable {
+        &:hover {
+          background-color: rgba(252, 76, 2, 0.05);
+        }
+
+        &.expanded {
+          background-color: rgba(252, 76, 2, 0.1);
+          border-left: 4px solid #fc4c02;
+        }
+      }
+    }
+  }
+
   .edit-cell {
     display: flex;
     justify-content: flex-end;
@@ -36,22 +69,89 @@ table {
     }
   }
 
+  .goal-name-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .goal-name {
+      flex: 1;
+    }
+
+    .expand-indicator {
+      color: var(--secondary-color);
+      font-size: 0.8rem;
+      transition: transform 0.2s ease;
+      user-select: none;
+
+      &.expanded {
+        transform: rotate(0deg);
+      }
+    }
+  }
+
+  .target-cell {
+    font-family: monospace;
+    font-weight: 600;
+  }
+
+  .goal-type {
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .summit-details-row {
+    background-color: var(--background-light-shade) !important;
+    cursor: default !important;
+
+    &:hover {
+      background-color: var(--background-light-shade) !important;
+    }
+
+    td {
+      padding: 15px;
+      border-top: 1px solid var(--background-shade-color-2);
+    }
+  }
+
   .col-goal {
-    width: 25%;
+    width: 22%;
+  }
+  .col-type {
+    width: 8%;
   }
   .col-progress {
-    width: 25%;
+    width: 20%;
   }
   .col-target {
     width: 15%;
   }
   .col-start {
-    width: 15%;
+    width: 12%;
   }
   .col-end {
-    width: 15%;
+    width: 12%;
   }
   .col-settings {
-    width: 5%;
+    width: 6%;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  table {
+    font-size: 0.5rem;
+
+    .col-type {
+      width: 10%;
+    }
+    .col-progress {
+      width: 25%;
+    }
+    .col-target {
+      width: 18%;
+    }
   }
 }
