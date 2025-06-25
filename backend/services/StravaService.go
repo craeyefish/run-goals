@@ -85,6 +85,8 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 				StartDate:        t,
 				MapPolyline:      stravaActivity.Map.SummaryPolyline,
 				PhotoURL:         photoURL,
+				CreatedAt:        time.Now(),
+				UpdatedAt:        time.Now(),
 			}
 			if err := service.activityDao.UpsertActivity(&activity); err != nil {
 				log.Printf("Error upserting activity %d: %v\n", stravaActivity.ID, err)
@@ -359,7 +361,6 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
 	s.l.Printf("Result for finding user: %+v\n", user)
 	if errors.Is(err, daos.ErrUserNotFound) {
-		// NoReturnErr: User not found, continue and create one.
 		user = &models.User{}
 		newUser = true
 	} else if err != nil {
@@ -367,22 +368,33 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 		return nil, err
 	}
 
-	// Create new user if not found, update if found
+	// Set user fields
 	user.StravaAthleteID = tokenRes.Athlete.Id
 	user.AccessToken = tokenRes.AccessToken
 	user.RefreshToken = tokenRes.RefreshToken
 	user.ExpiresAt = time.Unix(tokenRes.ExpiresAt, 0).UTC()
 
+	// Save user and get the ID
 	err = s.userDao.UpsertUser(user)
 	if err != nil {
 		s.l.Println("Failed to upsert user", err)
 		return nil, err
 	}
-	s.l.Printf("Upsert new user: AthleteID %d", tokenRes.Athlete.Id)
 
-	// 3. Pull activities
+	// ✅ IMPORTANT: Reload the user to get the proper ID after upsert
 	if newUser {
-		s.FetchAndStoreUserActivities(user)
+		user, err = s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
+		if err != nil {
+			s.l.Printf("Error reloading user after upsert: %v", err)
+			return nil, err
+		}
+		s.l.Printf("New user created with ID: %d", user.ID)
+
+		// Now fetch activities with the proper user ID
+		err = s.FetchAndStoreUserActivities(user)
+		if err != nil {
+			s.l.Printf("Error fetching activities for new user %d: %v", user.ID, err)
+		}
 	}
 
 	return user, nil

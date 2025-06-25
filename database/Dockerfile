@@ -7,9 +7,11 @@ COPY sql/db/*.sql       /docker-entrypoint-initdb.d/
 COPY sql/tables/*.sql   /docker-entrypoint-initdb.d/
 
 # ---------------- mock data (non-prod) -----------
-ARG ENVIRONMENT=development
-# copy into a temp dir first
-COPY sql/mockdata /tmp/mockdata
-RUN if [ "$ENVIRONMENT" != "production" ]; then \
-      cp /tmp/mockdata/*.sql /docker-entrypoint-initdb.d/ ; \
-    fi
+  # # Uncomment the following lines to enable mock data loading
+  
+# ARG ENVIRONMENT=development
+# # copy into a temp dir first
+# COPY sql/mockdata /tmp/mockdata
+# RUN if [ "$ENVIRONMENT" != "production" ]; then \
+#       cp /tmp/mockdata/*.sql /docker-entrypoint-initdb.d/ ; \
+#     fi

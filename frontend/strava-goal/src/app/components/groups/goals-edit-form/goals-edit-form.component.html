@@ -1,4 +1,10 @@
-<div class="card-container-overlay" (click)="handleClose()">
+<div
+  class="card-container-overlay"
+  (click)="onOverlayClick($event)"
+  (mousedown)="onMouseDown()"
+  (mousemove)="onMouseMove()"
+  (mouseup)="onMouseUp()"
+>
   <div class="card-container" (click)="$event.stopPropagation()">
     <div class="card">
       <button class="close-button" (click)="handleClose()">X</button>
@@ -11,22 +17,59 @@
           type="text"
           [value]="goalName()"
           (input)="goalName.set($any($event.target).value)"
+          placeholder="e.g., Summer Challenge 2024"
         />
       </label>
 
       <label>
+        Goal Type:
+        <select
+          [value]="goalType()"
+          (change)="onGoalTypeChange($any($event.target).value)"
+        >
+          <option *ngFor="let type of goalTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Description (Optional):
+        <textarea
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+          placeholder="Optional description for this goal"
+          rows="3"
+        ></textarea>
+      </label>
+
+      <label *ngIf="isTargetValueRequired()">
         Target Value:
         <input
-          type="text"
+          type="number"
           [value]="targetValue()"
-          (input)="targetValue.set($any($event.target).value)"
+          (input)="targetValue.set(+$any($event.target).value)"
+          [placeholder]="getTargetValuePlaceholder()"
+          min="1"
         />
       </label>
+
+      <!-- Peak Selector for specific summits goal -->
+      <div
+        *ngIf="goalType() === 'specific_summits'"
+        class="peak-selector-container"
+      >
+        <label>Select Target Summits:</label>
+        <goals-peak-selector
+          [selectedPeakIds]="targetSummits()"
+          (selectedPeakIdsChange)="onTargetSummitsChange($event)"
+        ></goals-peak-selector>
+      </div>
 
       <label>
         Start Date:
         <input
-          type="text"
+          type="date"
           [value]="startDate()"
           (input)="startDate.set($any($event.target).value)"
         />
@@ -35,14 +78,14 @@
       <label>
         End Date:
         <input
-          type="text"
+          type="date"
           [value]="endDate()"
           (input)="endDate.set($any($event.target).value)"
         />
       </label>
 
       <div class="button-row">
-        <button (click)="handleSubmit()">Update</button>
+        <button (click)="handleSubmit()">Update Goal</button>
       </div>
     </div>
   </div>

@@ -34,32 +34,28 @@
 </ng-template>
 
 <groups-create-form
-  *ngIf="createGroupFormSignal()?.show"
-  class="card-container"
-  [formSignal]="createGroupFormSignal"
-  [onSubmit]="onCreateGroupFormSubmit"
+  *ngIf="createGroupFormSignal().show"
+  (onSubmit)="onCreateGroupFormSubmit($event)"
+  (onCancel)="createGroupFormSignal.set({ show: false, data: null })"
 >
 </groups-create-form>
 
 <groups-edit-form
-  *ngIf="editGroupFormSignal()?.show"
-  class="card-container"
+  *ngIf="editGroupFormSignal().show"
   [formSignal]="editGroupFormSignal"
   [onSubmit]="onEditGroupFormSubmit"
 >
 </groups-edit-form>
 
 <groups-join-form
-  *ngIf="joinGroupFormSignal()?.show"
-  class="card-container"
+  *ngIf="joinGroupFormSignal().show"
   [formSignal]="joinGroupFormSignal"
   [onSubmit]="onJoinGroupFormSubmit"
 >
 </groups-join-form>
 
 <groups-leave-form
-  *ngIf="leaveGroupFormSignal()?.show"
-  class="card-container"
+  *ngIf="leaveGroupFormSignal().show"
   [formSignal]="leaveGroupFormSignal"
   [onSubmit]="onLeaveGroupFormSubmit"
 >

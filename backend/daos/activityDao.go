@@ -9,7 +9,7 @@ import (
 type ActivityDaoInterface interface {
 	UpsertActivity(activity *models.Activity) error
 	GetActivitiesByUserID(userID int64) ([]models.Activity, error)
-	GetActivityByID(id int64) ([]models.Activity, error)
+	GetActivityByID(id int64) (models.Activity, error)
 	GetActivities() ([]models.Activity, error)
 }
 
@@ -86,7 +86,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 
 func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, error) {
 	activities := []models.Activity{}
-	sql := `
+	sqlQuery := `
         SELECT
             id,
             strava_activity_id,
@@ -104,7 +104,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
         WHERE
             user_id = $1;
     `
-	rows, err := dao.db.Query(sql, userID)
+	rows, err := dao.db.Query(sqlQuery, userID)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
 		return nil, err
@@ -112,6 +112,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 	defer rows.Close()
 	for rows.Next() {
 		activity := models.Activity{}
+		var elevation sql.NullFloat64
+		var movingTime sql.NullFloat64
 		err = rows.Scan(
 			&activity.ID,
 			&activity.StravaActivityId,
@@ -120,8 +122,8 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 			&activity.Name,
 			&activity.Description,
 			&activity.Distance,
-			&activity.Elevation,
-			&activity.MovingTime,
+			&elevation,
+			&movingTime,
 			&activity.StartDate,
 			&activity.MapPolyline,
 			&activity.PhotoURL,
@@ -130,6 +132,21 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 			dao.l.Println("Error parsing query result", err)
 			return nil, err
 		}
+
+		// Set elevation value, defaulting to 0 if NULL
+		if elevation.Valid {
+			activity.Elevation = elevation.Float64
+		} else {
+			activity.Elevation = 0
+		}
+
+		// Set moving_time value, defaulting to 0 if NULL
+		if movingTime.Valid {
+			activity.MovingTime = movingTime.Float64
+		} else {
+			activity.MovingTime = 0
+		}
+
 		activities = append(activities, activity)
 	}
 	err = rows.Err()
@@ -143,7 +160,7 @@ func (dao *ActivityDao) GetActivitiesByUserID(userID int64) ([]models.Activity, 
 
 func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 	activity := models.Activity{}
-	sql := `
+	sqlQuery := `
         SELECT
             id,
             strava_activity_id,
@@ -161,7 +178,9 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
         WHERE
             id = $1;
     `
-	row := dao.db.QueryRow(sql, id)
+	row := dao.db.QueryRow(sqlQuery, id)
+	var elevation sql.NullFloat64
+	var movingTime sql.NullFloat64
 	err := row.Scan(
 		&activity.ID,
 		&activity.StravaActivityId,
@@ -170,8 +189,8 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 		&activity.Name,
 		&activity.Description,
 		&activity.Distance,
-		&activity.Elevation,
-		&activity.MovingTime,
+		&elevation,
+		&movingTime,
 		&activity.StartDate,
 		&activity.MapPolyline,
 		&activity.PhotoURL,
@@ -181,12 +200,26 @@ func (dao *ActivityDao) GetActivityByID(id int64) (models.Activity, error) {
 		return models.Activity{}, err
 	}
 
+	// Set elevation value, defaulting to 0 if NULL
+	if elevation.Valid {
+		activity.Elevation = elevation.Float64
+	} else {
+		activity.Elevation = 0
+	}
+
+	// Set moving_time value, defaulting to 0 if NULL
+	if movingTime.Valid {
+		activity.MovingTime = movingTime.Float64
+	} else {
+		activity.MovingTime = 0
+	}
+
 	return activity, nil
 }
 
 func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	activities := []models.Activity{}
-	sql := `
+	sqlQuery := `
         SELECT
             id,
             strava_activity_id,
@@ -202,7 +235,7 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
             photo_url
         FROM activity
     `
-	rows, err := dao.db.Query(sql)
+	rows, err := dao.db.Query(sqlQuery)
 	if err != nil {
 		dao.l.Println("Error querying activity table", err)
 		return nil, err
@@ -210,6 +243,8 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	defer rows.Close()
 	for rows.Next() {
 		activity := models.Activity{}
+		var elevation sql.NullFloat64
+		var movingTime sql.NullFloat64
 		err = rows.Scan(
 			&activity.ID,
 			&activity.StravaActivityId,
@@ -218,8 +253,8 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 			&activity.Name,
 			&activity.Description,
 			&activity.Distance,
-			&activity.Elevation,
-			&activity.MovingTime,
+			&elevation,
+			&movingTime,
 			&activity.StartDate,
 			&activity.MapPolyline,
 			&activity.PhotoURL,
@@ -228,6 +263,21 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 			dao.l.Println("Error parsing query result", err)
 			return nil, err
 		}
+
+		// Set elevation value, defaulting to 0 if NULL
+		if elevation.Valid {
+			activity.Elevation = elevation.Float64
+		} else {
+			activity.Elevation = 0
+		}
+
+		// Set moving_time value, defaulting to 0 if NULL
+		if movingTime.Valid {
+			activity.MovingTime = movingTime.Float64
+		} else {
+			activity.MovingTime = 0
+		}
+
 		activities = append(activities, activity)
 	}
 	err = rows.Err()

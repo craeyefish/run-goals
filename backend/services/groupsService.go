@@ -136,15 +136,40 @@ func (s *GroupsService) DeleteGroupMember(userID int64, groupID int64) error {
 }
 
 func (s *GroupsService) CreateGroupGoal(request dto.CreateGroupGoalRequest) (*int64, error) {
-	goal := models.GroupGoal{
-		ID:          0,
-		GroupID:     request.GroupID,
-		Name:        request.Name,
-		TargetValue: request.TargetValue,
-		StartDate:   request.StartDate,
-		EndDate:     request.EndDate,
-		CreatedAt:   time.Now(),
+	// Validate goal type
+	validGoalTypes := map[string]bool{
+		"distance":         true,
+		"elevation":        true,
+		"summit_count":     true,
+		"specific_summits": true,
 	}
+
+	if !validGoalTypes[request.GoalType] {
+		return nil, fmt.Errorf("invalid goal type: %s", request.GoalType)
+	}
+
+	// Validate specific summits goal
+	if request.GoalType == "specific_summits" {
+		if len(request.TargetSummits) == 0 {
+			return nil, fmt.Errorf("target_summits must be provided for specific_summits goal type")
+		}
+		// Set target_value to the number of summits for consistency
+		request.TargetValue = float64(len(request.TargetSummits))
+	}
+
+	goal := models.GroupGoal{
+		ID:            0,
+		GroupID:       request.GroupID,
+		Name:          request.Name,
+		Description:   request.Description,
+		GoalType:      request.GoalType,
+		TargetValue:   request.TargetValue,
+		TargetSummits: request.TargetSummits,
+		StartDate:     request.StartDate,
+		EndDate:       request.EndDate,
+		CreatedAt:     time.Now(),
+	}
+
 	goalID, err := s.groupsDao.CreateGroupGoal(goal)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.CreateGroupGoal: %v", err)
@@ -154,15 +179,39 @@ func (s *GroupsService) CreateGroupGoal(request dto.CreateGroupGoalRequest) (*in
 }
 
 func (s *GroupsService) UpdateGroupGoal(request dto.UpdateGroupGoalRequest) error {
-	goal := models.GroupGoal{
-		ID:          request.ID,
-		GroupID:     request.GroupID,
-		Name:        request.Name,
-		TargetValue: request.TargetValue,
-		StartDate:   request.StartDate,
-		EndDate:     request.EndDate,
-		CreatedAt:   time.Now(),
+	// Validate goal type
+	validGoalTypes := map[string]bool{
+		"distance":         true,
+		"elevation":        true,
+		"summit_count":     true,
+		"specific_summits": true,
 	}
+
+	if !validGoalTypes[request.GoalType] {
+		return fmt.Errorf("invalid goal type: %s", request.GoalType)
+	}
+
+	// Validate specific summits goal
+	if request.GoalType == "specific_summits" {
+		if len(request.TargetSummits) == 0 {
+			return fmt.Errorf("target_summits must be provided for specific_summits goal type")
+		}
+		// Set target_value to the number of summits for consistency
+		request.TargetValue = float64(len(request.TargetSummits))
+	}
+
+	goal := models.GroupGoal{
+		ID:            request.ID,
+		GroupID:       request.GroupID,
+		Name:          request.Name,
+		Description:   request.Description,
+		GoalType:      request.GoalType,
+		TargetValue:   request.TargetValue,
+		TargetSummits: request.TargetSummits,
+		StartDate:     request.StartDate,
+		EndDate:       request.EndDate,
+	}
+
 	err := s.groupsDao.UpdateGroupGoal(goal)
 	if err != nil {
 		s.l.Printf("Error calling groupsDao.UpdateGroupGoal: %v", err)

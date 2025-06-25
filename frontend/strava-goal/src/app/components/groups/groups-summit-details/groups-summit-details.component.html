@@ -1,0 +1,36 @@
+<div class="summit-details">
+  <div class="summit-header">
+    <h4>Target Summits Progress</h4>
+    <span class="completion-badge">
+      {{ getCompletionPercentage() }}% Complete
+    </span>
+  </div>
+
+  <div *ngIf="loading()" class="loading">Loading summit details...</div>
+
+  <div *ngIf="!loading()" class="summit-list">
+    <div
+      *ngFor="let status of summitStatuses()"
+      class="summit-item"
+      [class.completed]="status.isCompleted"
+    >
+      <div class="summit-info">
+        <span class="summit-name">{{ status.peak.name }}</span>
+        <span class="summit-elevation"
+          >({{ status.peak.elevation_meters }}m)</span
+        >
+      </div>
+      <div class="summit-status">
+        <span class="status-icon">
+          {{ status.isCompleted ? "✅" : "⭕" }}
+        </span>
+        <span class="status-text">
+          {{ status.isCompleted ? "Completed" : "Pending" }}
+        </span>
+        <span *ngIf="status.completedDate" class="completion-date">
+          {{ status.completedDate }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

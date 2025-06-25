@@ -52,7 +52,12 @@ func (s *SummitService) CandidatePeaks(route string) ([]models.Peak, error) {
 	// After decoding your route
 	coords, _, err := polyline.DecodeCoords([]byte(route))
 	if err != nil {
-		log.Fatalf("Failed to decode polyline: %v", err)
+		s.l.Printf("Failed to decode polyline: %v", err)
+		return nil, fmt.Errorf("invalid polyline data: %w", err)
+	}
+
+	if len(coords) == 0 {
+		return nil, errors.New("polyline decoded to empty coordinates")
 	}
 
 	// Initialize min/max to first point

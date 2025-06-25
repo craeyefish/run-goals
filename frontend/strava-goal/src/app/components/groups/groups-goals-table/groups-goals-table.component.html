@@ -1,6 +1,7 @@
 <table>
   <colgroup>
     <col class="col-goal" />
+    <col class="col-type" />
     <col class="col-progress" />
     <col class="col-target" />
     <col class="col-start" />
@@ -10,42 +11,77 @@
   <thead>
     <tr>
       <th>Goal</th>
+      <th>Type</th>
       <th>Progress</th>
-      <th>Target Value</th>
+      <th>Target</th>
       <th>Start Date</th>
       <th>End Date</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
-    <ng-container *ngIf="groupService.selectedGoal() as selectedGoal">
+    <ng-container *ngFor="let goal of groupService.goals()">
       <tr
-        *ngFor="let goal of groupService.goals()"
         (click)="selectGoal(goal)"
-        [class.selected]="goal === selectedGoal"
+        [class.selected]="goal === groupService.selectedGoal()"
+        [class.specific-summits]="goal.goal_type === 'specific_summits'"
+        [class.expandable]="hasSpecificSummits(goal)"
+        [class.expanded]="isSummitDetailsExpanded(goal)"
       >
-        <td>{{ goal.name }}</td>
+        <td>
+          <div class="goal-name-cell">
+            <span class="goal-name">{{ goal.name }}</span>
+            <!-- Visual indicator for expandable goals -->
+            <span
+              *ngIf="hasSpecificSummits(goal)"
+              class="expand-indicator"
+              [class.expanded]="isSummitDetailsExpanded(goal)"
+            >
+              {{ isSummitDetailsExpanded(goal) ? "▼" : "▶" }}
+            </span>
+          </div>
+        </td>
+        <td>
+          <span class="goal-type">
+            {{ getGoalTypeIcon(goal.goal_type) }}
+          </span>
+        </td>
         <td>
           <div class="progress-cell">
             <groups-progress-bar [goal]="goal"></groups-progress-bar>
           </div>
         </td>
-        <td>{{ goal.target_value }}</td>
-        <td>{{ goal.start_date }}</td>
-        <td>{{ goal.end_date }}</td>
+        <td class="target-cell">{{ formatTargetValue(goal) }}</td>
+        <td>{{ formatDate(goal.start_date) }}</td>
+        <td>{{ formatDate(goal.end_date) }}</td>
         <td>
-          <div class="edit-cell">
+          <div class="actions-cell">
             <button
               class="edit-btn"
               (click)="onEditGoalClick?.(goal); $event.stopPropagation()"
+              title="Edit Goal"
             >
               <img
                 src="assets/icons/settings.svg"
                 alt="Edit"
-                class="edit-icon"
+                class="action-icon"
               />
             </button>
+            <button
+              class="delete-btn"
+              (click)="onDeleteGoalClick?.(goal); $event.stopPropagation()"
+              title="Delete Goal"
+            >
+              🗑️
+            </button>
           </div>
+        </td>
+      </tr>
+
+      <!-- Summit details row (expanded view for specific summits) -->
+      <tr *ngIf="isSummitDetailsExpanded(goal)" class="summit-details-row">
+        <td colspan="7">
+          <groups-summit-details [goal]="goal"></groups-summit-details>
         </td>
       </tr>
     </ng-container>

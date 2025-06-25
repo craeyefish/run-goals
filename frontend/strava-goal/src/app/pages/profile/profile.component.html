@@ -1,1 +1,62 @@
-<p>PROFILE</p>
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>Profile</h1>
+  </div>
+
+  <div *ngIf="loading" class="loading">Loading profile...</div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="profile && !loading" class="profile-content">
+    <!-- Basic Info Card -->
+    <div class="profile-card">
+      <h2>Account Information</h2>
+
+      <div class="info-row">
+        <span class="label">Strava Athlete ID:</span>
+        <span class="value">{{ profile.strava_athelete_id }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="label">Member since:</span>
+        <span class="value">{{
+          profile.created_at | date : "MMMM dd, yyyy"
+        }}</span>
+      </div>
+    </div>
+
+    <!-- Year Summary Card -->
+    <div class="profile-card">
+      <h2>2025 Summary</h2>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">{{ totalDistance }}</div>
+          <div class="stat-label">Total Distance (km)</div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-value">{{ totalSummits }}</div>
+          <div class="stat-label">Peak Summits</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Status Card -->
+    <div class="profile-card">
+      <h2>Activity Status</h2>
+
+      <div class="info-row">
+        <span class="label">Last activity sync:</span>
+        <span class="value">
+          {{ profile.last_updated | date : "MMMM dd, yyyy" }}
+          <span class="days-ago"
+            >({{ getDaysSinceLastUpdate() }} days ago)</span
+          >
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

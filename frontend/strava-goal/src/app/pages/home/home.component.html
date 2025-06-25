@@ -1,11 +1,126 @@
 <div class="home-container">
-  <div class="home-inner-container">
-    <app-goal-progress></app-goal-progress>
+  <div class="home-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Your {{ currentYear }} Running Overview</p>
   </div>
-  <div class="home-inner-container">
-    <app-activities-list></app-activities-list>
+
+  <div *ngIf="loading" class="loading">Loading dashboard...</div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
   </div>
-  <div class="home-inner-container">
-    <app-activity-map></app-activity-map>
+
+  <div *ngIf="!loading" class="dashboard-content">
+    <!-- Progress Chart -->
+    <div class="dashboard-card chart-card">
+      <h2>📈 Distance Progress</h2>
+      <div class="chart-container">
+        <canvas #progressChart></canvas>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-card stats-card">
+      <h2>📊 Year Stats</h2>
+      <div class="quick-stats-grid">
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalDistance }}</div>
+          <div class="stat-label">Total Distance (km)</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalElevation }}</div>
+          <div class="stat-label">Total Elevation (m)</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalActivities }}</div>
+          <div class="stat-label">Total Runs</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">{{ totalSummits }}</div>
+          <div class="stat-label">Peak Summits</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals Progress -->
+    <div class="dashboard-card goals-card">
+      <h2>🎯 Goals Progress</h2>
+
+      <!-- Personal Goals -->
+      <div class="goals-section">
+        <h3 class="goals-section-title">Personal Goals</h3>
+        <div class="goals-list">
+          <div class="goal-item">
+            <div class="goal-header">
+              <span class="goal-name">Annual Distance Goal</span>
+              <span class="goal-percentage">{{ distanceGoalPercentage }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width.%]="distanceGoalPercentage"
+              ></div>
+            </div>
+            <div class="goal-details">
+              {{ totalDistance }}km / {{ distanceGoal }}km
+            </div>
+          </div>
+
+          <div class="goal-item">
+            <div class="goal-header">
+              <span class="goal-name">Peak Summit Goal</span>
+              <span class="goal-percentage">{{ summitGoalPercentage }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width.%]="summitGoalPercentage"
+              ></div>
+            </div>
+            <div class="goal-details">
+              {{ totalSummits }} / {{ summitGoal }} peaks
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group Goals -->
+      <div class="goals-section" *ngFor="let groupGoal of groupGoals">
+        <h3 class="goals-section-title">{{ groupGoal.groupName }}</h3>
+        <div class="goals-list">
+          <div class="goal-item" *ngFor="let goal of groupGoal.goals">
+            <div class="goal-header">
+              <span class="goal-name">{{ goal.name }}</span>
+              <span class="goal-percentage"
+                >{{ goal.progressPercentage | number : "1.0-1" }}%</span
+              >
+            </div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                [style.width.%]="goal.progressPercentage"
+              ></div>
+            </div>
+            <div class="goal-details">
+              Target: {{ goal.target_value }}
+              <span *ngIf="goal.end_date">
+                • Due: {{ goal.end_date | date : "MMM dd, yyyy" }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No group goals message -->
+      <div class="goals-section" *ngIf="groupGoals.length === 0">
+        <h3 class="goals-section-title">Group Goals</h3>
+        <div class="no-group-goals">
+          <p>You haven't joined any groups yet!</p>
+          <p class="small-text">
+            Join a group to participate in shared goals and challenges.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

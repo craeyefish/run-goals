@@ -1,0 +1,97 @@
+.summit-details {
+  padding: 15px;
+  background: var(--background-primary);
+  border-radius: 8px;
+  margin: 5px 0;
+
+  .summit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--background-shade-color-2);
+
+    h4 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .completion-badge {
+      background: var(--secondary-color);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+
+  .loading {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 20px;
+  }
+
+  .summit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .summit-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--background-light-shade);
+    border-radius: 6px;
+    border: 1px solid var(--background-shade-color-2);
+    transition: all 0.2s;
+
+    &.completed {
+      background: rgba(40, 167, 69, 0.1);
+      border-color: rgba(40, 167, 69, 0.3);
+    }
+
+    .summit-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .summit-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 12px;
+      }
+
+      .summit-elevation {
+        color: var(--text-secondary);
+        font-size: 10px;
+      }
+    }
+
+    .summit-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .status-icon {
+        font-size: 14px;
+      }
+
+      .status-text {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      .completion-date {
+        font-size: 10px;
+        color: var(--text-secondary);
+      }
+    }
+  }
+}

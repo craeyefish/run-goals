@@ -1,12 +1,7 @@
-export interface SummitedActivity {
-  user_id: number;
-  user_name: string;
-  activity_id: number;
-  summited_at: string; // or Date if you parse it
-}
+import { Activity } from '../services/activity.service';
 
 export interface PeakSummaries {
   peak_id: number;
   peak_name: string;
-  summits: SummitedActivity[];
+  activities: Activity[];
 }

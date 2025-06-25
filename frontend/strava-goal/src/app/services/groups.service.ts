@@ -7,7 +7,6 @@ import { DatePipe } from '@angular/common';
   providedIn: 'root',
 })
 export class GroupService {
-
   groups = signal<Group[]>([]);
   groupUpdate = signal<number | null>(null);
   selectedGroup = signal<Group | null>(null);
@@ -43,12 +42,14 @@ export class GroupService {
 
   getGroupGoals(groupID: number): Observable<GetGroupGoalsResponse> {
     const params = new HttpParams().set('groupID', groupID);
-    return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params })
+    return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params });
   }
 
   getGroupMembers(groupID: number): Observable<GetGroupMembersResponse> {
     const params = new HttpParams().set('groupID', groupID);
-    return this.http.get<GetGroupMembersResponse>('/api/group-members', { params })
+    return this.http.get<GetGroupMembersResponse>('/api/group-members', {
+      params,
+    });
   }
 
   createGroupMember(request: CreateGroupMemberRequest): Observable<any> {
@@ -61,7 +62,11 @@ export class GroupService {
     return this.http.delete<any>('/api/group-member', { params });
   }
 
-  getGroupMembersGoalContribution(groupID: number, startDate: string, endDate: string): Observable<GetGroupMembersGoalContributionResponse> {
+  getGroupMembersGoalContribution(
+    groupID: number,
+    startDate: string,
+    endDate: string
+  ): Observable<GetGroupMembersGoalContributionResponse> {
     const formattedStartDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
     const formattedEndDate = this.datePipe.transform(endDate, 'yyyy-MM-dd');
     if (formattedStartDate && formattedEndDate) {
@@ -69,9 +74,12 @@ export class GroupService {
         .set('groupID', groupID)
         .set('startDate', formattedStartDate)
         .set('endDate', formattedEndDate);
-      return this.http.get<GetGroupMembersGoalContributionResponse>('/api/group-members-contribution', { params })
+      return this.http.get<GetGroupMembersGoalContributionResponse>(
+        '/api/group-members-contribution',
+        { params }
+      );
     } else {
-      console.log("Failed to format date");
+      console.log('Failed to format date');
       throw new Error('Failed to format date');
     }
   }
@@ -82,47 +90,72 @@ export class GroupService {
         this.groups.set(response.groups);
       },
       error: (err) => {
-        console.error('Failed to load groups', err)
-      }
-    })
+        console.error('Failed to load groups', err);
+      },
+    });
   }
 
   loadGoals(groupID: number) {
     this.getGroupGoals(groupID).subscribe({
       next: (response) => {
+        // Don't convert dates to Date objects - keep them as strings for consistency
         const goals = response.goals.map((goal) => ({
           ...goal,
-          start_date: this.datePipe.transform(goal.start_date, 'yyyy-MM-dd'),
-          end_date: this.datePipe.transform(goal.end_date, 'yyyy-MM-dd'),
-          created_at: this.datePipe.transform(goal.created_at, 'yyyy-MM-dd'),
-        }))
+          // Keep dates as strings since the rest of the app expects strings
+          start_date: goal.start_date,
+          end_date: goal.end_date,
+          created_at: goal.created_at,
+        }));
+
         this.goals.set(goals);
-        const createdGoal = this.goals().find(goal => goal.id === this.goalCreated());
-        if (createdGoal) {
-          this.selectedGoal.set(createdGoal);
-          this.resetGoalCreated();
-        } else if (response.goals.length > 0) {
-          this.selectedGoal.set(response.goals[0]);
-        } else {
-          this.selectedGoal.set(null);
+
+        // Find and maintain the currently selected goal after update
+        const currentSelectedGoal = this.selectedGoal();
+        if (currentSelectedGoal) {
+          const updatedSelectedGoal = goals.find(
+            (goal) => goal.id === currentSelectedGoal.id
+          );
+          if (updatedSelectedGoal) {
+            this.selectedGoal.set(updatedSelectedGoal);
+          }
         }
+
+        // Handle goal creation selection
+        const createdGoalId = this.goalCreated();
+        if (createdGoalId) {
+          const createdGoal = goals.find((goal) => goal.id === createdGoalId);
+          if (createdGoal) {
+            this.selectedGoal.set(createdGoal);
+            this.resetGoalCreated();
+          }
+        } else if (response.goals.length > 0 && !this.selectedGoal()) {
+          // Only set first goal as selected if no goal is currently selected
+          this.selectedGoal.set(goals[0]);
+        }
+
         this.notifySelectedGoalChange();
       },
       error: (err) => {
-        console.error('Failed to load group goals', err)
-      }
-    })
+        console.error('Failed to load group goals', err);
+      },
+    });
   }
 
-  loadMembersGoalContribution(groupID: number, startDate: string, endDate: string) {
-    this.getGroupMembersGoalContribution(groupID, startDate, endDate).subscribe({
-      next: (response) => {
-        this.membersContribution.set(response.members);
-      },
-      error: (err) => {
-        console.error('Failed to load members goal contribution', err)
+  loadMembersGoalContribution(
+    groupID: number,
+    startDate: string,
+    endDate: string
+  ) {
+    this.getGroupMembersGoalContribution(groupID, startDate, endDate).subscribe(
+      {
+        next: (response) => {
+          this.membersContribution.set(response.members);
+        },
+        error: (err) => {
+          console.error('Failed to load members goal contribution', err);
+        },
       }
-    })
+    );
   }
 
   notifyGoalCreated(goalID: number) {
@@ -147,10 +180,41 @@ export class GroupService {
   }
 
   notifyMemberAddedOrRemoved(groupMemberID: number) {
-    this.memberAddedOrRemoved.set(true)
+    this.memberAddedOrRemoved.set(true);
   }
   resetMemberAddedOrRemoved() {
-    this.memberAddedOrRemoved.set(false)
+    this.memberAddedOrRemoved.set(false);
+  }
+
+  setSelectedGoal(goal: Goal | null): void {
+    this.selectedGoal.set(goal);
+  }
+
+  refreshGoals(groupID: number) {
+    this.loadGoals(groupID);
+  }
+
+  notifyGoalUpdated(goalID: number) {
+    const selectedGroup = this.selectedGroup();
+    if (selectedGroup) {
+      this.loadGoals(selectedGroup.id);
+    }
+  }
+
+  deleteGoal(goalId: number): Observable<any> {
+    const params = new HttpParams().set('goalID', goalId);
+    return this.http.delete<any>('/api/group-goal', { params });
+  }
+
+  notifyGoalDeleted(goalId: number) {
+    const selectedGroup = this.selectedGroup();
+    if (selectedGroup) {
+      // If the deleted goal was selected, clear the selection
+      if (this.selectedGoal()?.id === goalId) {
+        this.selectedGoal.set(null);
+      }
+      this.loadGoals(selectedGroup.id);
+    }
   }
 }
 
@@ -166,10 +230,14 @@ export interface Goal {
   id: number;
   group_id: number;
   name: string;
-  target_value: string;
-  start_date: string | null;
-  end_date: string | null;
-  created_at: string | null;
+  description?: string;
+  goal_type: 'distance' | 'elevation' | 'summit_count' | 'specific_summits';
+  target_value: number; // For distance/elevation/summit count
+  target_summits?: number[]; // Array of peak IDs for specific summits goal
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Member {
@@ -212,9 +280,12 @@ export interface GetGroupsResponse {
 export interface CreateGoalRequest {
   group_id: number;
   name: string;
-  target_value: string;
-  start_date: Date;
-  end_date: Date;
+  description?: string;
+  goal_type: 'distance' | 'elevation' | 'summit_count' | 'specific_summits';
+  target_value: number;
+  target_summits?: number[];
+  start_date: string;
+  end_date: string;
 }
 
 export interface CreateGoalResponse {
@@ -224,11 +295,13 @@ export interface CreateGoalResponse {
 export interface UpdateGoalRequest {
   id: number;
   group_id: number;
-  name: string;
-  target_value: string;
-  start_date: Date;
-  end_date: Date;
-  created_at: Date;
+  name?: string;
+  description?: string;
+  goal_type?: 'distance' | 'elevation' | 'summit_count' | 'specific_summits';
+  target_value?: number;
+  target_summits?: number[];
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface GetGroupGoalsResponse {

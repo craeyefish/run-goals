@@ -1,28 +1,84 @@
-<table>
-  <thead>
-    <tr>
-      <th>Peak</th>
-      <th>User</th>
-      <th>Activity</th>
-      <th>Summited At</th>
-    </tr>
-  </thead>
-  <tbody>
-    <ng-container *ngFor="let peak of peakSummaries">
-      <tr *ngFor="let summit of peak.summits; let i = index">
-        <td
-          *ngIf="i === 0"
-          [attr.rowspan]="peak.summits.length"
-          class="align-middle"
-        >
-          {{ peak.peak_name }}
-        </td>
-        <td class="align-middle">{{ summit.user_name }}</td>
-        <td class="align-middle">{{ summit.activity_id }}</td>
-        <td class="align-middle">
-          {{ summit.summited_at | date : "medium" }}
-        </td>
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        <!-- Column for expand/collapse button -->
+        <th scope="col">Peak</th>
+        <th scope="col">Summits</th>
+        <th scope="col">Last Summit</th>
       </tr>
-    </ng-container>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let peak of peakSummaries">
+        <!-- Main peak row -->
+        <tr class="peak-row" (click)="toggleExpanded(peak.peak_id)">
+          <td class="expand-cell">
+            <span
+              [class]="
+                isExpanded(peak.peak_id)
+                  ? 'expand-icon expanded'
+                  : 'expand-icon'
+              "
+            >
+              ▶
+            </span>
+          </td>
+          <td class="peak-name">{{ peak.peak_name }}</td>
+          <td>{{ peak.activities.length }}</td>
+          <td>
+            {{
+              peak.activities.length > 0
+                ? (peak.activities[0].start_date | date : "yyyy-MM-dd")
+                : "-"
+            }}
+          </td>
+        </tr>
+
+        <!-- Activity sub-rows (shown when expanded) -->
+        <ng-container *ngIf="isExpanded(peak.peak_id)">
+          <!-- Header row for activities -->
+          <tr class="activity-header">
+            <td></td>
+            <td colspan="3">
+              <table class="activities-table">
+                <thead>
+                  <tr>
+                    <th>Strava ID</th>
+                    <th>Name</th>
+                    <th>Time</th>
+                    <th>Distance</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let activity of peak.activities"
+                    class="activity-row"
+                  >
+                    <td>
+                      <a
+                        [href]="
+                          'https://www.strava.com/activities/' +
+                          activity.strava_activity_id
+                        "
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        {{ activity.strava_activity_id }}
+                      </a>
+                    </td>
+                    <td>{{ activity.name }}</td>
+                    <td>{{ formatMovingTime(activity.moving_time) }}</td>
+                    <td>{{ formatDistance(activity.distance) }}</td>
+                    <td>{{ activity.start_date | date : "yyyy-MM-dd" }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </ng-container>
+      </ng-container>
+    </tbody>
+  </table>
+</div>

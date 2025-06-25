@@ -1,0 +1,47 @@
+<div class="peak-selector">
+  <div class="selected-peaks" *ngIf="selectedPeaks().length > 0">
+    <h4>Selected Peaks ({{ selectedPeaks().length }})</h4>
+    <div class="selected-peaks-list">
+      <div class="selected-peak" *ngFor="let peak of selectedPeaks()">
+        <span class="peak-name">{{ peak.name }}</span>
+        <span class="peak-elevation">({{ peak.elevation_meters }}m)</span>
+        <button class="remove-btn" (click)="removePeak(peak.id)">×</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="peak-search">
+    <h4>Search & Select Peaks</h4>
+    <input
+      type="text"
+      placeholder="Search peaks by name or elevation..."
+      [value]="searchTerm()"
+      (input)="searchTerm.set($any($event.target).value); onSearchChange()"
+      class="search-input"
+    />
+
+    <div class="peaks-list" *ngIf="!isLoading()">
+      <div
+        class="peak-item"
+        *ngFor="let peak of filteredPeaks()"
+        [class.selected]="isPeakSelected(peak.id)"
+        (click)="togglePeakSelection(peak)"
+      >
+        <div class="peak-info">
+          <span class="peak-name">{{ peak.name }}</span>
+          <span class="peak-elevation">{{ peak.elevation_meters }}m</span>
+          <span class="peak-status" *ngIf="peak.is_summited">✅ Summited</span>
+        </div>
+        <div class="peak-checkbox">
+          <input
+            type="checkbox"
+            [checked]="isPeakSelected(peak.id)"
+            (click)="$event.stopPropagation()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="isLoading()">Loading peaks...</div>
+  </div>
+</div>
