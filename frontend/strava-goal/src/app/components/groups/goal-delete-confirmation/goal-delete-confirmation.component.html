@@ -1,0 +1,35 @@
+<div
+  class="confirmation-overlay"
+  (click)="onOverlayClick($event)"
+  (mousedown)="onMouseDown()"
+  (mousemove)="onMouseMove()"
+  (mouseup)="onMouseUp()"
+>
+  <div class="confirmation-container" (click)="$event.stopPropagation()">
+    <div class="confirmation-card">
+      <div class="icon-container">
+        <span class="warning-icon">⚠️</span>
+      </div>
+
+      <h2>Delete Goal</h2>
+
+      <div class="goal-info">
+        <h3>{{ goal.name }}</h3>
+        <div class="goal-type">{{ getGoalTypeLabel() }}</div>
+        <div class="goal-target">Target: {{ getTargetDescription() }}</div>
+      </div>
+
+      <p class="warning-text">
+        Are you sure you want to delete this goal? This action cannot be undone
+        and all progress data will be permanently removed.
+      </p>
+
+      <div class="button-row">
+        <button class="cancel-btn" (click)="handleCancel()">Cancel</button>
+        <button class="delete-btn" (click)="handleConfirm()">
+          Delete Goal
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

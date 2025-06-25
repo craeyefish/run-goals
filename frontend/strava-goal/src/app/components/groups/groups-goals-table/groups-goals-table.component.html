@@ -55,16 +55,24 @@
         <td>{{ formatDate(goal.start_date) }}</td>
         <td>{{ formatDate(goal.end_date) }}</td>
         <td>
-          <div class="edit-cell">
+          <div class="actions-cell">
             <button
               class="edit-btn"
               (click)="onEditGoalClick?.(goal); $event.stopPropagation()"
+              title="Edit Goal"
             >
               <img
                 src="assets/icons/settings.svg"
                 alt="Edit"
-                class="edit-icon"
+                class="action-icon"
               />
+            </button>
+            <button
+              class="delete-btn"
+              (click)="onDeleteGoalClick?.(goal); $event.stopPropagation()"
+              title="Delete Goal"
+            >
+              🗑️
             </button>
           </div>
         </td>

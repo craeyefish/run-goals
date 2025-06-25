@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { GoalProgressComponent } from 'src/app/components/goal-progress/goal-progress.component';
+import { GoalDeleteConfirmationComponent } from 'src/app/components/groups/goal-delete-confirmation/goal-delete-confirmation.component';
 import { GoalsCreateFormComponent } from 'src/app/components/groups/goals-create-form/goals-create-form.component';
 import { GoalsEditFormComponent } from 'src/app/components/groups/goals-edit-form/goals-edit-form.component';
 import { GroupsGoalsTableComponent } from 'src/app/components/groups/groups-goals-table/groups-goals-table.component';
@@ -21,6 +22,7 @@ import {
     CommonModule,
     GoalsCreateFormComponent,
     GoalsEditFormComponent,
+    GoalDeleteConfirmationComponent,
     GroupsGoalsTableComponent,
     GroupsMembersTableComponent,
   ],
@@ -38,11 +40,18 @@ export class GroupsDetailsPageComponent implements OnInit {
     signal({ show: false, data: null });
   editGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
     signal({ show: false, data: null });
+  deleteConfirmationSignal: WritableSignal<{
+    show: boolean;
+    data: Goal | null;
+  }> = signal({ show: false, data: null });
 
   openCreateGoalForm = () =>
     this.createGoalFormSignal.set({ show: true, data: null });
   openEditGoalForm = (goal: Goal) => {
     this.editGoalFormSignal.set({ show: true, data: goal });
+  };
+  openDeleteConfirmation = (goal: Goal) => {
+    this.deleteConfirmationSignal.set({ show: true, data: goal });
   };
 
   selectedGroup = this.groupService.selectedGroup;
@@ -122,5 +131,32 @@ export class GroupsDetailsPageComponent implements OnInit {
         console.error('Error updating goal:', err);
       },
     });
+  };
+
+  onDeleteGoalConfirm = () => {
+    const goalToDelete = this.deleteConfirmationSignal().data;
+    const selectedGroup = this.selectedGroup();
+
+    if (!goalToDelete || !selectedGroup) {
+      console.error('No goal or group selected for deletion');
+      return;
+    }
+
+    this.groupService.deleteGoal(goalToDelete.id).subscribe({
+      next: () => {
+        console.log('Goal deleted:', goalToDelete.id);
+        this.deleteConfirmationSignal.set({ show: false, data: null });
+        this.groupService.notifyGoalDeleted(goalToDelete.id);
+      },
+      error: (err) => {
+        console.error('Error deleting goal:', err);
+        // You could show an error message here
+        alert('Failed to delete goal. Please try again.');
+      },
+    });
+  };
+
+  onDeleteGoalCancel = () => {
+    this.deleteConfirmationSignal.set({ show: false, data: null });
   };
 }

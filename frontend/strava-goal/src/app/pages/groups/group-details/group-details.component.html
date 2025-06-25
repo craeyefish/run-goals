@@ -18,6 +18,7 @@
     <div class="goals-table-container">
       <groups-goals-table
         [onEditGoalClick]="openEditGoalForm"
+        [onDeleteGoalClick]="openDeleteConfirmation"
       ></groups-goals-table>
     </div>
   </div>
@@ -46,3 +47,11 @@
   (onCancel)="editGoalFormSignal.set({ show: false, data: null })"
 >
 </goals-edit-form>
+
+<goal-delete-confirmation
+  *ngIf="deleteConfirmationSignal().show && deleteConfirmationSignal().data"
+  [goal]="deleteConfirmationSignal().data!"
+  (onConfirm)="onDeleteGoalConfirm()"
+  (onCancel)="onDeleteGoalCancel()"
+>
+</goal-delete-confirmation>

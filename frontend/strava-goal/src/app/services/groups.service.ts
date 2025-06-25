@@ -203,6 +203,22 @@ export class GroupService {
       this.loadGoals(selectedGroup.id);
     }
   }
+
+  deleteGoal(goalId: number): Observable<any> {
+    const params = new HttpParams().set('goalID', goalId);
+    return this.http.delete<any>('/api/group-goal', { params });
+  }
+
+  notifyGoalDeleted(goalId: number) {
+    const selectedGroup = this.selectedGroup();
+    if (selectedGroup) {
+      // If the deleted goal was selected, clear the selection
+      if (this.selectedGoal()?.id === goalId) {
+        this.selectedGoal.set(null);
+      }
+      this.loadGoals(selectedGroup.id);
+    }
+  }
 }
 
 export interface Group {

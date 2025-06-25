@@ -18,6 +18,7 @@ import { GroupsSummitDetailsComponent } from '../groups-summit-details/groups-su
 })
 export class GroupsGoalsTableComponent {
   @Input() onEditGoalClick?: (goal: Goal) => void;
+  @Input() onDeleteGoalClick?: (goal: Goal) => void;
 
   constructor(
     public groupService: GroupService,

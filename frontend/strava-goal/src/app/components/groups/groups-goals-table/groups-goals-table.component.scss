@@ -137,6 +137,61 @@ table {
   .col-settings {
     width: 6%;
   }
+
+  .actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    height: 100%;
+
+    .edit-btn,
+    .delete-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: transparent;
+      cursor: pointer;
+      border: none;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: var(--background-shade-color-1);
+      }
+    }
+
+    .edit-btn {
+      .action-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+
+    .delete-btn {
+      font-size: 1rem;
+      color: var(--error-color, #dc3545);
+
+      .action-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  // Update column widths to accommodate new button
+  .col-settings {
+    width: 6%; // Increased from 6% to fit two buttons
+  }
 }
 
 // Responsive adjustments

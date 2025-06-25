@@ -1,0 +1,162 @@
+.confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--background-shade-color-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.confirmation-container .confirmation-card {
+  position: relative;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 35rem;
+  max-width: 90vw;
+  background-color: var(--background-primary);
+  border: 0.25rem solid black;
+  border-radius: 0;
+  color: var(--text-primary); /* This should be black (#000000) */
+
+  .icon-container {
+    display: flex;
+    justify-content: center;
+
+    .warning-icon {
+      font-size: 2.5rem;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary); /* Black text */
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .goal-info {
+    background: var(--background-light-shade);
+    padding: 1.5rem;
+    border: 0.25rem solid black;
+    border-radius: 0;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+
+    h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.2rem;
+      color: var(--text-primary); /* Black text */
+      font-weight: 600;
+    }
+
+    .goal-type {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: var(
+        --primary-color
+      ); /* Use primary color (black) instead of text-secondary */
+      font-weight: 500;
+      opacity: 0.7; /* Add some transparency for visual hierarchy */
+    }
+
+    .goal-target {
+      margin: 0;
+      font-size: 1rem;
+      color: var(
+        --primary-color
+      ); /* Use primary color (black) instead of text-secondary */
+      font-family: monospace;
+      font-weight: 600;
+      opacity: 0.8; /* Slightly less transparent than goal-type */
+    }
+  }
+
+  .warning-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(
+      --primary-color
+    ); /* Use primary color (black) instead of text-secondary */
+    margin: 0;
+    text-align: center;
+    opacity: 0.8; /* Add some transparency for visual hierarchy */
+  }
+
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: 0.25rem solid black;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 0;
+      transition: all 0.2s;
+      min-width: 140px;
+      font-family: inherit;
+
+      &.cancel-btn {
+        background-color: var(--background-primary);
+        color: var(--text-primary); /* Black text */
+
+        &:hover {
+          background-color: var(--background-shade-color-1);
+          color: var(--text-primary); /* Keep black text on hover */
+        }
+      }
+
+      &.delete-btn {
+        background-color: var(--secondary-color); /* Tiffany blue */
+        color: var(--text-primary); /* Black text instead of white */
+        border-color: black;
+
+        &:hover {
+          background-color: var(--accent-color); /* Steel blue on hover */
+          color: white; /* White text on hover for better contrast */
+        }
+      }
+    }
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .confirmation-container .confirmation-card {
+    width: 85vw;
+    padding: 1.5rem;
+
+    .button-row {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+
+    .goal-info {
+      padding: 1rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+    }
+
+    .icon-container .warning-icon {
+      font-size: 2rem;
+    }
+  }
+}
