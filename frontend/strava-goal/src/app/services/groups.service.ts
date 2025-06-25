@@ -17,7 +17,7 @@ export class GroupService {
   membersContribution = signal<MemberContribution[]>([]);
   memberAddedOrRemoved = signal<boolean>(false);
 
-  constructor(private http: HttpClient, private datePipe: DatePipe) {}
+  constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
     console.log('create group request: ', request);
@@ -28,9 +28,8 @@ export class GroupService {
     return this.http.put<any>('/api/groups', request);
   }
 
-  getGroups(userID: number): Observable<GetGroupsResponse> {
-    const params = new HttpParams().set('userID', userID);
-    return this.http.get<GetGroupsResponse>('/api/groups', { params });
+  getGroups(): Observable<GetGroupsResponse> {
+    return this.http.get<GetGroupsResponse>('/api/groups')
   }
 
   createGoal(request: CreateGoalRequest): Observable<CreateGoalResponse> {
@@ -59,8 +58,7 @@ export class GroupService {
 
   leaveGroup(request: LeaveGroupRequest): Observable<any> {
     const params = new HttpParams()
-      .set('groupID', request.groupID)
-      .set('userID', request.userID);
+      .set('groupID', request.groupID);
     return this.http.delete<any>('/api/group-member', { params });
   }
 
@@ -87,8 +85,7 @@ export class GroupService {
   }
 
   loadGroups() {
-    const userID = 1;
-    this.getGroups(userID).subscribe({
+    this.getGroups().subscribe({
       next: (response) => {
         this.groups.set(response.groups);
       },
@@ -265,7 +262,6 @@ export interface MemberContribution {
 
 export interface CreateGroupRequest {
   name: string;
-  created_by: number;
 }
 
 export interface CreateGroupResponse {
@@ -275,8 +271,6 @@ export interface CreateGroupResponse {
 export interface UpdateGroupRequest {
   id: number;
   name: string;
-  created_by: number;
-  created_at: string;
 }
 
 export interface GetGroupsResponse {
@@ -324,11 +318,9 @@ export interface GetGroupMembersResponse {
 
 export interface CreateGroupMemberRequest {
   group_code: string;
-  user_id: number;
   role: string;
 }
 
 export interface LeaveGroupRequest {
-  userID: number;
   groupID: number;
 }

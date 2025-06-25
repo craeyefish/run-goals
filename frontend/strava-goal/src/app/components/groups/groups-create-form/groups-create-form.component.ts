@@ -29,7 +29,6 @@ export class GroupsCreateFormComponent {
 
     const groupData: CreateGroupRequest = {
       name: this.groupName().trim(),
-      created_by: 0, // This will be set by the parent component with actual user ID
     };
 
     this.onSubmit.emit(groupData);

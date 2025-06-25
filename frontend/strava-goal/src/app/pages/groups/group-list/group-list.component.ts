@@ -82,7 +82,6 @@ export class GroupsListPageComponent {
     // Set the actual user ID
     const requestPayload: CreateGroupRequest = {
       ...groupData,
-      created_by: this.authService.getUserID()!,
     };
 
     this.groupService.createGroup(requestPayload).subscribe({
@@ -104,9 +103,7 @@ export class GroupsListPageComponent {
     }
     const requestPayload: UpdateGroupRequest = {
       id: data.id,
-      name: data.name,
-      created_by: data.created_by,
-      created_at: data.created_at,
+      name: data.name
     };
 
     this.groupService.updateGroup(requestPayload).subscribe({
@@ -124,8 +121,7 @@ export class GroupsListPageComponent {
   onJoinGroupFormSubmit = (data: { code: string }) => {
     const requestPayload: CreateGroupMemberRequest = {
       group_code: data.code,
-      user_id: this.authService.getUserID()!,
-      role: 'member',
+      role: 'member'
     };
 
     this.groupService.createGroupMember(requestPayload).subscribe({
@@ -141,10 +137,7 @@ export class GroupsListPageComponent {
   };
 
   onLeaveGroupFormSubmit = (data: Group) => {
-    const requestPayload: LeaveGroupRequest = {
-      groupID: data.id,
-      userID: this.authService.getUserID()!,
-    };
+    const requestPayload: LeaveGroupRequest = { groupID: data.id };
 
     this.groupService.leaveGroup(requestPayload).subscribe({
       next: () => {

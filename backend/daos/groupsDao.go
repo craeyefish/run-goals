@@ -62,7 +62,7 @@ func (dao *GroupsDao) CreateGroup(group models.Group) (*int64, error) {
 	return &id, nil
 }
 
-func (dao *GroupsDao) UpdateGroup(group models.Group) error {
+func (dao *GroupsDao) UpdateGroup(groupID int64, name string) error {
 	sql := `
 		UPDATE
 			groups
@@ -70,7 +70,7 @@ func (dao *GroupsDao) UpdateGroup(group models.Group) error {
 			name = $2
 		WHERE id = $1;
 	`
-	_, err := dao.db.Exec(sql, group.ID, group.Name)
+	_, err := dao.db.Exec(sql, groupID, name)
 	if err != nil {
 		dao.l.Printf("Error updating group: %v", err)
 		return err
@@ -148,7 +148,7 @@ func (dao *GroupsDao) CreateGroupMember(member models.GroupMember) error {
 	return nil
 }
 
-func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
+func (dao *GroupsDao) UpdateGroupMember(groupID int64, userID int64, role string) error {
 	sql := `
 		UPDATE
 			group_members
@@ -158,7 +158,7 @@ func (dao *GroupsDao) UpdateGroupMember(member models.GroupMember) error {
 			group_id = $2
 			AND user_id = $3;
 	`
-	_, err := dao.db.Exec(sql, member.Role, member.GroupID, member.UserID)
+	_, err := dao.db.Exec(sql, role, groupID, userID)
 	if err != nil {
 		dao.l.Printf("Error updating group member: %v", err)
 		return err
@@ -457,10 +457,10 @@ func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate t
 			members_tbl.user_id,
 			members_tbl.role,
 			members_tbl.joined_at,
-			member_activity_tbl.total_activities,
-			member_activity_tbl.total_distance,
-			member_peaks.total_unique_summits,
-			member_peaks.total_summits
+			coalesce(member_activity_tbl.total_activities, 0),
+			coalesce(member_activity_tbl.total_distance, 0),
+			coalesce(member_peaks.total_unique_summits, 0),
+			coalesce(member_peaks.total_summits, 0)
 		FROM members_tbl
 		LEFT JOIN member_activity_tbl ON members_tbl.user_id = member_activity_tbl.user_id
 		LEFT JOIN member_peaks ON members_tbl.user_id = member_peaks.user_id;

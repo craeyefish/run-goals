@@ -45,7 +45,9 @@ export class StravaCallbackComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
+
+  // userID = this.authService.userID;
 
   ngOnInit(): void {
     this.startLoadingAnimation();
@@ -66,6 +68,7 @@ export class StravaCallbackComponent implements OnInit, OnDestroy {
 
             this.authService.storeAccessToken(res.accessToken);
             this.authService.storeRefreshToken(res.refreshToken);
+            this.authService.userID.set(res.userID);
 
             // Wait a moment to show completion, then navigate
             setTimeout(() => {

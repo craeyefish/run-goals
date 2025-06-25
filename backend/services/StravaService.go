@@ -354,10 +354,12 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 		s.l.Println("Failed to exchange code", err)
 		return nil, err
 	}
+	s.l.Printf("Code exchanged for tokens: %+v\n", tokenRes)
 
 	// 2. Store (or update) the user in the DB
 	var newUser bool
 	user, err := s.userDao.GetUserByStravaAthleteID(tokenRes.Athlete.Id)
+	s.l.Printf("Result for finding user: %+v\n", user)
 	if errors.Is(err, daos.ErrUserNotFound) {
 		user = &models.User{}
 		newUser = true
