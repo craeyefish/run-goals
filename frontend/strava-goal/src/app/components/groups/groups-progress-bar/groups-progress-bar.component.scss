@@ -13,10 +13,11 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    background-color: #00ff00;
-    width: 10%; // default, set dynamically
+    background: linear-gradient(90deg, var(--secondary-color), #ff6b35);
     border-radius: 0;
     box-shadow: 0 0 0.25rem #000 inset;
+    transition: width 0.3s ease;
+    min-width: 0; // Allow width to be 0 when no progress
   }
 
   span {
@@ -25,5 +26,9 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: var(--text-primary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: monospace;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
   }
 }
