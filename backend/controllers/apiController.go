@@ -66,7 +66,9 @@ func (c *ApiController) ListActivities(rw http.ResponseWriter, r *http.Request) 
 func (c *ApiController) ListPeaks(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET ListPeaks")
 
-	response, err := c.peakService.ListPeaks()
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	response, err := c.peakService.ListPeaks(userID)
 	if err != nil {
 		c.l.Println("Error listing peaks", err)
 		http.Error(rw, "Failed to list peaks", http.StatusInternalServerError)

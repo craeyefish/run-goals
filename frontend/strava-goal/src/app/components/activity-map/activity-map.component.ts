@@ -53,11 +53,15 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
       });
 
     this.peakService.loadPeaks();
-    this.peakService.peaks$
-      .pipe(filter((peaks) => peaks !== null))
-      .subscribe((peaks) => {
+    this.peakService.peaks$.pipe(filter((peaks) => peaks !== null)).subscribe({
+      next: (peaks) => {
         this.peaks = peaks!;
-      });
+        this.displayPeaks();
+      },
+      error: (error) => {
+        console.error('Failed to load peaks for map:', error);
+      },
+    });
   }
 
   ngAfterViewInit() {
@@ -125,8 +129,10 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
   }
 
   displayPeaks(): void {
-    // Clear existing cluster if re-loading
-    this.markerClusterGroup.clearLayers();
+    // Only display peaks if the toggle is enabled
+    if (!this.showPeaks) {
+      return;
+    }
 
     this.peaks.forEach((peak) => {
       // Choose the icon based on whether it's summited
@@ -143,9 +149,14 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
   }
 
   buildPeakPopup(peak: Peak): string {
+    const summitStatus = peak.is_summited
+      ? '<span style="color: green;">✅ Summited</span>'
+      : '<span style="color: orange;">⭕ Not summited</span>';
+
     return `
       <strong>${peak.name || 'Unnamed Peak'}</strong><br>
-      Elev: ${peak.elevation_meters ? `${peak.elevation_meters} m` : 'N/A'}
+      Elev: ${peak.elevation_meters ? `${peak.elevation_meters} m` : 'N/A'}<br>
+      Status: ${summitStatus}
     `;
   }
 
@@ -154,15 +165,12 @@ export class ActivityMapComponent implements OnInit, AfterViewInit {
     this.showPeaks = inputElement.checked;
 
     if (this.showPeaks) {
-      // Show peaks
-      // Option A: If you already have `markerClusterGroup` built, just add it to the map:
-      this.map.addLayer(this.markerClusterGroup);
-
-      // Option B: If you need to rebuild the markers, call your function:
-      // this.displayPeaks();
+      // Show peaks by calling displayPeaks to add them to cluster
+      this.displayPeaks();
     } else {
-      // Hide peaks
-      this.map.removeLayer(this.markerClusterGroup);
+      // Hide peaks by clearing and re-displaying only activities
+      this.markerClusterGroup.clearLayers();
+      this.displayActivities();
     }
   }
 }

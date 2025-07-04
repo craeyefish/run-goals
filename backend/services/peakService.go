@@ -8,7 +8,7 @@ import (
 )
 
 type PeakServiceInterface interface {
-	ListPeaks() ([]models.Peak, error)
+	ListPeaks(userID int64) ([]models.PeakSummited, error)
 	StorePeaks() (resp *models.OverpassResponse)
 }
 
@@ -30,7 +30,7 @@ func NewPeakService(
 	}
 }
 
-func (s *PeakService) ListPeaks() ([]models.PeakSummited, error) {
+func (s *PeakService) ListPeaks(userID int64) ([]models.PeakSummited, error) {
 	peaks, err := s.peaksDao.GetPeaks()
 	if err != nil {
 		s.l.Printf("Error calling PeaksDao: %v", err)
@@ -43,9 +43,12 @@ func (s *PeakService) ListPeaks() ([]models.PeakSummited, error) {
 		return nil, err
 	}
 
+	// Create a map of peaks summited by this specific user
 	summitedSet := make(map[int64]bool)
 	for _, up := range userPeaks {
-		summitedSet[up.PeakID] = true
+		if up.UserID == userID {
+			summitedSet[up.PeakID] = true
+		}
 	}
 
 	var peaksSummited []models.PeakSummited
