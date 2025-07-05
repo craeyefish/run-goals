@@ -134,12 +134,46 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.groupService.getGroupGoals(group.id).subscribe({
         next: (response) => {
           if (response.goals.length > 0) {
-            this.groupGoals.push({
+            const groupGoal = {
               groupName: group.name,
-              goals: response.goals.map((goal) => ({
-                ...goal,
-                progressPercentage: this.calculateGoalProgress(goal),
-              })),
+              goals: [] as (Goal & { progressPercentage: number })[],
+            };
+
+            let goalsProcessed = 0;
+            const totalGoals = response.goals.length;
+
+            // Load progress for each goal
+            response.goals.forEach((goal) => {
+              this.groupService.getGroupGoalProgress(goal.id).subscribe({
+                next: (progressResponse) => {
+                  groupGoal.goals.push({
+                    ...goal,
+                    progressPercentage: progressResponse.progress || 0,
+                  });
+                  goalsProcessed++;
+
+                  // Add the group when all goals are processed
+                  if (goalsProcessed === totalGoals) {
+                    this.groupGoals.push(groupGoal);
+                  }
+                },
+                error: (err) => {
+                  console.error(
+                    `Failed to load progress for goal ${goal.id}:`,
+                    err
+                  );
+                  // Fallback to time-based calculation
+                  groupGoal.goals.push({
+                    ...goal,
+                    progressPercentage: this.calculateGoalProgress(goal),
+                  });
+                  goalsProcessed++;
+
+                  if (goalsProcessed === totalGoals) {
+                    this.groupGoals.push(groupGoal);
+                  }
+                },
+              });
             });
           }
         },

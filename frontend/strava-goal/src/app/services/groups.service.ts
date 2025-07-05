@@ -45,6 +45,16 @@ export class GroupService {
     return this.http.get<GetGroupGoalsResponse>('/api/group-goals', { params });
   }
 
+  getGroupGoalProgress(
+    goalID: number
+  ): Observable<{ goalID: number; progress: number }> {
+    const params = new HttpParams().set('goalID', goalID);
+    return this.http.get<{ goalID: number; progress: number }>(
+      '/api/group-goal-progress',
+      { params }
+    );
+  }
+
   getGroupMembers(groupID: number): Observable<GetGroupMembersResponse> {
     const params = new HttpParams().set('groupID', groupID);
     return this.http.get<GetGroupMembersResponse>('/api/group-members', {

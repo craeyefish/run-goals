@@ -27,6 +27,7 @@ type GroupsDaoInterface interface {
 	GetUserGroups(userID int64) ([]models.Group, error)
 	GetGroupMembers(groupID int64) ([]models.GroupMember, error)
 	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
+	GetGroupGoalByID(goalID int64) (*models.GroupGoal, error)
 }
 
 type GroupsDao struct {
@@ -499,4 +500,51 @@ func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate t
 	}
 
 	return groupMembersGoalContribution, nil
+}
+
+func (dao *GroupsDao) GetGroupGoalByID(goalID int64) (*models.GroupGoal, error) {
+	var groupGoal models.GroupGoal
+	var targetSummits pq.Int64Array
+
+	query := `
+        SELECT
+            id,
+            group_id,
+            name,
+            description,
+            goal_type,
+            target_value,
+            target_summits,
+            start_date,
+            end_date,
+            created_at
+        FROM group_goals
+        WHERE id = $1;
+    `
+
+	err := dao.db.QueryRow(query, goalID).Scan(
+		&groupGoal.ID,
+		&groupGoal.GroupID,
+		&groupGoal.Name,
+		&groupGoal.Description,
+		&groupGoal.GoalType,
+		&groupGoal.TargetValue,
+		&targetSummits,
+		&groupGoal.StartDate,
+		&groupGoal.EndDate,
+		&groupGoal.CreatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Goal not found
+		}
+		dao.l.Printf("Error getting group goal by ID: %v", err)
+		return nil, err
+	}
+
+	// Convert pq.Int64Array to []int64
+	groupGoal.TargetSummits = []int64(targetSummits)
+
+	return &groupGoal, nil
 }

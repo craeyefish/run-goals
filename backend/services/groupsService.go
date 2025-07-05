@@ -28,6 +28,7 @@ type GroupServiceInterface interface {
 
 	GetUserGroups(userID int64) ([]models.Group, error)
 	GetGroupGoals(groupID int64) ([]models.GroupGoal, error)
+	GetGroupGoalByID(goalID int64) (*models.GroupGoal, error)
 }
 
 type GroupsService struct {
@@ -292,4 +293,13 @@ func (s *GroupsService) CheckGroupCodeExists(code string) (bool, error) {
 		return false, err
 	}
 	return *count > 0, nil
+}
+
+func (s *GroupsService) GetGroupGoalByID(goalID int64) (*models.GroupGoal, error) {
+	groupGoal, err := s.groupsDao.GetGroupGoalByID(goalID)
+	if err != nil {
+		s.l.Printf("Error calling groupsDao.GetGroupGoalByID: %v", err)
+		return nil, err
+	}
+	return groupGoal, nil
 }

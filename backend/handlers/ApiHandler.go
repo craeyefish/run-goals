@@ -101,5 +101,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.groupsController.GetGroupGoals(rw, r)
 			return
 		}
+	case "/api/group-goal-progress":
+		if r.Method == http.MethodGet {
+			handler.groupsController.GetGroupGoalProgress(rw, r)
+			return
+		}
 	}
 }

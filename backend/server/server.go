@@ -43,6 +43,7 @@ func NewServer() *http.Server {
 	peakService := services.NewPeakService(logger, peaksDao, userPeaksDao)
 	summariesService := services.NewSummariesService(logger, peaksDao, userPeaksDao, activityDao)
 	progressService := services.NewProgressService(logger, userDao, stravaService)
+	goalProgressService := services.NewGoalProgressService(logger, groupsDao, activityDao, userPeaksDao)
 	groupsService := services.NewGroupsService(logger, groupsDao)
 	userService := services.NewUserService(logger, userDao)
 
@@ -64,7 +65,7 @@ func NewServer() *http.Server {
 		userService,
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
-	groupsController := controllers.NewGroupsController(logger, groupsService)
+	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
 	hgController := controllers.NewHgController(logger, activityService, userDao)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
 

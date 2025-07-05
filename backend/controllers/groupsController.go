@@ -27,20 +27,24 @@ type GroupsControllerInterface interface {
 	UpdateGroupGoal(rw http.ResponseWriter, r *http.Request)
 	DeleteGroupGoal(rw http.ResponseWriter, r *http.Request)
 	GetGroupGoals(rw http.ResponseWriter, r *http.Request)
+	GetGroupGoalProgress(rw http.ResponseWriter, r *http.Request)
 }
 
 type GroupsController struct {
-	l             *log.Logger
-	groupsService *services.GroupsService
+	l                   *log.Logger
+	groupsService       *services.GroupsService
+	goalProgressService *services.GoalProgressService
 }
 
 func NewGroupsController(
 	l *log.Logger,
 	groupsService *services.GroupsService,
+	goalProgressService *services.GoalProgressService,
 ) *GroupsController {
 	return &GroupsController{
-		l:             l,
-		groupsService: groupsService,
+		l:                   l,
+		groupsService:       groupsService,
+		goalProgressService: goalProgressService,
 	}
 }
 
@@ -395,5 +399,52 @@ func (c *GroupsController) GetGroupMembers(rw http.ResponseWriter, r *http.Reque
 	rw.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(rw).Encode(response); err != nil {
 		log.Println("Error encoding groups:", err)
+	}
+}
+
+func (c *GroupsController) GetGroupGoalProgress(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle GET group-goal-progress - get individual goal progress")
+
+	// extract goalID from url
+	str := r.URL.Query().Get("goalID")
+	if str == "" {
+		http.Error(rw, "missing goalID", http.StatusBadRequest)
+		return
+	}
+	goalID, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		http.Error(rw, "Invalid goal ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get the goal directly by ID
+	targetGoal, err := c.groupsService.GetGroupGoalByID(goalID)
+	if err != nil {
+		c.l.Printf("Error getting goal by ID: %v", err)
+		http.Error(rw, "Failed to get goal", http.StatusInternalServerError)
+		return
+	}
+
+	if targetGoal == nil {
+		http.Error(rw, "Goal not found", http.StatusNotFound)
+		return
+	}
+
+	// Calculate progress
+	progress, err := c.goalProgressService.CalculateGoalProgress(*targetGoal)
+	if err != nil {
+		c.l.Printf("Error calculating goal progress: %v", err)
+		http.Error(rw, "Failed to calculate goal progress", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"goalID":   goalID,
+		"progress": progress,
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding goal progress response:", err)
 	}
 }
