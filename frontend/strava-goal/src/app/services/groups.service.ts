@@ -17,7 +17,7 @@ export class GroupService {
   membersContribution = signal<MemberContribution[]>([]);
   memberAddedOrRemoved = signal<boolean>(false);
 
-  constructor(private http: HttpClient, private datePipe: DatePipe) { }
+  constructor(private http: HttpClient, private datePipe: DatePipe) {}
 
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
     console.log('create group request: ', request);
@@ -29,7 +29,7 @@ export class GroupService {
   }
 
   getGroups(): Observable<GetGroupsResponse> {
-    return this.http.get<GetGroupsResponse>('/api/groups')
+    return this.http.get<GetGroupsResponse>('/api/groups');
   }
 
   createGoal(request: CreateGoalRequest): Observable<CreateGoalResponse> {
@@ -57,8 +57,7 @@ export class GroupService {
   }
 
   leaveGroup(request: LeaveGroupRequest): Observable<any> {
-    const params = new HttpParams()
-      .set('groupID', request.groupID);
+    const params = new HttpParams().set('groupID', request.groupID);
     return this.http.delete<any>('/api/group-member', { params });
   }
 
@@ -188,6 +187,7 @@ export class GroupService {
 
   setSelectedGoal(goal: Goal | null): void {
     this.selectedGoal.set(goal);
+    this.notifySelectedGoalChange();
   }
 
   refreshGoals(groupID: number) {

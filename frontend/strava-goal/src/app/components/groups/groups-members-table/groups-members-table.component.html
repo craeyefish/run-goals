@@ -5,7 +5,6 @@
       <th>Role</th>
       <th>Activities</th>
       <th>Distance</th>
-      <th>Elevation</th>
       <th>Unique Summits</th>
       <th>Summits</th>
       <th>Contribution %</th>
@@ -15,12 +14,17 @@
     <tr *ngFor="let member of membersComputed()">
       <td>{{ member.userId }}</td>
       <td>{{ member.role }}</td>
-      <td>{{ member.totalActivities }}</td>
-      <td>{{ member.totalDistance }}</td>
-      <td></td>
-      <td>{{ member.totalUniqueSummits }}</td>
-      <td>{{ member.totalSummits }}</td>
-      <td>{{ member.contributionPercentage }} %</td>
+      <td>{{ member.totalActivities ?? "-" }}</td>
+      <td>
+        {{
+          member.totalDistance
+            ? (member.totalDistance / 1000 | number : "1.1-1") + " km"
+            : "-"
+        }}
+      </td>
+      <td>{{ member.totalUniqueSummits ?? "-" }}</td>
+      <td>{{ member.totalSummits ?? "-" }}</td>
+      <td>{{ member.contributionPercentage ?? "-" }}%</td>
     </tr>
   </tbody>
 </table>

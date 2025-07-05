@@ -317,6 +317,7 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	groupMembers := []models.GroupMember{}
 	sql := `
 		SELECT
+			id,
 			group_id,
 			user_id,
 			role,
@@ -333,6 +334,7 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	for rows.Next() {
 		groupMember := models.GroupMember{}
 		err = rows.Scan(
+			&groupMember.ID,
 			&groupMember.GroupID,
 			&groupMember.UserID,
 			&groupMember.Role,
