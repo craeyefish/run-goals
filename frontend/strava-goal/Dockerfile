@@ -37,7 +37,7 @@ RUN npm run build -- --configuration production
 # =========================================
 # 3) PRODUCTION STAGE (target: prod)
 # =========================================
-FROM nginx:alpine AS prod
+FROM nginx:1.27.5-alpine AS prod
 
 # copy ONLY the browser build
 COPY --from=build /app/dist/strava-goal/browser/ /usr/share/nginx/html
