@@ -16,7 +16,7 @@ export class AuthService {
   private refreshToken: string | null = null;
   userID = signal<number | null>(null);
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
   storeAccessToken(accessToken: string): void {
     this.accessToken = accessToken;
@@ -76,12 +76,13 @@ export class AuthService {
   loginWithStravaAuth(
     code: string
   ): Observable<{ accessToken: string; refreshToken: string; userID: number }> {
-    return this.http.post<{ accessToken: string; refreshToken: string; userID: number }>(
-      '/auth/strava/callback',
-      {
-        code,
-      }
-    );
+    return this.http.post<{
+      accessToken: string;
+      refreshToken: string;
+      userID: number;
+    }>('/auth/strava/callback', {
+      code,
+    });
   }
 
   login(): void {
@@ -89,7 +90,7 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      // 'https://craeyebytes.com/login/strava/callback'
+      // 'https://summitseekers.co.za/login/strava/callback'
       'http://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';

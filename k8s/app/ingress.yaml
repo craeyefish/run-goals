@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: craeyebytes.com
+    - host: summitseekers.co.za
       http:
         paths:
           - path: /api
@@ -55,7 +55,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: craeyebytes.com
+    - host: summitseekers.co.za
       http:
         paths:
           - path: /
