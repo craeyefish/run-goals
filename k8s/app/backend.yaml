@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/craeyefish/run-goals-backend:backend-v0.0.8 # {"$imagepolicy": "flux-system:run-goals-backend"}
+          image: ghcr.io/craeyefish/run-goals-backend:backend-v0.0.9 # {"$imagepolicy": "flux-system:run-goals-backend"}
           ports:
             - containerPort: 8080
           env:
