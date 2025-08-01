@@ -68,12 +68,14 @@ func NewServer() *http.Server {
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
 	hgController := controllers.NewHgController(logger, activityService, userDao)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
+	supportController := controllers.NewSupportController(logger, userService)
 
 	// initialise handlers
 	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
 	authHandler := handlers.NewAuthHandler(logger, authController, stravaController)
 	hgHandler := handlers.NewHgHandler(logger, hgController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
+	supportHandler := handlers.NewSupportHandler(logger, supportController)
 
 	// backgorund jobs
 	// TODO(cian): Move out of server.
@@ -92,6 +94,7 @@ func NewServer() *http.Server {
 	mux.Handle("/webhook/", stravaHandler)
 	mux.Handle("/auth/", authHandler)
 	mux.Handle("/hikegang/", hgHandler)
+	mux.Handle("/support/", middleware.JWT(jwtService, supportHandler))
 
 	return &http.Server{
 		Addr:    ":8080",

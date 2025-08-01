@@ -18,6 +18,7 @@ import { GroupsDetailsPageComponent } from './pages/groups/group-details/group-d
 import { GroupsListPageComponent } from './pages/groups/group-list/group-list.component';
 import { MapPageComponent } from './pages/map-page/map-page.component';
 import { ActivitiesPageComponent } from './pages/activities-page/activities-page.component';
+import { SupportComponent } from './pages/support/support.component';
 
 export const routes: Routes = [
   {
@@ -70,6 +71,7 @@ export const routes: Routes = [
       { path: 'summits', component: SummitsPageComponent },
       { path: 'map', component: MapPageComponent },
       { path: 'profile', component: ProfileComponent },
+      { path: 'support', component: SupportComponent },
     ],
   },
   { path: '**', redirectTo: '' },

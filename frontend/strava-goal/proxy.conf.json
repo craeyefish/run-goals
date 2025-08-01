@@ -14,5 +14,9 @@
   "/webhook": {
     "target": "http://backend:8080",
     "secure": false
+  },
+  "/support": {
+    "target": "http://backend:8080",
+    "secure": false
   }
 }

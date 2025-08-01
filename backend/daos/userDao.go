@@ -198,3 +198,30 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (dao *UserDao) DeleteUserByStravaAthleteID(stravaAthleteID int64) error {
+	// Due to CASCADE DELETE constraints, this will automatically delete:
+	// - activities (via strava_athlete_id FK)
+	// - user_peaks (via user_id FK)
+	// - group_members (via user_id FK)
+	query := `DELETE FROM users WHERE strava_athlete_id = $1`
+	result, err := dao.db.Exec(query, stravaAthleteID)
+	if err != nil {
+		dao.l.Printf("Error deleting user with strava_athlete_id=%d: %v", stravaAthleteID, err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		dao.l.Printf("Error getting rows affected: %v", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		dao.l.Printf("No user found with strava_athlete_id=%d", stravaAthleteID)
+		return ErrUserNotFound
+	}
+
+	dao.l.Printf("Successfully deleted user with strava_athlete_id=%d", stravaAthleteID)
+	return nil
+}

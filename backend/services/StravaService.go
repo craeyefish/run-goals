@@ -369,10 +369,16 @@ func (s *StravaService) ProcessCallback(code string) (*models.User, error) {
 	}
 
 	// Set user fields
+	now := time.Now().UTC()
 	user.StravaAthleteID = tokenRes.Athlete.Id
 	user.AccessToken = tokenRes.AccessToken
 	user.RefreshToken = tokenRes.RefreshToken
 	user.ExpiresAt = time.Unix(tokenRes.ExpiresAt, 0).UTC()
+	user.UpdatedAt = now
+
+	if newUser {
+		user.CreatedAt = now
+	}
 
 	// Save user and get the ID
 	err = s.userDao.UpsertUser(user)

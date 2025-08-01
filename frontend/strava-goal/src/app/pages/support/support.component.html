@@ -1,0 +1,235 @@
+<div class="support-container">
+  <div class="support-header">
+    <h1>🏔️ Quest Support Center</h1>
+    <p class="subtitle">Your companion for the running quest adventure</p>
+  </div>
+
+  <div class="support-content">
+    <!-- Hero Section -->
+    <div class="hero-card">
+      <h2>🎮 Welcome, Adventurer!</h2>
+      <p>
+        This support center is your guide to understanding how your Strava
+        connection powers your epic running quest. Whether you're just starting
+        your journey or need to manage your account, we've got you covered!
+      </p>
+    </div>
+
+    <!-- What it means to connect Strava -->
+    <div class="info-card">
+      <h2>⚡ What Does Connecting Strava Mean?</h2>
+      <div class="info-content">
+        <p>
+          When you connect your Strava account to our running quest platform,
+          you're essentially:
+        </p>
+        <ul class="quest-list">
+          <li>
+            🗺️ <strong>Syncing Your Adventures:</strong> Your runs, hikes, and
+            activities automatically appear in your quest log
+          </li>
+          <li>
+            🏆 <strong>Unlocking Peak Conquests:</strong> We detect when you
+            summit peaks and mountains, adding them to your collection
+          </li>
+          <li>
+            📈 <strong>Tracking Your Progress:</strong> Your distance,
+            elevation, and achievements contribute to group quests and personal
+            goals
+          </li>
+          <li>
+            🎯 <strong>Joining Group Quests:</strong> Collaborate with other
+            adventurers on shared goals and challenges
+          </li>
+          <li>
+            📊 <strong>Viewing Real-time Stats:</strong> See your year-to-date
+            progress, peak summits, and activity history
+          </li>
+        </ul>
+        <div class="note-box">
+          <p>
+            <strong>🔒 Important:</strong> We only access your public activity
+            data and never modify or delete anything on your Strava account.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How we manage data -->
+    <div class="info-card">
+      <h2>🛡️ How We Protect Your Quest Data</h2>
+      <div class="info-content">
+        <p>
+          Your data security is our top priority. Here's how we handle your
+          information:
+        </p>
+
+        <div class="data-section">
+          <h3>📦 What We Store:</h3>
+          <ul class="quest-list">
+            <li>Your Strava athlete ID (public identifier)</li>
+            <li>Activity data: runs, hikes, distance, elevation, dates</li>
+            <li>Peak summit records and achievements</li>
+            <li>Group membership and goal progress</li>
+            <li>Access tokens (encrypted) for syncing data</li>
+          </ul>
+        </div>
+
+        <div class="data-section">
+          <h3>🔐 How We Protect It:</h3>
+          <ul class="quest-list">
+            <li>All data is encrypted and stored securely</li>
+            <li>We never share your personal information with third parties</li>
+            <li>Access tokens are refreshed automatically and stored safely</li>
+            <li>Your data is only used to enhance your quest experience</li>
+          </ul>
+        </div>
+
+        <div class="data-section">
+          <h3>⏱️ Data Retention:</h3>
+          <ul class="quest-list">
+            <li>
+              Your data remains active as long as your account is connected
+            </li>
+            <li>
+              Inactive accounts (no Strava connection) may be cleaned up after
+              extended periods
+            </li>
+            <li>
+              You can request complete data deletion at any time using the tool
+              below
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account deletion section -->
+    <div class="deletion-card">
+      <h2>🗑️ Request Account Deletion</h2>
+      <div class="deletion-content">
+        <p>
+          Need to completely remove your data from our quest platform? No
+          worries, adventurer! You can request a full account deletion below.
+        </p>
+
+        <div class="warning-box">
+          <h3>⚠️ Important Information:</h3>
+          <ul>
+            <li>
+              <strong>Complete Data Wipe:</strong> This will permanently delete
+              all your activities, peak summits, and group memberships
+            </li>
+            <li>
+              <strong>Group Quest Impact:</strong> You'll be removed from all
+              group quests immediately
+            </li>
+            <li>
+              <strong>Reversible Process:</strong> You can always reconnect your
+              Strava later and start fresh
+            </li>
+            <li>
+              <strong>Progress Recovery:</strong> While your historical data
+              will be gone, your actual Strava activities remain untouched
+            </li>
+          </ul>
+        </div>
+
+        <div *ngIf="!deleteSuccess" class="deletion-form">
+          <h3>🔑 Find Your Strava Athlete ID</h3>
+          <p class="help-text">
+            Your Strava Athlete ID is the number in your Strava profile URL. For
+            example, if your profile is
+            <code>https://strava.com/athletes/12345678</code>, your ID is
+            <code>12345678</code>.
+          </p>
+
+          <div class="form-group">
+            <label for="athleteId">Enter your Strava Athlete ID:</label>
+            <input
+              type="text"
+              id="athleteId"
+              [(ngModel)]="stravaAthleteId"
+              placeholder="e.g., 12345678"
+              [disabled]="isDeleting"
+              class="athlete-id-input"
+            />
+          </div>
+
+          <button
+            class="delete-button"
+            (click)="onDeleteAccount()"
+            [disabled]="isDeleting || !stravaAthleteId.trim()"
+          >
+            {{
+              isDeleting
+                ? "🔄 Deleting Quest Data..."
+                : "🗑️ Delete My Quest Account"
+            }}
+          </button>
+
+          <div *ngIf="deleteError" class="error-message">
+            {{ deleteError }}
+          </div>
+        </div>
+
+        <div *ngIf="deleteSuccess" class="success-message">
+          <h3>✅ Quest Account Deleted Successfully!</h3>
+          <p>
+            Your account and all associated data have been permanently removed
+            from our platform. You have been automatically logged out and will
+            be redirected to the login page shortly.
+          </p>
+          <p>
+            Safe travels on your future adventures, and remember - you can
+            always start a new quest by reconnecting your Strava account!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact and additional help -->
+    <div class="help-card">
+      <h2>🤝 Need More Help?</h2>
+      <div class="help-content">
+        <p>
+          Our quest masters are here to help! If you have questions, concerns,
+          or feedback about your running quest experience, don't hesitate to
+          reach out.
+        </p>
+
+        <div class="contact-methods">
+          <div class="contact-item">
+            <h3>📧 Contact Support</h3>
+            <p>
+              Send us a message about any issues, bug reports, feature requests,
+              or general questions about your running quest experience.
+            </p>
+            <a href="mailto:craeyebytes&#64;gmail.com" class="contact-link"
+              >craeyebytes&#64;gmail.com</a
+            >
+          </div>
+        </div>
+
+        <div class="response-time">
+          <p>
+            <strong>📅 Response Time:</strong> We typically respond within 24-48
+            hours during weekdays.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back to app -->
+    <div class="navigation-card">
+      <h2>🎮 Ready to Continue Your Quest?</h2>
+      <p>
+        Head back to the main application to track your adventures and conquer
+        new peaks!
+      </p>
+      <button class="primary-button" (click)="navigateToHome()">
+        🏔️ Back to Quest Dashboard
+      </button>
+    </div>
+  </div>
+</div>

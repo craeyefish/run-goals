@@ -9,6 +9,7 @@ import (
 type UserServiceInterface interface {
 	GetUserByID(userID int64) (*models.User, error)
 	GetUserProfile(userID int64) (*models.User, error)
+	DeleteUserAccount(stravaAthleteID int64) error
 }
 
 type UserService struct {
@@ -47,4 +48,14 @@ func (s *UserService) GetUserProfile(userID int64) (*models.User, error) {
 	user.RefreshToken = ""
 
 	return user, nil
+}
+
+func (s *UserService) DeleteUserAccount(stravaAthleteID int64) error {
+	err := s.userDao.DeleteUserByStravaAthleteID(stravaAthleteID)
+	if err != nil {
+		s.l.Printf("Error deleting user account for strava_athlete_id %d: %v", stravaAthleteID, err)
+		return err
+	}
+	s.l.Printf("Successfully deleted user account for strava_athlete_id %d", stravaAthleteID)
+	return nil
 }
