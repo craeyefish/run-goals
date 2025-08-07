@@ -14,7 +14,65 @@
 }
 
 #hgMap {
-  flex: 0 0 400px; // fixed height for the map
+  height: 60vh; // Start with 60% of viewport height
+  min-height: 300px; // Minimum height
+  max-height: 80vh; // Maximum height
+  width: 100%;
+}
+
+.map-container {
+  border: 2px solid #ffffff40;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.resize-handle {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #ffffff40;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.resize-grip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.4rem;
+  color: #fff;
+
+  span:first-child {
+    font-size: 1rem;
+    letter-spacing: 2px;
+  }
+}
+
+.resize-text {
+  font-size: 0.4rem;
+  opacity: 0.7;
+}
+
+.resize-handle.dragging {
+  background: rgba(255, 255, 255, 0.2);
+
+  .resize-grip {
+    color: #ff6600;
+  }
+}
+
+// Add a class for when dragging is active
+body.resizing {
+  cursor: ns-resize !important;
+  user-select: none;
 }
 
 /* Main wrapper to grow and shrink inside the screen */

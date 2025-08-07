@@ -18,3 +18,27 @@
 
   font-family: "Press Start 2P", cursive;
 }
+
+.btn {
+  background-color: #ff6600; /* Bright orange */
+  color: white;
+  border: 2px solid #ff6600;
+  padding: 1rem 2rem;
+  margin: 0.5rem;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #ff8533; /* Lighter orange on hover */
+    border-color: #ff8533;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}

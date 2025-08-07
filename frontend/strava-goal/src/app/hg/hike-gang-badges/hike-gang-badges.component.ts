@@ -72,12 +72,24 @@ export class HikeGangBadgesComponent implements OnInit {
   constructor(private hgService: HgService, private router: Router) {}
 
   ngOnInit(): void {
+    console.log('HikeGang Badges: Component initializing...');
     this.hgService.loadActivities();
     this.hgService.activities$.subscribe((activities) => {
+      console.log(
+        'HikeGang Badges: Received activities:',
+        activities?.length || 0
+      );
+
       if (activities) {
-        // Filter activities tagged with #hg
+        // Filter activities tagged with #hg (case insensitive)
         const hgActivities = activities.filter((act) =>
-          act.name?.includes('#hg')
+          act.name?.toLowerCase().includes('#hg')
+        );
+
+        console.log('Filtered HG activities for badges:', hgActivities.length);
+        console.log(
+          'Activities with descriptions:',
+          hgActivities.filter((a) => a.description).length
         );
 
         // Update badge tiers based on activity descriptions
@@ -91,14 +103,30 @@ export class HikeGangBadgesComponent implements OnInit {
   }
 
   updateBadgeTiers(activities: Activity[]): void {
+    console.log('Updating badge tiers for', activities.length, 'activities');
+
     activities.forEach((activity) => {
-      if (!activity.description) return;
+      if (!activity.description) {
+        console.log('Activity without description:', activity.name);
+        return;
+      }
+
+      console.log(
+        'Processing activity description:',
+        activity.name,
+        activity.description
+      );
 
       // Extract medal tags from the description (e.g., #hobbit_feet-gold)
       const medalRegex = /#(\w+)-(\w+)/g;
       let match;
+      let foundBadges = 0;
+
       while ((match = medalRegex.exec(activity.description)) !== null) {
+        foundBadges++;
         const [_, badgeKey, tier] = match;
+
+        console.log('Found badge:', badgeKey, 'tier:', tier);
 
         // Find the badge and update its tier
         const badge = this.badges.find((b) =>
@@ -106,9 +134,26 @@ export class HikeGangBadgesComponent implements OnInit {
         );
         if (badge) {
           badge.tier = tier as 'bronze' | 'silver' | 'gold';
+          console.log('Updated badge:', badge.name, 'to tier:', tier);
+        } else {
+          console.warn('Badge not found for key:', badgeKey);
         }
       }
+
+      if (foundBadges === 0) {
+        console.log('No badge tags found in description for:', activity.name);
+      }
     });
+
+    const achievedBadges = this.badges.filter(
+      (b) => b.tier !== 'unachieved'
+    ).length;
+    console.log(
+      'Total achieved badges:',
+      achievedBadges,
+      'out of',
+      this.badges.length
+    );
   }
 
   showInfo(badge: any) {
