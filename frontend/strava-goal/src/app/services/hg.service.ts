@@ -50,4 +50,12 @@ export class HgService {
   refreshActivities(): void {
     this.loadActivities(true);
   }
+
+  getDiagnostics() {
+    return this.http.get<any>('/hikegang/diagnostics');
+  }
+
+  triggerSync() {
+    return this.http.post<any>('/hikegang/sync', {});
+  }
 }

@@ -15,7 +15,7 @@ import { Activity, HgService } from 'src/app/services/hg.service';
 })
 export class HikeGangActivitiesComponent implements OnInit {
   map!: L.Map;
-  markerClusterGroup!: L.MarkerClusterGroup;
+  markerClusterGroup!: L.LayerGroup | L.MarkerClusterGroup; // Support both types
   hgActivities: Activity[] = [];
   private polylinesById: Record<number, L.Polyline> = {};
   private lastHighlightedPolyline: L.Polyline | null = null;
@@ -23,6 +23,11 @@ export class HikeGangActivitiesComponent implements OnInit {
   private isDragging = false;
   private startY = 0;
   private startHeight = 0;
+
+  // Bound methods for event listeners
+  private boundStartResize = this.startResize.bind(this);
+  private boundDoResize = this.doResize.bind(this);
+  private boundStopResize = this.stopResize.bind(this);
 
   constructor(private hgService: HgService, private router: Router) {}
 
@@ -93,22 +98,38 @@ export class HikeGangActivitiesComponent implements OnInit {
     }
 
     console.log('Initializing map...');
+    console.log('Leaflet available:', typeof L !== 'undefined');
+    console.log('Leaflet map function available:', typeof L.map === 'function');
 
-    this.map = L.map('hgMap', {
-      center: [-33.83, 18.6], // e.g., near Cape Town
-      zoom: 12,
-    });
+    try {
+      this.map = L.map('hgMap', {
+        center: [-33.83, 18.6], // e.g., near Cape Town
+        zoom: 12,
+      });
 
-    this.homeBounds = this.map.getBounds();
+      this.homeBounds = this.map.getBounds();
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(this.map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(this.map);
 
-    this.markerClusterGroup = L.markerClusterGroup();
-    this.map.addLayer(this.markerClusterGroup);
+      // Check if markerClusterGroup is available
+      if (typeof (L as any).markerClusterGroup === 'function') {
+        console.log('MarkerCluster available, using clustering');
+        this.markerClusterGroup = (L as any).markerClusterGroup();
+      } else {
+        console.warn('MarkerCluster not available, using regular layer group');
+        // Create a simple layer group as fallback
+        this.markerClusterGroup = L.layerGroup();
+      }
 
-    console.log('Map initialized successfully');
+      this.map.addLayer(this.markerClusterGroup);
+      console.log('Map initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+      console.log('Retrying map initialization in 1 second...');
+      setTimeout(() => this.initMap(), 1000);
+    }
   }
 
   resetMap(): void {
@@ -268,31 +289,95 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   setupResizeHandlers(): void {
-    const resizeHandle = document.querySelector(
-      '.resize-handle'
-    ) as HTMLElement;
-    const mapContainer = document.getElementById('hgMap') as HTMLElement;
+    console.log('Setting up resize handlers...');
 
-    if (resizeHandle && mapContainer) {
-      resizeHandle.addEventListener('mousedown', this.startResize.bind(this));
-      document.addEventListener('mousemove', this.doResize.bind(this));
-      document.addEventListener('mouseup', this.stopResize.bind(this));
-    }
+    // Use a longer delay to ensure DOM is ready
+    setTimeout(() => {
+      const resizeHandle = document.querySelector(
+        '.resize-handle'
+      ) as HTMLElement;
+      const mapContainer = document.getElementById('hgMap') as HTMLElement;
 
-    // Update the map size on window resize
-    window.addEventListener('resize', this.onResize.bind(this));
+      console.log('Resize handle found:', !!resizeHandle);
+      console.log('Map container found:', !!mapContainer);
 
-    // Also, if you have a container that can change size, observe it
-    const resizeObserver = new ResizeObserver(() => {
-      this.map.invalidateSize();
-    });
+      if (resizeHandle && mapContainer) {
+        console.log('Adding resize event listeners...');
 
-    if (mapContainer) {
-      resizeObserver.observe(mapContainer);
-    }
+        // Remove any existing listeners first
+        resizeHandle.removeEventListener('mousedown', this.boundStartResize);
+        document.removeEventListener('mousemove', this.boundDoResize);
+        document.removeEventListener('mouseup', this.boundStopResize);
+
+        // Add the listeners
+        resizeHandle.addEventListener('mousedown', this.boundStartResize);
+        document.addEventListener('mousemove', this.boundDoResize);
+        document.addEventListener('mouseup', this.boundStopResize);
+
+        // Add touch support for mobile/tablet devices
+        resizeHandle.addEventListener('touchstart', (e) => {
+          console.log('Touch start on resize handle');
+          const touch = e.touches[0];
+          this.boundStartResize({
+            clientY: touch.clientY,
+            preventDefault: () => e.preventDefault(),
+          } as MouseEvent);
+        });
+
+        document.addEventListener('touchmove', (e) => {
+          if (this.isDragging) {
+            const touch = e.touches[0];
+            this.boundDoResize({
+              clientY: touch.clientY,
+            } as MouseEvent);
+          }
+        });
+
+        document.addEventListener('touchend', () => {
+          if (this.isDragging) {
+            this.boundStopResize();
+          }
+        });
+
+        console.log('Resize handlers attached successfully');
+
+        // Add a simple click test for debugging
+        resizeHandle.addEventListener('click', () => {
+          console.log('Resize handle clicked! - Handle is responsive');
+        });
+
+        // Test the handle visibility
+        const handleRect = resizeHandle.getBoundingClientRect();
+        console.log('Resize handle position:', handleRect);
+      } else {
+        console.error('Failed to find resize elements:', {
+          resizeHandle: !!resizeHandle,
+          mapContainer: !!mapContainer,
+        });
+
+        // Retry after another delay
+        console.log('Retrying resize setup in 1 second...');
+        setTimeout(() => this.setupResizeHandlers(), 1000);
+      }
+
+      // Update the map size on window resize
+      window.addEventListener('resize', this.onResize.bind(this));
+
+      // Also, if you have a container that can change size, observe it
+      const resizeObserver = new ResizeObserver(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+        }
+      });
+
+      if (mapContainer) {
+        resizeObserver.observe(mapContainer);
+      }
+    }, 500); // Increased delay for production
   }
 
   startResize(event: MouseEvent): void {
+    console.log('startResize called', event);
     this.isDragging = true;
     this.startY = event.clientY;
 
@@ -303,14 +388,17 @@ export class HikeGangActivitiesComponent implements OnInit {
 
     if (mapContainer) {
       this.startHeight = mapContainer.offsetHeight;
+      console.log('Starting resize from height:', this.startHeight);
     }
 
     if (resizeHandle) {
       resizeHandle.classList.add('dragging');
+      console.log('Added dragging class to resize handle');
     }
 
     document.body.classList.add('resizing');
     event.preventDefault();
+    console.log('Resize started successfully');
   }
 
   doResize(event: MouseEvent): void {
@@ -325,6 +413,14 @@ export class HikeGangActivitiesComponent implements OnInit {
       Math.min(window.innerHeight * 0.8, this.startHeight + deltaY)
     );
 
+    console.log('Resizing map:', {
+      deltaY,
+      startHeight: this.startHeight,
+      newHeight,
+      currentY: event.clientY,
+      startY: this.startY,
+    });
+
     mapContainer.style.height = `${newHeight}px`;
     mapContainer.style.flex = `0 0 ${newHeight}px`;
 
@@ -337,6 +433,7 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   stopResize(): void {
+    console.log('stopResize called, was dragging:', this.isDragging);
     this.isDragging = false;
 
     const resizeHandle = document.querySelector(
@@ -347,6 +444,7 @@ export class HikeGangActivitiesComponent implements OnInit {
     }
 
     document.body.classList.remove('resizing');
+    console.log('Resize stopped');
   }
 
   onResize(): void {

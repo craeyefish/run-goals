@@ -66,7 +66,12 @@ func NewServer() *http.Server {
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
-	hgController := controllers.NewHgController(logger, activityService, userDao)
+	
+	// backgorund jobs
+	// TODO(cian): Move out of server.
+	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
+	
+	hgController := controllers.NewHgController(logger, activityService, userDao, fetcher)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
 	supportController := controllers.NewSupportController(logger, userService)
 
@@ -76,10 +81,6 @@ func NewServer() *http.Server {
 	hgHandler := handlers.NewHgHandler(logger, hgController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
 	supportHandler := handlers.NewSupportHandler(logger, supportController)
-
-	// backgorund jobs
-	// TODO(cian): Move out of server.
-	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
 	// fetcher.FetchUserActivities()
 	go func() {
 		for {

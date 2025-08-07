@@ -2,6 +2,20 @@
   <div class="header">
     <button class="back-button" (click)="goBack()">← Back</button>
     <h1>Hike Gang Badges</h1>
+    <button class="diagnostic-button" (click)="runDiagnostics()">🔍 Diagnostics</button>
+    <button class="sync-button" (click)="triggerSync()">🔄 Sync Activities</button>
+  </div>
+
+  <div class="diagnostic-results" *ngIf="diagnosticsData">
+    <h3>Activity Diagnostics:</h3>
+    <p><strong>Total Activities:</strong> {{ diagnosticsData.total_activities }}</p>
+    <p><strong>#hg Activities:</strong> {{ diagnosticsData.hg_activities }}</p>
+    <p><strong>#hg with Descriptions:</strong> {{ diagnosticsData.hg_activities_with_descriptions }}</p>
+    <p><strong>Total with Descriptions:</strong> {{ diagnosticsData.total_activities_with_descriptions }}</p>
+  </div>
+
+  <div class="sync-status" *ngIf="syncStatus">
+    <p><strong>Sync Status:</strong> {{ syncStatus }}</p>
   </div>
 
   <div class="badge-grid">

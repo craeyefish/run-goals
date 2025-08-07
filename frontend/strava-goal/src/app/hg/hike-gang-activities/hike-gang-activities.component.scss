@@ -37,9 +37,17 @@
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 1000; /* Ensure it's above other elements */
+  user-select: none; /* Prevent text selection during drag */
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff80; /* Make border more visible on hover */
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
   }
 }
 

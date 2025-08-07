@@ -6,6 +6,8 @@
   justify-content: center;
   position: relative;
   padding-bottom: 15px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .back-button {
@@ -122,4 +124,36 @@ h1 {
       color: #aaa;
     }
   }
+}
+
+.diagnostic-button, .sync-button {
+  background: #FF6600;
+  border: 2px solid #fff;
+  color: #fff;
+  font-family: "Press Start 2P", cursive;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+.diagnostic-button:hover, .sync-button:hover {
+  background: #e55a00;
+  transform: scale(1.05);
+}
+
+.diagnostic-results, .sync-status {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.diagnostic-results h3 {
+  margin-top: 0;
+  color: #FF6600;
 }

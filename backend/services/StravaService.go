@@ -79,6 +79,7 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 				StravaAthleteId:  user.StravaAthleteID,
 				UserID:           user.ID,
 				Name:             stravaActivity.Name,
+				Description:      stravaActivity.Description,
 				Distance:         stravaActivity.Distance,
 				Elevation:        stravaActivity.Elevation,
 				MovingTime:       float64(stravaActivity.MovingTime),
