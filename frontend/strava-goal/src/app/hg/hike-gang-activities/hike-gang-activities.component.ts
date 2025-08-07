@@ -37,34 +37,12 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('HikeGang Activities: Component initializing...');
     this.hgService.loadActivities();
     this.hgService.activities$.subscribe((acts) => {
-      console.log(
-        'HikeGang Activities: Received activities:',
-        acts?.length || 0
-      );
-
       if (acts) {
-        // Log all activity names for debugging
-        console.log(
-          'All activity names:',
-          acts.map((a) => a.name)
-        );
-
         // 1) Filter them by "#hg" (case insensitive)
         this.hgActivities = acts.filter((act) =>
           act.name?.toLowerCase().includes('#hg')
-        );
-
-        console.log('Filtered HG activities:', this.hgActivities.length);
-        console.log(
-          'HG activity names:',
-          this.hgActivities.map((a) => a.name)
-        );
-        console.log(
-          'Activities with polylines:',
-          this.hgActivities.filter((a) => a.map_polyline).length
         );
 
         // 2) Sort them by date descending (newest first)
@@ -92,14 +70,9 @@ export class HikeGangActivitiesComponent implements OnInit {
   initMap(): void {
     const mapElement = document.getElementById('hgMap');
     if (!mapElement) {
-      console.error('Map element not found! Retrying in 500ms...');
       setTimeout(() => this.initMap(), 500);
       return;
     }
-
-    console.log('Initializing map...');
-    console.log('Leaflet available:', typeof L !== 'undefined');
-    console.log('Leaflet map function available:', typeof L.map === 'function');
 
     try {
       this.map = L.map('hgMap', {
@@ -115,19 +88,14 @@ export class HikeGangActivitiesComponent implements OnInit {
 
       // Check if markerClusterGroup is available
       if (typeof (L as any).markerClusterGroup === 'function') {
-        console.log('MarkerCluster available, using clustering');
         this.markerClusterGroup = (L as any).markerClusterGroup();
       } else {
-        console.warn('MarkerCluster not available, using regular layer group');
         // Create a simple layer group as fallback
         this.markerClusterGroup = L.layerGroup();
       }
 
       this.map.addLayer(this.markerClusterGroup);
-      console.log('Map initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize map:', error);
-      console.log('Retrying map initialization in 1 second...');
       setTimeout(() => this.initMap(), 1000);
     }
   }
@@ -137,38 +105,19 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   displayActivities(): void {
-    console.log('Displaying activities:', this.hgActivities.length);
-    console.log('Polyline library available:', typeof polyline !== 'undefined');
-
     for (const act of this.hgActivities) {
-      console.log(
-        'Processing activity:',
-        act.name,
-        'Has polyline:',
-        !!act.map_polyline
-      );
-
       if (act.map_polyline) {
         try {
           const decodedCoords = polyline.decode(act.map_polyline);
-          console.log(
-            'Decoded coordinates for',
-            act.name,
-            ':',
-            decodedCoords.length,
-            'points'
-          );
 
           // Validate coordinates
           if (!decodedCoords || decodedCoords.length === 0) {
-            console.warn('No coordinates decoded for:', act.name);
             continue;
           }
 
           const latLngs = decodedCoords
             .map((coords) => {
               if (!Array.isArray(coords) || coords.length < 2) {
-                console.warn('Invalid coordinate pair:', coords);
                 return null;
               }
               return L.latLng(coords[0], coords[1]);
@@ -176,7 +125,6 @@ export class HikeGangActivitiesComponent implements OnInit {
             .filter((coord): coord is L.LatLng => coord !== null); // Type guard filter
 
           if (latLngs.length === 0) {
-            console.warn('No valid coordinates for:', act.name);
             continue;
           }
 
@@ -184,8 +132,6 @@ export class HikeGangActivitiesComponent implements OnInit {
             color: act.has_summit ? 'green' : 'blue',
             weight: 3,
           }).addTo(this.map);
-
-          console.log('Added polyline for:', act.name);
 
           // Save reference
           this.polylinesById[act.id] = poly;
@@ -198,33 +144,12 @@ export class HikeGangActivitiesComponent implements OnInit {
           // Add popup
           poly.bindPopup(this.buildActivityPopup(act));
         } catch (error) {
-          console.error(
-            'Error processing polyline for activity:',
-            act.name,
-            error
-          );
-          console.error(
-            'Polyline data:',
-            act.map_polyline?.substring(0, 100) + '...'
-          );
-
-          // Log more details about the error
-          console.error('Activity details:', {
-            id: act.id,
-            name: act.name,
-            hasPolyline: !!act.map_polyline,
-            polylineLength: act.map_polyline?.length,
-          });
+          // Skip activities with invalid polylines
         }
       } else {
-        console.warn('No polyline data for activity:', act.name);
+        // Skip activities without polyline data
       }
     }
-
-    console.log(
-      'Total polylines added to map:',
-      Object.keys(this.polylinesById).length
-    );
   }
 
   highlightActivity(act: Activity): void {
@@ -289,8 +214,6 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   setupResizeHandlers(): void {
-    console.log('Setting up resize handlers...');
-
     // Use a longer delay to ensure DOM is ready
     setTimeout(() => {
       const resizeHandle = document.querySelector(
@@ -298,12 +221,7 @@ export class HikeGangActivitiesComponent implements OnInit {
       ) as HTMLElement;
       const mapContainer = document.getElementById('hgMap') as HTMLElement;
 
-      console.log('Resize handle found:', !!resizeHandle);
-      console.log('Map container found:', !!mapContainer);
-
       if (resizeHandle && mapContainer) {
-        console.log('Adding resize event listeners...');
-
         // Remove any existing listeners first
         resizeHandle.removeEventListener('mousedown', this.boundStartResize);
         document.removeEventListener('mousemove', this.boundDoResize);
@@ -316,7 +234,6 @@ export class HikeGangActivitiesComponent implements OnInit {
 
         // Add touch support for mobile/tablet devices
         resizeHandle.addEventListener('touchstart', (e) => {
-          console.log('Touch start on resize handle');
           const touch = e.touches[0];
           this.boundStartResize({
             clientY: touch.clientY,
@@ -338,25 +255,8 @@ export class HikeGangActivitiesComponent implements OnInit {
             this.boundStopResize();
           }
         });
-
-        console.log('Resize handlers attached successfully');
-
-        // Add a simple click test for debugging
-        resizeHandle.addEventListener('click', () => {
-          console.log('Resize handle clicked! - Handle is responsive');
-        });
-
-        // Test the handle visibility
-        const handleRect = resizeHandle.getBoundingClientRect();
-        console.log('Resize handle position:', handleRect);
       } else {
-        console.error('Failed to find resize elements:', {
-          resizeHandle: !!resizeHandle,
-          mapContainer: !!mapContainer,
-        });
-
         // Retry after another delay
-        console.log('Retrying resize setup in 1 second...');
         setTimeout(() => this.setupResizeHandlers(), 1000);
       }
 
@@ -377,7 +277,6 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   startResize(event: MouseEvent): void {
-    console.log('startResize called', event);
     this.isDragging = true;
     this.startY = event.clientY;
 
@@ -388,17 +287,14 @@ export class HikeGangActivitiesComponent implements OnInit {
 
     if (mapContainer) {
       this.startHeight = mapContainer.offsetHeight;
-      console.log('Starting resize from height:', this.startHeight);
     }
 
     if (resizeHandle) {
       resizeHandle.classList.add('dragging');
-      console.log('Added dragging class to resize handle');
     }
 
     document.body.classList.add('resizing');
     event.preventDefault();
-    console.log('Resize started successfully');
   }
 
   doResize(event: MouseEvent): void {
@@ -413,14 +309,6 @@ export class HikeGangActivitiesComponent implements OnInit {
       Math.min(window.innerHeight * 0.8, this.startHeight + deltaY)
     );
 
-    console.log('Resizing map:', {
-      deltaY,
-      startHeight: this.startHeight,
-      newHeight,
-      currentY: event.clientY,
-      startY: this.startY,
-    });
-
     mapContainer.style.height = `${newHeight}px`;
     mapContainer.style.flex = `0 0 ${newHeight}px`;
 
@@ -433,7 +321,6 @@ export class HikeGangActivitiesComponent implements OnInit {
   }
 
   stopResize(): void {
-    console.log('stopResize called, was dragging:', this.isDragging);
     this.isDragging = false;
 
     const resizeHandle = document.querySelector(
@@ -444,7 +331,6 @@ export class HikeGangActivitiesComponent implements OnInit {
     }
 
     document.body.classList.remove('resizing');
-    console.log('Resize stopped');
   }
 
   onResize(): void {

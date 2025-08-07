@@ -28,9 +28,6 @@ func (handler *HgHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "/hikegang/activities":
 		handler.HgController.ListHikeGangActivities(rw, r)
 		return
-	case "/hikegang/diagnostics":
-		handler.HgController.DiagnosticsActivities(rw, r)
-		return
 	case "/hikegang/sync":
 		if r.Method == http.MethodPost {
 			handler.HgController.TriggerActivitySync(rw, r)
