@@ -90,8 +90,8 @@ export class AuthService {
 
     const clientId = '49851';
     const redirectUri = encodeURIComponent(
-      // 'https://summitseekers.co.za/login/strava/callback'
-      'http://localhost:4200/login/strava/callback'
+      'https://summitseekers.co.za/login/strava/callback'
+      // 'http://localhost:4200/login/strava/callback'
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();
