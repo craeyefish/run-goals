@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: run-goals-backend-ingress
+  name: summitseekers-backend-ingress
   namespace: default
   annotations:
     kubernetes.io/ingress.class: 'traefik'
@@ -17,28 +17,28 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: run-goals-backend
+                name: summitseekers-backend
                 port:
                   number: 8080
           - path: /auth
             pathType: Prefix
             backend:
               service:
-                name: run-goals-backend
+                name: summitseekers-backend
                 port:
                   number: 8080
           - path: /hikegang
             pathType: Prefix
             backend:
               service:
-                name: run-goals-backend
+                name: summitseekers-backend
                 port:
                   number: 8080
           - path: /webhook
             pathType: Prefix
             backend:
               service:
-                name: run-goals-backend
+                name: summitseekers-backend
                 port:
                   number: 8080
 
@@ -47,7 +47,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: run-goals-frontend-ingress
+  name: summitseekers-frontend-ingress
   namespace: default
   annotations:
     kubernetes.io/ingress.class: 'traefik'
@@ -62,6 +62,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: run-goals-frontend
+                name: summitseekers-frontend
                 port:
                   number: 80

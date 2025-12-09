@@ -4,10 +4,10 @@
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
-  name: run-goals-frontend
+  name: summitseekers-frontend
   namespace: flux-system
 spec:
-  image: ghcr.io/craeyefish/run-goals-frontend
+  image: ghcr.io/craeyefish/summitseekers-frontend
   interval: 1m
 
 ---
@@ -17,11 +17,11 @@ spec:
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
-  name: run-goals-frontend
+  name: summitseekers-frontend
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: run-goals-frontend
+    name: summitseekers-frontend
   filterTags:
     pattern: '^frontend-v(?P<v>[0-9]+\.[0-9]+\.[0-9]+.*)$'
     extract: '$v'
@@ -36,7 +36,7 @@ spec:
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageUpdateAutomation
 metadata:
-  name: run-goals-frontend
+  name: summitseekers-frontend
   namespace: flux-system
 spec:
   interval: 5m

@@ -1,0 +1,10 @@
+# Secrets - DO NOT COMMIT TO GIT
+# These files contain sensitive credentials
+
+db-secret.yaml
+strava-secret.yaml
+jwt-secret.yaml
+cloudflared-credentials.yaml
+
+# Keep templates for reference
+!*-template.yaml

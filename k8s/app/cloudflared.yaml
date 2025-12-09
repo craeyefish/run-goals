@@ -5,7 +5,7 @@ metadata:
   namespace: default
 data:
   config.yaml: |
-    tunnel: 019a8612-2d4b-42c7-9c7e-ccd539e4c701
+    tunnel: 9ebe05d0-4777-4785-b32f-07714ded5e3b
     credentials-file: /etc/cloudflared/creds/credentials.json
     no-autoupdate: true
     ingress:
