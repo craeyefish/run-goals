@@ -7,7 +7,10 @@ resources:
   - backend.yaml
   - dashboard.yaml
   # - db.yaml  # Commented out - using DigitalOcean Managed PostgreSQL instead
-  # Secrets are applied manually via apply-secrets.sh (not in Git)
+  - db-secret-sealed.yaml
+  - jwt-secret-sealed.yaml
+  - strava-secret-sealed.yaml
+  - cloudflared-credentials-sealed.yaml
   - frontend.yaml
   - ingress.yaml
   - cloudflared.yaml
