@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/craeyefish/summitseekers-backend:backend-v0.0.12 # {"$imagepolicy": "flux-system:summitseekers-backend"}
+          image: ghcr.io/craeyefish/summitseekers-backend:backend-v0.0.14 # {"$imagepolicy": "flux-system:summitseekers-backend"}
           ports:
             - containerPort: 8080
           env:
