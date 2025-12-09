@@ -10,7 +10,19 @@ data:
     no-autoupdate: true
     ingress:
       - hostname: summitseekers.co.za
-        service: http://traefik.kube-system.svc.cluster.local:80
+        path: ^/api(/.*)?$
+        service: http://summitseekers-backend.default.svc.cluster.local:8080
+      - hostname: summitseekers.co.za
+        path: ^/auth(/.*)?$
+        service: http://summitseekers-backend.default.svc.cluster.local:8080
+      - hostname: summitseekers.co.za
+        path: ^/hikegang(/.*)?$
+        service: http://summitseekers-backend.default.svc.cluster.local:8080
+      - hostname: summitseekers.co.za
+        path: ^/webhook(/.*)?$
+        service: http://summitseekers-backend.default.svc.cluster.local:8080
+      - hostname: summitseekers.co.za
+        service: http://summitseekers-frontend.default.svc.cluster.local:80
       - service: http_status:404
 
 ---
