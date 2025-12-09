@@ -7,7 +7,7 @@ resources:
   - backend.yaml
   - dashboard.yaml
   # - db.yaml  # Commented out - using DigitalOcean Managed PostgreSQL instead
-  - db-secret.yaml
+  # Secrets are applied manually via apply-secrets.sh (not in Git)
   - frontend.yaml
   - ingress.yaml
   - cloudflared.yaml
