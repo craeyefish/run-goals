@@ -53,6 +53,8 @@ spec:
         email: flux@summitseekers.co.za
     push:
       branch: main
+      secretRef:
+        name: flux-git-auth
   update:
     path: ./k8s
     strategy: Setters

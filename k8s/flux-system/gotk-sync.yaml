@@ -10,8 +10,8 @@ spec:
   ref:
     branch: main
   secretRef:
-    name: flux-system
-  url: ssh://git@github.com/craeyefish/run-goals
+    name: flux-git-auth
+  url: https://github.com/craeyefish/run-goals
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
