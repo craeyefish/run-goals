@@ -25,6 +25,10 @@ data:
         service: http://summitseekers-frontend.default.svc.cluster.local:80
       - hostname: n8n.craeyebytes.com
         service: http://n8n.automation.svc.cluster.local:80
+      - hostname: staging.craeyebytes.com
+        service: http://craeyebytes-website-staging.default.svc.cluster.local:80
+      - hostname: www.craeyebytes.com
+        service: http://craeyebytes-website-staging.default.svc.cluster.local:80
       - service: http_status:404
 
 ---
