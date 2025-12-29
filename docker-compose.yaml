@@ -1,25 +1,19 @@
+# Local development with production database
+# Usage: docker compose up --build
+#
+# Make sure your backend/.env has production DB credentials:
+#   DATABASE_HOST=your-db-cluster.db.ondigitalocean.com
+#   DATABASE_PORT=25060
+#   DATABASE_USER=doadmin
+#   DATABASE_PASSWORD=your_password
+#   DATABASE_DBNAME=run_goals
+#   DATABASE_SSLMODE=require
+#   DISABLE_SYNC_JOB=true
+#   (plus STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, JWT_SECRET)
+
 version: "3.8"
 
 services:
-  db:
-    image: run-goals/db:latest
-    container_name: run-goals-db
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    environment:
-      ENVIRONMENT: develop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: run_goals
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     image: run-goals/backend:latest
     container_name: run-goals-backend
@@ -30,14 +24,6 @@ services:
       - "8080:8080"
     env_file:
       - ./backend/.env
-    environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=run_goals
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     container_name: run-goals-frontend

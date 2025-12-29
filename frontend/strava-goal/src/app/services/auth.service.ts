@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -86,12 +87,10 @@ export class AuthService {
   }
 
   login(): void {
-    // Redirect to Strava’s OAuth page
-
-    const clientId = '49851';
+    // Redirect to Strava's OAuth page
+    const clientId = environment.stravaClientId;
     const redirectUri = encodeURIComponent(
-      'https://summitseekers.co.za/login/strava/callback'
-      // 'http://localhost:4200/login/strava/callback'
+      `${environment.baseUrl}/login/strava/callback`
     );
     const scope = 'read,activity:read_all';
     const state = this.generateState();

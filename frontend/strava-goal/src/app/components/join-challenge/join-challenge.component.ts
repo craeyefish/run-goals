@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-join-challenge',
@@ -9,14 +10,13 @@ import { FormsModule } from '@angular/forms';
 export class JoinChallengeComponent {
   password = '';
   correctPassword = 'secret'; // Example only! Use a real approach to hide this.
-  mydomain = 'https://summitseekers.co.za';
 
   joinIfPasswordCorrect() {
     if (this.password === this.correctPassword) {
-      // Redirect to Strava’s OAuth page
-      const clientId = '49851';
+      // Redirect to Strava's OAuth page
+      const clientId = environment.stravaClientId;
       const redirectUri = encodeURIComponent(
-        this.mydomain + '/auth/strava/callback'
+        `${environment.baseUrl}/auth/strava/callback`
       );
       const scope = 'read,activity:read_all';
 

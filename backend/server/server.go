@@ -66,11 +66,11 @@ func NewServer() *http.Server {
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
-	
+
 	// backgorund jobs
 	// TODO(cian): Move out of server.
 	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
-	
+
 	hgController := controllers.NewHgController(logger, activityService, userDao, fetcher)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
 	supportController := controllers.NewSupportController(logger, userService)
@@ -81,13 +81,18 @@ func NewServer() *http.Server {
 	hgHandler := handlers.NewHgHandler(logger, hgController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)
 	supportHandler := handlers.NewSupportHandler(logger, supportController)
-	// fetcher.FetchUserActivities()
-	go func() {
-		for {
-			time.Sleep(24 * time.Hour)
-			fetcher.FetchUserActivities()
-		}
-	}()
+
+	// background sync job - disabled via DISABLE_SYNC_JOB=true for local development
+	if os.Getenv("DISABLE_SYNC_JOB") != "true" {
+		go func() {
+			for {
+				time.Sleep(24 * time.Hour)
+				fetcher.FetchUserActivities()
+			}
+		}()
+	} else {
+		logger.Println("Sync job disabled via DISABLE_SYNC_JOB environment variable")
+	}
 
 	// create new serve mux and register handlers
 	mux := http.NewServeMux()
