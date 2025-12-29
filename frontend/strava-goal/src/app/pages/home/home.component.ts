@@ -7,9 +7,12 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivityService, Activity } from '../../services/activity.service';
 import { PeakSummitService } from '../../services/peak-summit.service';
-import { GroupService, Group, Goal } from '../../services/groups.service';
+import { PeakService, Peak } from '../../services/peak.service';
+import { PersonalGoalsService, PersonalYearlyGoal } from '../../services/personal-goals.service';
+import { PeakPickerComponent, SelectedPeak } from '../../components/peak-picker/peak-picker.component';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import {
@@ -23,15 +26,23 @@ import 'chartjs-adapter-date-fns';
 
 Chart.register(...registerables);
 
+interface TargetSummit {
+  id: number;
+  name: string;
+  completed: boolean;
+  summitedAt?: Date;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, PeakPickerComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('progressChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('distanceChart') distanceChartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('elevationChart') elevationChartCanvas!: ElementRef<HTMLCanvasElement>;
 
   loading = true;
   error: string | null = null;
@@ -39,51 +50,73 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Stats
   totalDistance = 0;
-  totalElevation = 0; // New stat
+  totalElevation = 0;
   totalActivities = 0;
   totalSummits = 0;
-  avgDistance = 0;
 
-  // Personal goals (keeping the old ones for now)
-  distanceGoal = 1000; // 1000km goal
-  summitGoal = 20; // 20 peaks goal
-  distanceGoalPercentage = 0;
-  summitGoalPercentage = 0;
+  // Personal goals from API
+  personalGoals: PersonalYearlyGoal | null = null;
 
-  // Group goals
-  groupGoals: GroupGoalDisplay[] = [];
+  // Summit wishlist
+  targetSummits: TargetSummit[] = [];
+  completedTargetSummits = 0;
+  summitProgressPercentage = 0;
 
-  // Chart
-  chart: Chart | null = null;
+  // Modal states
+  showGoalEditor = false;
+  editingGoalType: 'distance' | 'elevation' = 'distance';
+  editingGoalValue = 0;
+  showSummitPicker = false;
+
+  // Charts
+  distanceChart: Chart | null = null;
+  elevationChart: Chart | null = null;
+
+  // Store activities for chart creation
+  private yearActivities: Activity[] = [];
+  private peakSummaries: any[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private activityService: ActivityService,
     private peakSummitService: PeakSummitService,
-    private groupService: GroupService
-  ) {}
+    private peakService: PeakService,
+    private personalGoalsService: PersonalGoalsService
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboardData();
   }
 
   ngAfterViewInit(): void {
-    // Chart will be created after data loads
+    // Charts will be created after data loads
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.chart) {
-      this.chart.destroy();
+    if (this.distanceChart) {
+      this.distanceChart.destroy();
+    }
+    if (this.elevationChart) {
+      this.elevationChart.destroy();
     }
   }
 
   loadDashboardData(): void {
-    console.log('Loading dashboard data...');
     this.activityService.loadActivities();
-    this.groupService.loadGroups();
+
+    // Load personal goals
+    this.personalGoalsService.getCurrentYearGoals().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (goals) => {
+        this.personalGoals = goals;
+        this.loadTargetSummits();
+      },
+      error: (err) => console.error('Error loading personal goals:', err)
+    });
 
     combineLatest([
       this.activityService.activities$.pipe(
@@ -94,21 +127,21 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([activities, peakSummaries]) => {
-          console.log('Dashboard data loaded:', {
-            activities: activities?.length,
-            peakSummaries: peakSummaries?.length,
-          });
-
-          // Ensure we have valid data before calculating stats
           const validActivities = activities || [];
-          const validPeakSummaries = peakSummaries || [];
+          this.peakSummaries = peakSummaries || [];
 
-          this.calculateStats(validActivities, validPeakSummaries);
-          this.loadGroupGoals();
+          this.calculateStats(validActivities, this.peakSummaries);
 
-          // Ensure the view has been initialized before creating chart
+          // Store for chart creation
+          this.yearActivities = validActivities.filter(
+            (activity) => new Date(activity.start_date).getFullYear() === this.currentYear
+          ).sort(
+            (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+          );
+
           setTimeout(() => {
-            this.createProgressChart(validActivities);
+            this.createDistanceChart();
+            this.createElevationChart();
           }, 100);
 
           this.loading = false;
@@ -121,119 +154,76 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  loadGroupGoals(): void {
-    const groups = this.groupService.groups();
-    this.groupGoals = [];
-
-    if (groups.length === 0) {
+  loadTargetSummits(): void {
+    if (!this.personalGoals?.target_summits?.length) {
+      this.targetSummits = [];
+      this.updateSummitProgress();
       return;
     }
 
-    // For each group, load its goals
-    groups.forEach((group) => {
-      this.groupService.getGroupGoals(group.id).subscribe({
-        next: (response) => {
-          if (response.goals.length > 0) {
-            const groupGoal = {
-              groupName: group.name,
-              goals: [] as (Goal & { progressPercentage: number })[],
-            };
+    // Load peaks data first, then match with summit summaries
+    this.peakService.loadPeaks();
 
-            let goalsProcessed = 0;
-            const totalGoals = response.goals.length;
+    combineLatest([
+      this.peakService.peaks$.pipe(filter(peaks => peaks !== null)),
+      this.peakSummitService.getPeakSummaries()
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(([allPeaks, summaries]) => {
+      this.targetSummits = this.personalGoals!.target_summits.map(peakId => {
+        // Get peak name from allPeaks (has ALL peaks)
+        const peakInfo = allPeaks!.find((p: Peak) => p.id === peakId);
+        // Get summit data from summaries (only summited peaks have activities)
+        const summitData = summaries.find((s: any) => s.peak_id === peakId);
+        const summitedActivity = summitData?.activities?.find((a: any) =>
+          new Date(a.start_date).getFullYear() === this.currentYear
+        );
 
-            // Load progress for each goal
-            response.goals.forEach((goal) => {
-              this.groupService.getGroupGoalProgress(goal.id).subscribe({
-                next: (progressResponse) => {
-                  groupGoal.goals.push({
-                    ...goal,
-                    progressPercentage: progressResponse.progress || 0,
-                  });
-                  goalsProcessed++;
-
-                  // Add the group when all goals are processed
-                  if (goalsProcessed === totalGoals) {
-                    this.groupGoals.push(groupGoal);
-                  }
-                },
-                error: (err) => {
-                  console.error(
-                    `Failed to load progress for goal ${goal.id}:`,
-                    err
-                  );
-                  // Fallback to time-based calculation
-                  groupGoal.goals.push({
-                    ...goal,
-                    progressPercentage: this.calculateGoalProgress(goal),
-                  });
-                  goalsProcessed++;
-
-                  if (goalsProcessed === totalGoals) {
-                    this.groupGoals.push(groupGoal);
-                  }
-                },
-              });
-            });
-          }
-        },
-        error: (err) => {
-          console.error(`Failed to load goals for group ${group.name}:`, err);
-        },
+        return {
+          id: peakId,
+          name: peakInfo?.name || summitData?.peak_name || 'Unknown Peak',
+          completed: !!summitedActivity,
+          summitedAt: summitedActivity ? new Date(summitedActivity.start_date) : undefined
+        };
       });
+
+      // Sort: incomplete first, then completed
+      this.targetSummits.sort((a, b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        return a.name.localeCompare(b.name);
+      });
+
+      this.updateSummitProgress();
     });
   }
 
-  calculateGoalProgress(goal: Goal): number {
-    // This is a simplified calculation - you might want to implement
-    // more sophisticated logic based on goal type and current user stats
-    const today = new Date();
-    const startDate = new Date(goal.start_date || today);
-    const endDate = new Date(goal.end_date || today);
-
-    if (startDate > today) return 0; // Goal hasn't started yet
-    if (endDate < today) return 100; // Goal has ended
-
-    // Calculate time-based progress as a fallback
-    const totalTime = endDate.getTime() - startDate.getTime();
-    const elapsedTime = today.getTime() - startDate.getTime();
-    return Math.min(100, Math.max(0, (elapsedTime / totalTime) * 100));
+  updateSummitProgress(): void {
+    this.completedTargetSummits = this.targetSummits.filter(s => s.completed).length;
+    const total = this.targetSummits.length || this.personalGoals?.summit_goal || 1;
+    this.summitProgressPercentage = Math.min(100, (this.completedTargetSummits / total) * 100);
   }
 
   calculateStats(activities: Activity[], peakSummaries: any[]): void {
     const currentYear = new Date().getFullYear();
 
-    // Filter activities for current year
     const yearActivities = activities.filter((activity) => {
       const activityYear = new Date(activity.start_date).getFullYear();
       return activityYear === currentYear;
     });
 
-    // Calculate basic stats
     this.totalActivities = yearActivities.length;
     this.totalDistance = parseFloat(
       yearActivities
-        .reduce((total, activity) => {
-          return total + activity.distance / 1000;
-        }, 0)
+        .reduce((total, activity) => total + activity.distance / 1000, 0)
         .toFixed(1)
     );
 
-    // Calculate total elevation gain
     this.totalElevation = parseFloat(
       yearActivities
-        .reduce((total, activity) => {
-          return total + (activity.total_elevation_gain || 0);
-        }, 0)
+        .reduce((total, activity) => total + (activity.total_elevation_gain || 0), 0)
         .toFixed(0)
     );
 
-    this.avgDistance =
-      this.totalActivities > 0
-        ? parseFloat((this.totalDistance / this.totalActivities).toFixed(1))
-        : 0;
-
-    // Calculate summits - add null check
     let summitCount = 0;
     if (peakSummaries && Array.isArray(peakSummaries)) {
       peakSummaries.forEach((peak) => {
@@ -248,101 +238,132 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
     this.totalSummits = summitCount;
-
-    // Calculate personal goal percentages - fixed to 2 decimal places
-    this.distanceGoalPercentage = parseFloat(
-      Math.min(100, (this.totalDistance / this.distanceGoal) * 100).toFixed(2)
-    );
-    this.summitGoalPercentage = parseFloat(
-      Math.min(100, (this.totalSummits / this.summitGoal) * 100).toFixed(2)
-    );
   }
 
-  createProgressChart(activities: Activity[]): void {
-    if (!this.chartCanvas) return;
+  // Goal getters with defaults
+  get distanceGoal(): number {
+    return this.personalGoals?.distance_goal || 1000;
+  }
 
-    const currentYear = new Date().getFullYear();
-    const yearActivities = activities
-      .filter(
-        (activity) =>
-          new Date(activity.start_date).getFullYear() === currentYear
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-      );
+  get elevationGoal(): number {
+    return this.personalGoals?.elevation_goal || 25000;
+  }
 
-    console.log('Year activities for chart:', yearActivities.length);
+  get summitGoal(): number {
+    return this.personalGoals?.summit_goal || 20;
+  }
 
-    // Create cumulative distance data
-    let cumulativeDistance = 0;
-    const chartData = yearActivities.map((activity) => {
-      cumulativeDistance += activity.distance / 1000;
-      return {
-        x: new Date(activity.start_date).getTime(),
-        y: parseFloat(cumulativeDistance.toFixed(1)),
-        hasSummit: activity.has_summit,
-      };
-    });
+  get distanceProgress(): number {
+    return Math.min(100, (this.totalDistance / this.distanceGoal) * 100);
+  }
 
-    // Create goal line data (daily progress needed to reach annual goal)
-    const startOfYear = new Date(currentYear, 0, 1); // January 1st
-    const endOfYear = new Date(currentYear, 11, 31); // December 31st
-    const today = new Date();
+  get elevationProgress(): number {
+    return Math.min(100, (this.totalElevation / this.elevationGoal) * 100);
+  }
 
-    // Calculate daily distance needed
-    const totalDaysInYear =
-      Math.ceil(
-        (endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
-    const dailyDistanceNeeded = this.distanceGoal / totalDaysInYear;
-
-    // Create goal line points
-    const goalLineData = [];
-
-    // Start point
-    goalLineData.push({
-      x: startOfYear.getTime(),
-      y: 0,
-    });
-
-    // If we have activities, create points that align with activity dates
-    if (yearActivities.length > 0) {
-      yearActivities.forEach((activity) => {
-        const activityDate = new Date(activity.start_date);
-        const daysSinceStart = Math.ceil(
-          (activityDate.getTime() - startOfYear.getTime()) /
-            (1000 * 60 * 60 * 24)
-        );
-        const expectedDistance = dailyDistanceNeeded * daysSinceStart;
-
-        goalLineData.push({
-          x: activityDate.getTime(),
-          y: parseFloat(expectedDistance.toFixed(1)),
-        });
-      });
+  // Modal close handlers - only close if mousedown started on overlay
+  onOverlayMouseDown(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.showGoalEditor = false;
     }
+  }
 
-    // Add current date point
-    const daysSinceStartToday = Math.ceil(
-      (today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const expectedDistanceToday = dailyDistanceNeeded * daysSinceStartToday;
-    goalLineData.push({
-      x: today.getTime(),
-      y: parseFloat(expectedDistanceToday.toFixed(1)),
+  onSummitOverlayMouseDown(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.showSummitPicker = false;
+    }
+  }
+
+  // Goal editing
+  openGoalEditor(type: 'distance' | 'elevation'): void {
+    this.editingGoalType = type;
+    this.editingGoalValue = type === 'distance' ? this.distanceGoal : this.elevationGoal;
+    this.showGoalEditor = true;
+  }
+
+  saveGoal(): void {
+    if (!this.personalGoals) return;
+
+    const updates: PersonalYearlyGoal = {
+      ...this.personalGoals,
+      distance_goal: this.editingGoalType === 'distance' ? this.editingGoalValue : this.personalGoals.distance_goal,
+      elevation_goal: this.editingGoalType === 'elevation' ? this.editingGoalValue : this.personalGoals.elevation_goal,
+    };
+
+    this.personalGoalsService.saveGoals(updates).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (updated: PersonalYearlyGoal) => {
+        this.personalGoals = updated;
+        this.showGoalEditor = false;
+        // Recreate charts with new goals
+        if (this.distanceChart) this.distanceChart.destroy();
+        if (this.elevationChart) this.elevationChart.destroy();
+        this.createDistanceChart();
+        this.createElevationChart();
+      },
+      error: (err: any) => console.error('Error saving goal:', err)
     });
+  }
 
-    // End point
-    goalLineData.push({
-      x: endOfYear.getTime(),
-      y: this.distanceGoal,
+  // Summit wishlist management
+  openSummitPicker(): void {
+    this.showSummitPicker = true;
+  }
+
+  closeSummitPicker(): void {
+    this.showSummitPicker = false;
+  }
+
+  onPeakAdded(peak: SelectedPeak): void {
+    if (!this.personalGoals) return;
+
+    this.personalGoalsService.addTargetSummit(peak.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (updated: PersonalYearlyGoal) => {
+        this.personalGoals = updated;
+        this.loadTargetSummits();
+      },
+      error: (err: any) => console.error('Error adding summit:', err)
     });
+  }
 
-    console.log('Chart data:', chartData);
-    console.log('Goal line data:', goalLineData);
+  onPeakRemoved(peak: SelectedPeak): void {
+    if (!this.personalGoals) return;
 
-    const ctx = this.chartCanvas.nativeElement.getContext('2d');
+    this.personalGoalsService.removeTargetSummit(peak.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (updated: PersonalYearlyGoal) => {
+        this.personalGoals = updated;
+        this.loadTargetSummits();
+      },
+      error: (err: any) => console.error('Error removing summit:', err)
+    });
+  }
+
+  removeTargetSummit(summitId: number): void {
+    if (!this.personalGoals) return;
+
+    this.personalGoalsService.removeTargetSummit(summitId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (updated: PersonalYearlyGoal) => {
+        this.personalGoals = updated;
+        this.loadTargetSummits();
+      },
+      error: (err: any) => console.error('Error removing summit:', err)
+    });
+  }
+
+  createDistanceChart(): void {
+    if (!this.distanceChartCanvas) return;
+
+    const chartData = this.buildCumulativeData(this.yearActivities, 'distance');
+    const goalLineData = this.buildGoalLine(this.distanceGoal);
+
+    const ctx = this.distanceChartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
     const config: ChartConfiguration = {
@@ -350,7 +371,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       data: {
         datasets: [
           {
-            label: 'Cumulative Distance (km)',
+            label: 'Distance (km)',
             data: chartData,
             borderColor: '#fc4c02',
             backgroundColor: 'rgba(252, 76, 2, 0.1)',
@@ -363,100 +384,155 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
             },
             pointRadius: (context: ScriptableContext<'line'>) => {
               const point = chartData[context.dataIndex];
-              return point?.hasSummit ? 8 : 4;
+              return point?.hasSummit ? 6 : 3;
             },
-            pointBorderWidth: 2,
+            pointBorderWidth: 1,
             pointBorderColor: '#fff',
             order: 1,
           },
           {
-            label: `Goal Pace (${this.distanceGoal}km/year)`,
+            label: `Goal (${this.distanceGoal} km)`,
             data: goalLineData,
-            borderColor: '#00d4aa', // Turquoise/teal color
+            borderColor: '#00d4aa',
             backgroundColor: 'transparent',
             borderWidth: 2,
-            borderDash: [5, 5], // Dashed line
+            borderDash: [5, 5],
             fill: false,
             tension: 0,
-            pointRadius: 0, // No points on goal line
-            pointHoverRadius: 0,
+            pointRadius: 0,
             order: 2,
           },
         ],
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index',
+      options: this.getChartOptions('km'),
+    };
+
+    this.distanceChart = new Chart(ctx, config);
+  }
+
+  createElevationChart(): void {
+    if (!this.elevationChartCanvas) return;
+
+    const chartData = this.buildCumulativeData(this.yearActivities, 'elevation');
+    const goalLineData = this.buildGoalLine(this.elevationGoal);
+
+    const ctx = this.elevationChartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const config: ChartConfiguration = {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'Elevation (m)',
+            data: chartData,
+            borderColor: '#6b5b95',
+            backgroundColor: 'rgba(107, 91, 149, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.1,
+            pointBackgroundColor: (context: ScriptableContext<'line'>) => {
+              const point = chartData[context.dataIndex];
+              return point?.hasSummit ? '#8b7fb5' : '#6b5b95';
+            },
+            pointRadius: (context: ScriptableContext<'line'>) => {
+              const point = chartData[context.dataIndex];
+              return point?.hasSummit ? 6 : 3;
+            },
+            pointBorderWidth: 1,
+            pointBorderColor: '#fff',
+            order: 1,
+          },
+          {
+            label: `Goal (${this.elevationGoal.toLocaleString()} m)`,
+            data: goalLineData,
+            borderColor: '#00d4aa',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0,
+            pointRadius: 0,
+            order: 2,
+          },
+        ],
+      },
+      options: this.getChartOptions('m'),
+    };
+
+    this.elevationChart = new Chart(ctx, config);
+  }
+
+  private buildCumulativeData(activities: Activity[], type: 'distance' | 'elevation'): any[] {
+    let cumulative = 0;
+    return activities.map(activity => {
+      if (type === 'distance') {
+        cumulative += activity.distance / 1000;
+      } else {
+        cumulative += activity.total_elevation_gain || 0;
+      }
+      return {
+        x: new Date(activity.start_date).getTime(),
+        y: parseFloat(cumulative.toFixed(type === 'distance' ? 1 : 0)),
+        hasSummit: activity.has_summit,
+      };
+    });
+  }
+
+  private buildGoalLine(goal: number): any[] {
+    const startOfYear = new Date(this.currentYear, 0, 1);
+    const endOfYear = new Date(this.currentYear, 11, 31);
+    const today = new Date();
+
+    const totalDays = Math.ceil((endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const dailyNeeded = goal / totalDays;
+    const daysSoFar = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+
+    return [
+      { x: startOfYear.getTime(), y: 0 },
+      { x: today.getTime(), y: parseFloat((dailyNeeded * daysSoFar).toFixed(1)) },
+      { x: endOfYear.getTime(), y: goal },
+    ];
+  }
+
+  private getChartOptions(unit: string): any {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: 'index',
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'month',
+            displayFormats: { month: 'MMM' },
+          },
+          grid: { color: 'rgba(100, 100, 100, 0.2)' },
+          ticks: { color: '#666' },
         },
-        scales: {
-          x: {
-            type: 'time',
-            time: {
-              unit: 'month',
-              displayFormats: {
-                month: 'MMM yyyy',
-              },
-            },
-            grid: {
-              color: 'rgba(100, 100, 100, 0.2)',
-            },
-            ticks: {
-              color: '#666',
-            },
-          },
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(100, 100, 100, 0.2)',
-            },
-            ticks: {
-              color: '#666',
-              callback: function (value) {
-                return value + ' km';
-              },
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: '#333',
-            },
-          },
-          tooltip: {
-            callbacks: {
-              title: (context: any) => {
-                // Format the date nicely
-                const date = new Date(context[0].parsed.x);
-                return date.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                });
-              },
-              afterLabel: (context: any) => {
-                if (context.datasetIndex === 0) {
-                  // Only for actual distance line
-                  const point = chartData[context.dataIndex];
-                  return point?.hasSummit ? '🏔️ Peak Summit!' : '';
-                }
-                return '';
-              },
-            } as Partial<TooltipCallbacks<'line'>>,
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(100, 100, 100, 0.2)' },
+          ticks: {
+            color: '#666',
+            callback: (value: any) => value.toLocaleString() + ' ' + unit,
           },
         },
       },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (context: any) => {
+              const date = new Date(context[0].parsed.x);
+              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            },
+          } as Partial<TooltipCallbacks<'line'>>,
+        },
+      },
     };
-
-    this.chart = new Chart(ctx, config);
   }
-}
-
-// Interface for displaying group goals
-interface GroupGoalDisplay {
-  groupName: string;
-  goals: (Goal & { progressPercentage: number })[];
 }

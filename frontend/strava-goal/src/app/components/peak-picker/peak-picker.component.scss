@@ -1,0 +1,358 @@
+.peak-picker {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 80vh;
+    background: var(--background-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--background-secondary);
+
+    h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+
+        &:hover {
+            background: var(--background-secondary);
+            color: var(--text-primary);
+        }
+    }
+}
+
+.search-container {
+    position: relative;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--background-secondary);
+
+    .search-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--background-secondary);
+        border-radius: 8px;
+        background: var(--background-light-shade);
+        color: var(--text-primary);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+
+        &::placeholder {
+            color: #888;
+            opacity: 1;
+        }
+
+        &:focus {
+            border-color: var(--secondary-color);
+
+            &::placeholder {
+                opacity: 0;
+            }
+        }
+    }
+
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        right: 20px;
+        background: var(--background-primary);
+        border: 1px solid var(--background-secondary);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            gap: 12px;
+
+            &:hover {
+                background: var(--background-secondary);
+
+                .peak-name {
+                    color: #fff;
+                }
+            }
+
+            &:not(:last-child) {
+                border-bottom: 1px solid var(--background-secondary);
+            }
+
+            .peak-name {
+                flex: 1;
+                color: var(--text-primary);
+                font-weight: 500;
+                transition: color 0.2s;
+
+                .peak-coords {
+                    color: var(--text-secondary);
+                    font-weight: 400;
+                    font-size: 12px;
+                    margin-left: 4px;
+                }
+            }
+
+            .peak-elev {
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+            .peak-status {
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+.map-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 300px;
+
+    .map-container {
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+}
+
+.selected-peaks {
+    padding: 12px 20px;
+    border-top: 1px solid var(--background-secondary);
+    max-height: 120px;
+    overflow-y: auto;
+
+    .selected-label {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .selected-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .peak-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: #333;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #fff;
+            border: 1px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            &:hover {
+                background: #444;
+                border-color: var(--secondary-color);
+            }
+
+            &.summited {
+                background: #00d4aa;
+                border-color: #00b894;
+                color: #000;
+            }
+
+            .chip-name {
+                max-width: 150px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .chip-remove {
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.7);
+                cursor: pointer;
+                padding: 0;
+                font-size: 16px;
+                line-height: 1;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: #ff6b6b;
+                }
+            }
+
+            &.summited .chip-remove {
+                color: rgba(0, 0, 0, 0.6);
+
+                &:hover {
+                    color: #c0392b;
+                }
+            }
+        }
+    }
+}
+
+.instructions {
+    padding: 12px 20px;
+    border-top: 1px solid var(--background-secondary);
+    background: var(--background-light-shade);
+
+    p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.5;
+
+        &:not(:last-child) {
+            margin-bottom: 4px;
+        }
+    }
+}
+
+// Global styles for Leaflet popups (scoped via Angular's encapsulation workaround)
+:host ::ng-deep {
+
+    // Selected peak marker with animated ring
+    .selected-peak-marker {
+        background: transparent !important;
+        border: none !important;
+
+        .selected-ring {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+
+            &::before {
+                content: '';
+                position: absolute;
+                width: 40px;
+                height: 40px;
+                border: 3px solid var(--secondary-color);
+                border-radius: 50%;
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+
+            img {
+                width: 28px;
+                height: 28px;
+                position: relative;
+                z-index: 1;
+            }
+        }
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1.3);
+            opacity: 0;
+        }
+    }
+
+    .leaflet-popup-content-wrapper {
+        background: var(--background-primary);
+        color: var(--text-primary);
+        border-radius: 8px;
+    }
+
+    .leaflet-popup-tip {
+        background: var(--background-primary);
+    }
+
+    .peak-popup {
+        padding: 4px 0;
+
+        strong {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .status-summited {
+            color: #00d4aa;
+        }
+
+        .status-not-summited {
+            color: #ff9f43;
+        }
+
+        .popup-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 100%;
+
+            &.popup-btn-add {
+                background: var(--secondary-color);
+                color: #fff;
+
+                &:hover {
+                    opacity: 0.9;
+                }
+            }
+
+            &.popup-btn-remove {
+                background: rgba(255, 107, 107, 0.2);
+                color: #ff6b6b;
+                border: 1px solid #ff6b6b;
+
+                &:hover {
+                    background: rgba(255, 107, 107, 0.3);
+                }
+            }
+        }
+    }
+}

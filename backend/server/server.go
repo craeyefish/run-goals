@@ -35,6 +35,7 @@ func NewServer() *http.Server {
 	userDao := daos.NewUserDao(logger, db)
 	userPeaksDao := daos.NewUserPeaksDao(logger, db)
 	groupsDao := daos.NewGroupsDao(logger, db)
+	personalYearlyGoalDao := daos.NewPersonalYearlyGoalDao(logger, db)
 
 	// initialise services
 	jwtService := services.NewJWTService(logger, config)
@@ -46,6 +47,7 @@ func NewServer() *http.Server {
 	goalProgressService := services.NewGoalProgressService(logger, groupsDao, activityDao, userPeaksDao)
 	groupsService := services.NewGroupsService(logger, groupsDao)
 	userService := services.NewUserService(logger, userDao)
+	personalGoalsService := services.NewPersonalGoalsService(logger, personalYearlyGoalDao)
 
 	// Services for background jobs
 	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
@@ -71,6 +73,7 @@ func NewServer() *http.Server {
 		peakService,
 		summariesService,
 		userService,
+		personalGoalsService,
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)

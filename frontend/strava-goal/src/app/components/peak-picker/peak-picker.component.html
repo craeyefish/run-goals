@@ -1,0 +1,64 @@
+<div class="peak-picker">
+  <!-- Header with search -->
+  <div class="picker-header">
+    <h3>Select Peaks</h3>
+    <button class="close-btn" (click)="onClose()">×</button>
+  </div>
+
+  <!-- Search box -->
+  <div class="search-container">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="🔍 Search peaks..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearchInput()"
+      (blur)="onSearchBlur()"
+    />
+    
+    <!-- Search results dropdown -->
+    <div class="search-results" *ngIf="showSearchResults && filteredPeaks.length > 0">
+      <div 
+        class="search-result-item" 
+        *ngFor="let peak of filteredPeaks"
+        (mousedown)="selectFromSearch(peak)"
+      >
+        <span class="peak-name">{{ peak.name || 'Unnamed Peak' }} <span class="peak-coords">({{ peak.latitude.toFixed(2) }}°, {{ peak.longitude.toFixed(2) }}°)</span></span>
+        <span class="peak-elev">{{ peak.elevation_meters?.toFixed(0) || '?' }} m</span>
+        <span class="peak-status" [class.summited]="peak.is_summited">
+          {{ peak.is_summited ? '✅' : '⭕' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map container -->
+  <div class="map-wrapper">
+    <div #mapContainer class="map-container"></div>
+    <div class="loading-overlay" *ngIf="loading">
+      <span>Loading peaks...</span>
+    </div>
+  </div>
+
+  <!-- Selected peaks chips -->
+  <div class="selected-peaks" *ngIf="selectedPeaks.length > 0">
+    <div class="selected-label">Selected ({{ selectedPeaks.length }}):</div>
+    <div class="selected-chips">
+      <div 
+        class="peak-chip" 
+        *ngFor="let peak of selectedPeaks"
+        [class.summited]="peak.is_summited"
+        (click)="focusOnPeak(peak)"
+      >
+        <span class="chip-name">{{ peak.name }}</span>
+        <button class="chip-remove" (click)="removeSelectedPeak(peak); $event.stopPropagation()">×</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions">
+    <p>Click on a peak marker to view details and add/remove from your list.</p>
+    <p>Use the search box to find peaks by name. Click selected peaks below to view on map.</p>
+  </div>
+</div>

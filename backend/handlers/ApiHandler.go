@@ -106,5 +106,14 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.groupsController.GetGroupGoalProgress(rw, r)
 			return
 		}
+	case "/api/personal-goals":
+		if r.Method == http.MethodGet {
+			handler.apiController.GetPersonalGoals(rw, r)
+			return
+		}
+		if r.Method == http.MethodPost {
+			handler.apiController.SavePersonalGoals(rw, r)
+			return
+		}
 	}
 }

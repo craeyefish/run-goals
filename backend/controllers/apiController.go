@@ -5,7 +5,10 @@ import (
 	"log"
 	"net/http"
 	"run-goals/meta"
+	"run-goals/models"
 	"run-goals/services"
+	"strconv"
+	"time"
 )
 
 type ApiControllerInterface interface {
@@ -14,15 +17,18 @@ type ApiControllerInterface interface {
 	GetProgress(rw http.ResponseWriter, r *http.Request)
 	GetPeakSummaries(rw http.ResponseWriter, r *http.Request)
 	GetUserProfile(rw http.ResponseWriter, r *http.Request)
+	GetPersonalGoals(rw http.ResponseWriter, r *http.Request)
+	SavePersonalGoals(rw http.ResponseWriter, r *http.Request)
 }
 
 type ApiController struct {
-	l                *log.Logger
-	activityService  *services.ActivityService
-	progressService  *services.ProgressService
-	peakService      *services.PeakService
-	summariesService *services.SummariesService
-	userService      *services.UserService
+	l                    *log.Logger
+	activityService      *services.ActivityService
+	progressService      *services.ProgressService
+	peakService          *services.PeakService
+	summariesService     *services.SummariesService
+	userService          *services.UserService
+	personalGoalsService *services.PersonalGoalsService
 }
 
 func NewApiController(
@@ -32,14 +38,16 @@ func NewApiController(
 	peakService *services.PeakService,
 	summariesService *services.SummariesService,
 	userService *services.UserService,
+	personalGoalsService *services.PersonalGoalsService,
 ) *ApiController {
 	return &ApiController{
-		l:                l,
-		activityService:  activityService,
-		progressService:  progressService,
-		peakService:      peakService,
-		summariesService: summariesService,
-		userService:      userService,
+		l:                    l,
+		activityService:      activityService,
+		progressService:      progressService,
+		peakService:          peakService,
+		summariesService:     summariesService,
+		userService:          userService,
+		personalGoalsService: personalGoalsService,
 	}
 }
 
@@ -130,5 +138,68 @@ func (c *ApiController) GetUserProfile(rw http.ResponseWriter, r *http.Request) 
 	rw.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(rw).Encode(response); err != nil {
 		log.Println("Error encoding user profile response:", err)
+	}
+}
+
+// GetPersonalGoals returns the user's personal yearly goals
+// GET /api/personal-goals?year=2025 (defaults to current year if not specified)
+func (c *ApiController) GetPersonalGoals(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle GET PersonalGoals")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	// Get year from query params, default to current year
+	yearStr := r.URL.Query().Get("year")
+	year := time.Now().Year()
+	if yearStr != "" {
+		if parsedYear, err := strconv.Atoi(yearStr); err == nil {
+			year = parsedYear
+		}
+	}
+
+	goal, err := c.personalGoalsService.GetGoalForYear(userID, year)
+	if err != nil {
+		c.l.Printf("Error fetching personal goals: %v", err)
+		http.Error(rw, "Failed to fetch personal goals", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(goal); err != nil {
+		log.Println("Error encoding personal goals response:", err)
+	}
+}
+
+// SavePersonalGoals creates or updates the user's personal yearly goals
+// POST /api/personal-goals
+func (c *ApiController) SavePersonalGoals(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle POST PersonalGoals")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	var goal models.PersonalYearlyGoal
+	if err := json.NewDecoder(r.Body).Decode(&goal); err != nil {
+		c.l.Printf("Error decoding request body: %v", err)
+		http.Error(rw, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Ensure the goal belongs to this user
+	goal.UserID = userID
+
+	// Default to current year if not specified
+	if goal.Year == 0 {
+		goal.Year = time.Now().Year()
+	}
+
+	if err := c.personalGoalsService.SaveGoal(&goal); err != nil {
+		c.l.Printf("Error saving personal goals: %v", err)
+		http.Error(rw, "Failed to save personal goals", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(goal); err != nil {
+		log.Println("Error encoding personal goals response:", err)
 	}
 }
