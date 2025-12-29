@@ -17,6 +17,7 @@ type SummitServiceInterface interface {
 	CandidatePeaks(route string) ([]models.Peak, error)
 	IsPeakVisited(route string, peakLat float64, peakLon float64, thresholdMeters float64) bool
 	PopulateSummitedPeaks() error
+	CalculateSummitsForActivity(activity *models.Activity) error
 }
 
 type SummitService struct {
@@ -164,67 +165,73 @@ func distance(x1, y1, x2, y2 float64) float64 {
 }
 
 func (s *SummitService) PopulateSummitedPeaks() error {
-	summitThresholdMeters, err := strconv.ParseFloat(s.config.Summit.SummitThresholdMeters, 64)
+	// Fetch only activities that haven't been processed yet
+	activities, err := s.activityDao.GetActivitiesPendingSummitCalculation()
 	if err != nil {
-		fmt.Println("Error:", err)
-		return err
+		return fmt.Errorf("failed to fetch pending activities: %w", err)
 	}
 
-	// Only do this if there is no data in user peaks.
-	peaks, err := s.userPeaksDao.GetUserPeaks()
-	if err != nil {
-		return fmt.Errorf("failed to clear user_peaks: %w", err)
-	}
-
-	if len(peaks) > 0 {
+	if len(activities) == 0 {
+		s.l.Println("No activities pending summit calculation")
 		return nil
 	}
 
-	// Fetch all activities
-	activities, err := s.activityDao.GetActivities()
-	if err != nil {
-		return fmt.Errorf("failed to fetch activities: %w", err)
-	}
+	s.l.Printf("Processing summit detection for %d activities", len(activities))
 
-	// Loop through activities
 	for _, activity := range activities {
-		// Check if the route (MapPolyline) is empty
-		if activity.MapPolyline == "" {
-			s.l.Printf("Skipping activity %d for user %d: no route provided\n", activity.ID, activity.UserID)
-			continue
-		}
-
-		// Fetch candidate peaks
-		peaks, err := s.CandidatePeaks(activity.MapPolyline)
-		if err != nil {
-			s.l.Printf("Failed to fetch candidate peaks for activity %d: %v\n", activity.ID, err)
-			continue
-		}
-
-		var hasSummit bool
-		for _, peak := range peaks {
-			if s.IsPeakVisited(activity.MapPolyline, peak.Latitude, peak.Longitude, summitThresholdMeters) {
-				userPeak := models.UserPeak{
-					UserID:     activity.UserID,
-					PeakID:     peak.ID,
-					ActivityID: activity.ID,
-					SummitedAt: activity.StartDate,
-				}
-				err = s.userPeaksDao.UpsertUserPeak(&userPeak)
-				if err != nil {
-					s.l.Printf("Failed to mark summit for user=%d peak=%d: %v\n", activity.UserID, peak.ID, err)
-				}
-
-				hasSummit = true
-			}
-		}
-
-		activity.HasSummit = hasSummit
-		err = s.activityDao.UpsertActivity(&activity)
-		if err != nil {
-			s.l.Printf("Failed to update activity=%d: %v\n", activity.ID, err)
+		if err := s.CalculateSummitsForActivity(&activity); err != nil {
+			s.l.Printf("Failed to calculate summits for activity %d: %v", activity.ID, err)
+			// Continue with other activities even if one fails
 		}
 	}
 
 	return nil
+}
+
+// CalculateSummitsForActivity processes a single activity for summit detection
+func (s *SummitService) CalculateSummitsForActivity(activity *models.Activity) error {
+	summitThresholdMeters, err := strconv.ParseFloat(s.config.Summit.SummitThresholdMeters, 64)
+	if err != nil {
+		return fmt.Errorf("invalid summit threshold config: %w", err)
+	}
+
+	// Check if the route (MapPolyline) is empty
+	if activity.MapPolyline == "" {
+		s.l.Printf("Skipping activity %d for user %d: no route provided", activity.ID, activity.UserID)
+		// Mark as calculated even though no route - nothing to do
+		activity.SummitsCalculated = true
+		return s.activityDao.UpsertActivity(activity)
+	}
+
+	// Fetch candidate peaks
+	peaks, err := s.CandidatePeaks(activity.MapPolyline)
+	if err != nil {
+		s.l.Printf("Failed to fetch candidate peaks for activity %d: %v", activity.ID, err)
+		// Still mark as calculated to avoid retrying bad polylines
+		activity.SummitsCalculated = true
+		return s.activityDao.UpsertActivity(activity)
+	}
+
+	var hasSummit bool
+	for _, peak := range peaks {
+		if s.IsPeakVisited(activity.MapPolyline, peak.Latitude, peak.Longitude, summitThresholdMeters) {
+			userPeak := models.UserPeak{
+				UserID:     activity.UserID,
+				PeakID:     peak.ID,
+				ActivityID: activity.ID,
+				SummitedAt: activity.StartDate,
+			}
+			err = s.userPeaksDao.UpsertUserPeak(&userPeak)
+			if err != nil {
+				s.l.Printf("Failed to mark summit for user=%d peak=%d: %v", activity.UserID, peak.ID, err)
+			} else {
+				s.l.Printf("Summit detected! user=%d peak=%d (%s) activity=%d", activity.UserID, peak.ID, peak.Name, activity.ID)
+			}
+			hasSummit = true
+		}
+	}
+
+	activity.HasSummit = hasSummit
+	activity.SummitsCalculated = true
+	return s.activityDao.UpsertActivity(activity)
 }

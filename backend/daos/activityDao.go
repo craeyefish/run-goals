@@ -32,6 +32,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
             strava_athlete_id,
             user_id,
             name,
+            activity_type,
+            sport_type,
             description,
             distance,
             elevation,
@@ -41,15 +43,18 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
             created_at,
             updated_at,
             has_summit,
+            summits_calculated,
             photo_url
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
         ) ON CONFLICT (
             strava_activity_id
         ) DO UPDATE
             SET
                 user_id = EXCLUDED.user_id,
                 name = EXCLUDED.name,
+                activity_type = EXCLUDED.activity_type,
+                sport_type = EXCLUDED.sport_type,
                 description = EXCLUDED.description,
                 distance = EXCLUDED.distance,
                 elevation = EXCLUDED.elevation,
@@ -58,6 +63,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
                 map_polyline = EXCLUDED.map_polyline,
                 updated_at = EXCLUDED.updated_at,
                 has_summit = EXCLUDED.has_summit,
+                summits_calculated = EXCLUDED.summits_calculated,
                 photo_url = EXCLUDED.photo_url;
     `
 	_, err := dao.db.Exec(
@@ -66,6 +72,8 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 		activity.StravaAthleteId,
 		activity.UserID,
 		activity.Name,
+		activity.Type,
+		activity.SportType,
 		activity.Description,
 		activity.Distance,
 		activity.Elevation,
@@ -75,6 +83,7 @@ func (dao *ActivityDao) UpsertActivity(activity *models.Activity) error {
 		activity.CreatedAt,
 		activity.UpdatedAt,
 		activity.HasSummit,
+		activity.SummitsCalculated,
 		activity.PhotoURL,
 	)
 	if err != nil {
@@ -287,4 +296,152 @@ func (dao *ActivityDao) GetActivities() ([]models.Activity, error) {
 	}
 
 	return activities, nil
+}
+
+// GetActivitiesPendingSummitCalculation returns activities that haven't had summit detection run
+func (dao *ActivityDao) GetActivitiesPendingSummitCalculation() ([]models.Activity, error) {
+	activities := []models.Activity{}
+	sqlQuery := `
+        SELECT
+            id,
+            strava_activity_id,
+            strava_athlete_id,
+            user_id,
+            name,
+            description,
+            distance,
+            elevation,
+            moving_time,
+            start_date,
+            map_polyline,
+            photo_url,
+            has_summit,
+            COALESCE(summits_calculated, false) as summits_calculated
+        FROM activity
+        WHERE summits_calculated IS NULL OR summits_calculated = false
+    `
+	rows, err := dao.db.Query(sqlQuery)
+	if err != nil {
+		dao.l.Println("Error querying activity table", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		activity := models.Activity{}
+		var elevation sql.NullFloat64
+		var movingTime sql.NullFloat64
+		err = rows.Scan(
+			&activity.ID,
+			&activity.StravaActivityId,
+			&activity.StravaAthleteId,
+			&activity.UserID,
+			&activity.Name,
+			&activity.Description,
+			&activity.Distance,
+			&elevation,
+			&movingTime,
+			&activity.StartDate,
+			&activity.MapPolyline,
+			&activity.PhotoURL,
+			&activity.HasSummit,
+			&activity.SummitsCalculated,
+		)
+		if err != nil {
+			dao.l.Println("Error parsing query result", err)
+			return nil, err
+		}
+
+		if elevation.Valid {
+			activity.Elevation = elevation.Float64
+		}
+		if movingTime.Valid {
+			activity.MovingTime = movingTime.Float64
+		}
+
+		activities = append(activities, activity)
+	}
+	if err = rows.Err(); err != nil {
+		dao.l.Println("Error during iteration", err)
+		return nil, err
+	}
+
+	return activities, nil
+}
+
+// GetActivityByStravaID fetches a single activity by its Strava ID
+func (dao *ActivityDao) GetActivityByStravaID(stravaActivityID int64) (*models.Activity, error) {
+	activity := &models.Activity{}
+	sqlQuery := `
+        SELECT
+            id,
+            strava_activity_id,
+            strava_athlete_id,
+            user_id,
+            name,
+            description,
+            distance,
+            elevation,
+            moving_time,
+            start_date,
+            map_polyline,
+            photo_url,
+            has_summit,
+            COALESCE(summits_calculated, false) as summits_calculated
+        FROM activity
+        WHERE strava_activity_id = $1
+    `
+	var elevation sql.NullFloat64
+	var movingTime sql.NullFloat64
+	err := dao.db.QueryRow(sqlQuery, stravaActivityID).Scan(
+		&activity.ID,
+		&activity.StravaActivityId,
+		&activity.StravaAthleteId,
+		&activity.UserID,
+		&activity.Name,
+		&activity.Description,
+		&activity.Distance,
+		&elevation,
+		&movingTime,
+		&activity.StartDate,
+		&activity.MapPolyline,
+		&activity.PhotoURL,
+		&activity.HasSummit,
+		&activity.SummitsCalculated,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		dao.l.Printf("Error querying activity by strava ID: %v", err)
+		return nil, err
+	}
+
+	if elevation.Valid {
+		activity.Elevation = elevation.Float64
+	}
+	if movingTime.Valid {
+		activity.MovingTime = movingTime.Float64
+	}
+
+	return activity, nil
+}
+
+// DeleteNonAllowedActivityTypes removes activities that aren't Run, Walk, or Hike
+// Returns the count of deleted activities
+func (dao *ActivityDao) DeleteNonAllowedActivityTypes() (int64, error) {
+	allowedTypes := []string{"Run", "Walk", "Hike"}
+	sqlQuery := `
+        DELETE FROM activity
+        WHERE activity_type IS NULL 
+           OR activity_type NOT IN ($1, $2, $3)
+        RETURNING id;
+    `
+	result, err := dao.db.Exec(sqlQuery, allowedTypes[0], allowedTypes[1], allowedTypes[2])
+	if err != nil {
+		dao.l.Printf("Error deleting non-allowed activity types: %v", err)
+		return 0, err
+	}
+	count, _ := result.RowsAffected()
+	dao.l.Printf("Deleted %d activities with non-allowed types", count)
+	return count, nil
 }

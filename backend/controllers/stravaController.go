@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"run-goals/daos"
 	"run-goals/models"
 	"run-goals/services"
 )
@@ -12,17 +13,23 @@ type StravaController struct {
 	l             *log.Logger
 	jwtService    *services.JWTService
 	stravaService *services.StravaService
+	summitService *services.SummitService
+	activityDao   *daos.ActivityDao
 }
 
 func NewStravaController(
 	l *log.Logger,
 	jwtService *services.JWTService,
 	stravaService *services.StravaService,
+	summitService *services.SummitService,
+	activityDao *daos.ActivityDao,
 ) *StravaController {
 	return &StravaController{
 		l:             l,
 		jwtService:    jwtService,
 		stravaService: stravaService,
+		summitService: summitService,
+		activityDao:   activityDao,
 	}
 }
 
@@ -50,6 +57,27 @@ func (c *StravaController) ProcessWebhookEvent(rw http.ResponseWriter, r *http.R
 	// We only care about activities; ignore other object_types if needed
 	if payload.ObjectType == "activity" {
 		c.stravaService.ProcessWebhookEvent(payload)
+
+		// Trigger summit calculation asynchronously for this activity
+		go func() {
+			activity, err := c.activityDao.GetActivityByStravaID(payload.ObjectID)
+			if err != nil {
+				c.l.Printf("Error fetching activity for summit calc: %v", err)
+				return
+			}
+			if activity == nil {
+				c.l.Printf("Activity %d not found for summit calc", payload.ObjectID)
+				return
+			}
+			if activity.SummitsCalculated {
+				c.l.Printf("Summits already calculated for activity %d", activity.ID)
+				return
+			}
+			c.l.Printf("Calculating summits for activity %d from webhook", activity.ID)
+			if err := c.summitService.CalculateSummitsForActivity(activity); err != nil {
+				c.l.Printf("Error calculating summits: %v", err)
+			}
+		}()
 	}
 	rw.WriteHeader(http.StatusOK)
 }

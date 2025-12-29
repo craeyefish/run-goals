@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS activity (
     strava_athlete_id BIGINT,
     user_id BIGINT,
     name VARCHAR,
+    activity_type VARCHAR,
+    sport_type VARCHAR,
     description VARCHAR,
     distance NUMERIC,
     elevation NUMERIC,

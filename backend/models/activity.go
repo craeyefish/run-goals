@@ -11,6 +11,8 @@ type Activity struct {
 	StravaAthleteId  int64     `json:"strava_athlete_id"`
 	UserID           int64     `json:"user_id"`
 	Name             string    `json:"name"`
+	Type             string    `json:"type"`       // Run, Hike, Walk, etc.
+	SportType        string    `json:"sport_type"` // More specific: Trail Run, etc.
 	Description      string    `json:"description"`
 	Distance         float64   `json:"distance"`
 	Elevation        float64   `json:"total_elevation_gain"`
@@ -23,7 +25,8 @@ type Activity struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Non Strava
-	HasSummit bool `json:"has_summit"`
+	HasSummit          bool `json:"has_summit"`
+	SummitsCalculated  bool `json:"summits_calculated"` // Whether summit detection has been run for this activity
 }
 
 func (a *Activity) IsHG() bool {

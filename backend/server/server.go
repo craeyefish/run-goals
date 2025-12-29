@@ -47,10 +47,11 @@ func NewServer() *http.Server {
 	groupsService := services.NewGroupsService(logger, groupsDao)
 	userService := services.NewUserService(logger, userDao)
 
-	// once off data population - runs in background to not block server startup
+	// Services for background jobs
 	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
 	overpassService := services.NewOverpassService(logger, peaksDao)
 
+	// One-time peak data fetch on startup (peaks don't change often)
 	go func() {
 		logger.Println("Background: Starting peak data fetch from OpenStreetMap...")
 		peaks, err := overpassService.FetchPeaks()
@@ -59,13 +60,6 @@ func NewServer() *http.Server {
 		} else if peaks != nil {
 			peakService.StorePeaks(peaks)
 			logger.Printf("Background: Stored %d peaks", len(peaks.Elements))
-		}
-
-		logger.Println("Background: Starting summit detection for activities...")
-		if err := summitService.PopulateSummitedPeaks(); err != nil {
-			logger.Printf("Background: Failed to populate summited peaks: %v", err)
-		} else {
-			logger.Println("Background: Summit detection complete")
 		}
 	}()
 
@@ -81,12 +75,12 @@ func NewServer() *http.Server {
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
 
-	// backgorund jobs
+	// background jobs
 	// TODO(cian): Move out of server.
-	fetcher := workflows.NewStravaActivityFetcher(stravaService, userDao, activityDao, logger)
+	fetcher := workflows.NewStravaActivityFetcher(stravaService, summitService, userDao, activityDao, logger)
 
 	hgController := controllers.NewHgController(logger, activityService, userDao, fetcher)
-	stravaController := controllers.NewStravaController(logger, jwtService, stravaService)
+	stravaController := controllers.NewStravaController(logger, jwtService, stravaService, summitService, activityDao)
 	supportController := controllers.NewSupportController(logger, userService)
 
 	// initialise handlers
@@ -98,10 +92,33 @@ func NewServer() *http.Server {
 
 	// background sync job - disabled via DISABLE_SYNC_JOB=true for local development
 	if os.Getenv("DISABLE_SYNC_JOB") != "true" {
+		// Daily sync - fetches only recent activities (last 30 days)
 		go func() {
+			logger.Println("Starting initial recent activity sync...")
+			fetcher.FetchRecentUserActivities()
+			logger.Println("Initial recent sync complete. Daily sync scheduled.")
 			for {
 				time.Sleep(24 * time.Hour)
+				fetcher.FetchRecentUserActivities()
+			}
+		}()
+
+		// Weekly full sync - fetches all activities (runs on Sundays)
+		go func() {
+			for {
+				// Sleep until next Sunday at 3am
+				now := time.Now()
+				daysUntilSunday := (7 - int(now.Weekday())) % 7
+				if daysUntilSunday == 0 && now.Hour() >= 3 {
+					daysUntilSunday = 7 // Already past Sunday 3am, wait for next week
+				}
+				nextSunday := time.Date(now.Year(), now.Month(), now.Day()+daysUntilSunday, 3, 0, 0, 0, now.Location())
+				sleepDuration := time.Until(nextSunday)
+				logger.Printf("Weekly full sync scheduled for %s (in %s)", nextSunday.Format(time.RFC1123), sleepDuration.Round(time.Hour))
+				time.Sleep(sleepDuration)
+				logger.Println("Starting weekly full activity sync...")
 				fetcher.FetchUserActivities()
+				logger.Println("Weekly full sync complete.")
 			}
 		}()
 	} else {

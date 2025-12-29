@@ -17,10 +17,11 @@ import (
 
 type StravaServiceInterface interface {
 	FetchAndStoreUserActivities(user *models.User) error
+	FetchAndStoreRecentUserActivities(user *models.User) error
 	EnsureValidToken(u *models.User) error
 	GetUserDistance(u *models.User) (*float64, error)
 	FetchUserDistance(user *models.User) (float64, error)
-	FetchActivitiesPage(accessToken string, page, perPage int)
+	FetchActivitiesPage(accessToken string, page, perPage int, after *time.Time)
 	ProcessWebhookEvent(payload models.StravaWebhookPayload)
 	ProcessCallback(code string) error
 }
@@ -47,16 +48,36 @@ func NewStravaService(
 }
 
 func (service *StravaService) FetchAndStoreUserActivities(user *models.User) error {
+	return service.FetchAndStoreUserActivitiesSince(user, nil)
+}
+
+// FetchAndStoreRecentUserActivities fetches only activities from the last 30 days
+func (service *StravaService) FetchAndStoreRecentUserActivities(user *models.User) error {
+	since := time.Now().AddDate(0, 0, -30) // 30 days ago
+	return service.FetchAndStoreUserActivitiesSince(user, &since)
+}
+
+// FetchAndStoreUserActivitiesSince fetches activities after the given timestamp (nil = all)
+func (service *StravaService) FetchAndStoreUserActivitiesSince(user *models.User, after *time.Time) error {
 	// Ensure token is valid first
 	if err := service.EnsureValidToken(user); err != nil {
 		return fmt.Errorf("token refresh error: %w", err)
 	}
 
+	// Allowed activity types for import
+	allowedTypes := map[string]bool{
+		"Hike":       true,
+		"Run":        true,
+		"TrailRun":   true,
+		"VirtualRun": true,
+		"Walk":       true,
+	}
+
 	page := 1
-	perPage := 30 // Strava default max is 30 or 100 depending on your app scope
+	perPage := 200 // Strava max is 200 per page
 
 	for {
-		stravaActivities, err := service.FetchActivitiesPage(user.AccessToken, page, perPage)
+		stravaActivities, err := service.FetchActivitiesPage(user.AccessToken, page, perPage, after)
 		if err != nil {
 			return err
 		}
@@ -64,6 +85,12 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 			break // no more activities
 		}
 		for _, stravaActivity := range stravaActivities {
+			// Skip activities that aren't Run, Walk, or Hike
+			if !allowedTypes[stravaActivity.Type] {
+				log.Printf("Skipping activity %d of type %s", stravaActivity.ID, stravaActivity.Type)
+				continue
+			}
+
 			// upsert (create or update) each activity in DB
 			// first convert stravaActivity into our activity model
 
@@ -79,6 +106,8 @@ func (service *StravaService) FetchAndStoreUserActivities(user *models.User) err
 				StravaAthleteId:  user.StravaAthleteID,
 				UserID:           user.ID,
 				Name:             stravaActivity.Name,
+				Type:             stravaActivity.Type,
+				SportType:        stravaActivity.SportType,
 				Description:      stravaActivity.Description,
 				Distance:         stravaActivity.Distance,
 				Elevation:        stravaActivity.Elevation,
@@ -111,6 +140,21 @@ func (service *StravaService) FetchAndStoreDetailedActivity(user *models.User, a
 		return fmt.Errorf("failed to fetch detailed activity: %w", err)
 	}
 
+	// Allowed activity types for import
+	allowedTypes := map[string]bool{
+		"Hike": true,
+		"Run":  true,
+		"TrailRun": true,
+		"VirtualRun": true,
+		"Walk": true,
+	}
+
+	// Skip activities that aren't Run, Walk, or Hike
+	if !allowedTypes[detailedActivity.Type] {
+		log.Printf("Skipping detailed activity %d of type %s", detailedActivity.ID, detailedActivity.Type)
+		return nil
+	}
+
 	var photoURL string
 	if detailedActivity.Photos.Count > 0 && len(detailedActivity.Photos.Primary.Urls) > 0 {
 		photoURL = detailedActivity.Photos.Primary.Urls["600"]
@@ -122,6 +166,8 @@ func (service *StravaService) FetchAndStoreDetailedActivity(user *models.User, a
 		StravaAthleteId:  user.StravaAthleteID,
 		UserID:           user.ID,
 		Name:             detailedActivity.Name,
+		Type:             detailedActivity.Type,
+		SportType:        detailedActivity.SportType,
 		Description:      detailedActivity.Description,
 		Distance:         detailedActivity.Distance, // in meters
 		PhotoURL:         photoURL,
@@ -262,9 +308,13 @@ func (service *StravaService) FetchUserDistance(user *models.User) (float64, err
 }
 
 // fetchActivitiesPage calls the Strava API to fetch a single page of activities
-func (service *StravaService) FetchActivitiesPage(accessToken string, page, perPage int) ([]models.StravaActivity, error) {
-	url := fmt.Sprintf("https://www.strava.com/api/v3/athlete/activities?page=%d&per_page=%d", page, perPage)
-	req, err := http.NewRequest("GET", url, nil)
+// If after is provided, only fetches activities after that timestamp
+func (service *StravaService) FetchActivitiesPage(accessToken string, page, perPage int, after *time.Time) ([]models.StravaActivity, error) {
+	apiURL := fmt.Sprintf("https://www.strava.com/api/v3/athlete/activities?page=%d&per_page=%d", page, perPage)
+	if after != nil {
+		apiURL += fmt.Sprintf("&after=%d", after.Unix())
+	}
+	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -324,13 +374,23 @@ func (s *StravaService) ProcessWebhookEvent(payload models.StravaWebhookPayload)
 	// Find the user in DB
 	user, err := s.userDao.GetUserByStravaAthleteID(payload.OwnerID)
 	if errors.Is(err, daos.ErrUserNotFound) {
-		s.l.Printf("No matching  user")
+		s.l.Printf("No matching user for athlete ID %d", payload.OwnerID)
 		return
 	} else if err != nil {
 		s.l.Printf("Error calling UserDao.GetUserByStravaAthleteID: %v", err)
 		return
 	}
 
+	// For activity create/update events, fetch and store the activity
+	if payload.AspectType == "create" || payload.AspectType == "update" {
+		s.l.Printf("Fetching activity %d for user %d (aspect: %s)", payload.ObjectID, user.ID, payload.AspectType)
+		err := s.FetchAndStoreDetailedActivity(user, payload.ObjectID)
+		if err != nil {
+			s.l.Printf("Error fetching activity %d: %v", payload.ObjectID, err)
+		}
+	}
+
+	// Update user distance stats
 	dist, err := s.FetchUserDistance(user)
 	if err != nil {
 		s.l.Printf("Error fetching updated distance for user %d: %v\n", user.ID, err)
