@@ -47,13 +47,27 @@ func NewServer() *http.Server {
 	groupsService := services.NewGroupsService(logger, groupsDao)
 	userService := services.NewUserService(logger, userDao)
 
-	// once off data population
-	// TODO(cian): Update to sync processes
+	// once off data population - runs in background to not block server startup
 	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
-	summitService.PopulateSummitedPeaks()
 	overpassService := services.NewOverpassService(logger, peaksDao)
-	peaks, _ := overpassService.FetchPeaks()
-	peakService.StorePeaks(peaks)
+
+	go func() {
+		logger.Println("Background: Starting peak data fetch from OpenStreetMap...")
+		peaks, err := overpassService.FetchPeaks()
+		if err != nil {
+			logger.Printf("Background: Failed to fetch peaks: %v", err)
+		} else if peaks != nil {
+			peakService.StorePeaks(peaks)
+			logger.Printf("Background: Stored %d peaks", len(peaks.Elements))
+		}
+
+		logger.Println("Background: Starting summit detection for activities...")
+		if err := summitService.PopulateSummitedPeaks(); err != nil {
+			logger.Printf("Background: Failed to populate summited peaks: %v", err)
+		} else {
+			logger.Println("Background: Summit detection complete")
+		}
+	}()
 
 	// initialise controllers
 	apiController := controllers.NewApiController(

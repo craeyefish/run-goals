@@ -7,7 +7,7 @@ import (
 )
 
 type SummariesServiceInterface interface {
-	GetPeakSummaries() ([]models.PeakSummary, error)
+	GetPeakSummaries(userID int64) ([]models.PeakSummary, error)
 }
 
 type SummariesService struct {
@@ -31,7 +31,7 @@ func NewSummariesService(
 	}
 }
 
-func (s *SummariesService) GetPeakSummaries() ([]models.PeakSummary, error) {
+func (s *SummariesService) GetPeakSummaries(userID int64) ([]models.PeakSummary, error) {
 	// 1. Load all actual Peak records so we can return them even if they have 0 summits.
 	peaks, err := s.peaksDao.GetPeaks()
 	if err != nil {
@@ -39,8 +39,8 @@ func (s *SummariesService) GetPeakSummaries() ([]models.PeakSummary, error) {
 		return nil, err
 	}
 
-	// 2. Fetch joined data from user_peaks + users for summits
-	userPeakJoined, err := s.userPeaksDao.GetUserPeaksJoin()
+	// 2. Fetch joined data from user_peaks + users for summits (filtered by user)
+	userPeakJoined, err := s.userPeaksDao.GetUserPeaksJoinByUserID(userID)
 	if err != nil {
 		s.l.Printf("Error calling userPeaksDao: %v", err)
 		return nil, err

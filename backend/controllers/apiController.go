@@ -100,7 +100,9 @@ func (c *ApiController) GetProgress(rw http.ResponseWriter, r *http.Request) {
 func (c *ApiController) GetPeakSummaries(rw http.ResponseWriter, r *http.Request) {
 	c.l.Println("Handle GET PeakSummaries")
 
-	response, err := c.summariesService.GetPeakSummaries()
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	response, err := c.summariesService.GetPeakSummaries(userID)
 	if err != nil {
 		c.l.Println("Error listing peaks", err)
 		http.Error(rw, "Failure calling summariesService", http.StatusInternalServerError)

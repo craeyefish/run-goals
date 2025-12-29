@@ -12,6 +12,7 @@ import (
 type UserPeaksDaoInterface interface {
 	GetUserPeaks() ([]models.UserPeak, error)
 	GetUserPeaksJoin() ([]models.UserPeakJoin, error)
+	GetUserPeaksJoinByUserID(userID int64) ([]models.UserPeakJoin, error)
 	UpsertUserPeak(userPeak *models.UserPeak) error
 	ClearUserPeaks() error
 	GetUserSummitsInDateRange(userID int64, peakIDs []int64, startDate time.Time, endDate time.Time) ([]models.UserPeak, error)
@@ -84,6 +85,49 @@ func (dao *UserPeaksDao) GetUserPeaksJoin() ([]models.UserPeakJoin, error) {
 		LEFT JOIN users u ON up.user_id = u.id;
 	`
 	rows, err := dao.db.Query(sql)
+	if err != nil {
+		dao.l.Println("Error querying user_peaks table", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		userPeakJoin := models.UserPeakJoin{}
+		err = rows.Scan(
+			&userPeakJoin.PeakID,
+			&userPeakJoin.UserID,
+			&userPeakJoin.ActivityID,
+			&userPeakJoin.SummitedAt,
+			&userPeakJoin.UserName,
+		)
+		if err != nil {
+			dao.l.Println("Error parsing query result", err)
+			return nil, err
+		}
+		userPeaksJoin = append(userPeaksJoin, userPeakJoin)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Println("Error during iteration", err)
+		return nil, err
+	}
+
+	return userPeaksJoin, nil
+}
+
+func (dao *UserPeaksDao) GetUserPeaksJoinByUserID(userID int64) ([]models.UserPeakJoin, error) {
+	userPeaksJoin := []models.UserPeakJoin{}
+	sql := `
+		SELECT
+			up.peak_id,
+			up.user_id,
+			up.activity_id,
+			up.summited_at,
+			u.strava_athlete_id AS user_name
+		FROM user_peaks up
+		LEFT JOIN users u ON up.user_id = u.id
+		WHERE up.user_id = $1;
+	`
+	rows, err := dao.db.Query(sql, userID)
 	if err != nil {
 		dao.l.Println("Error querying user_peaks table", err)
 		return nil, err
