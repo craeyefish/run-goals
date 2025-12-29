@@ -84,7 +84,7 @@ func NewServer() *http.Server {
 
 	hgController := controllers.NewHgController(logger, activityService, userDao, fetcher)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService, summitService, activityDao)
-	supportController := controllers.NewSupportController(logger, userService)
+	supportController := controllers.NewSupportController(logger, userService, peakService, overpassService, activityDao, userPeaksDao)
 
 	// initialise handlers
 	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
@@ -135,6 +135,8 @@ func NewServer() *http.Server {
 	mux.Handle("/auth/", authHandler)
 	mux.Handle("/hikegang/", hgHandler)
 	mux.Handle("/support/", middleware.JWT(jwtService, supportHandler))
+	// Admin endpoints - no JWT, uses admin_key query param
+	mux.HandleFunc("/admin/refresh-peaks", supportController.RefreshPeaks)
 
 	return &http.Server{
 		Addr:    ":8080",

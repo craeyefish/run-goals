@@ -41,14 +41,24 @@ func (s *OverpassService) FetchPeaks() (*models.OverpassResponse, error) {
 		return nil, errors.New("peaks already stored")
 	}
 
+	return s.fetchPeaksFromOverpass()
+}
+
+// ForceFetchPeaks fetches peaks from Overpass API regardless of existing data
+func (s *OverpassService) ForceFetchPeaks() (*models.OverpassResponse, error) {
+	return s.fetchPeaksFromOverpass()
+}
+
+func (s *OverpassService) fetchPeaksFromOverpass() (*models.OverpassResponse, error) {
+	// Enhanced query: fetch all peaks (including unnamed) with full metadata
 	query := `
 		[out:json];
 		area["name"="Western Cape"]["admin_level"="4"]->.searchArea;
 		(
-  			node["natural"="peak"](area.searchArea);
-     	);
-      	out;
-    `
+			node["natural"="peak"](area.searchArea);
+		);
+		out body;
+	`
 	resp, err := http.Post("https://overpass-api.de/api/interpreter",
 		"application/x-www-form-urlencoded",
 		strings.NewReader(query),

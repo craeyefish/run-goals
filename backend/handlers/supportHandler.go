@@ -39,6 +39,8 @@ func (h *SupportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(path, "delete-account/"):
 		h.supportController.DeleteUserAccount(w, r)
+	case path == "refresh-peaks" || path == "refresh-peaks/":
+		h.supportController.RefreshPeaks(w, r)
 	default:
 		h.l.Printf("Unsupported support endpoint: %s", path)
 		http.Error(w, "Endpoint not found", http.StatusNotFound)

@@ -10,6 +10,14 @@ export interface Peak {
   name: string;
   elevation_meters: number;
   is_summited: boolean; // new boolean to indicate if this peak was visited by the user/group
+  // Additional OSM metadata (optional)
+  alt_name?: string | null;
+  name_en?: string | null;
+  region?: string | null;
+  wikipedia?: string | null;
+  wikidata?: string | null;
+  description?: string | null;
+  prominence?: number | null;
 }
 
 @Injectable({
@@ -20,7 +28,7 @@ export class PeakService {
   peaks$ = this.peaksSubject.asObservable();
   private loading = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // If you have a bounding-box approach, you'd pass minLat etc. as query params.
   // For now, assume we want all peaks:

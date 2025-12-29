@@ -203,9 +203,20 @@ export class PeakPickerComponent implements OnInit, OnDestroy, AfterViewInit {
         const buttonText = isSelected ? 'Remove from List' : 'Add to List';
         const buttonClass = isSelected ? 'popup-btn-remove' : 'popup-btn-add';
 
+        // Build location info (region or coordinates)
+        const locationInfo = peak.region
+            ? `<span class="popup-region">📍 ${peak.region}</span><br>`
+            : '';
+
+        // Show alternate name if available and different
+        const altNameInfo = peak.alt_name && peak.alt_name !== peak.name
+            ? `<span class="popup-alt-name">(${peak.alt_name})</span><br>`
+            : '';
+
         return `
       <div class="peak-popup">
-        <strong>${peak.name || 'Unnamed Peak'}</strong><br>
+        <strong>${peak.name || 'Unnamed Peak'}</strong>${altNameInfo ? '<br>' + altNameInfo : ''}<br>
+        ${locationInfo}
         Elev: ${peak.elevation_meters ? `${peak.elevation_meters.toFixed(0)} m` : 'N/A'}<br>
         ${summitStatus}<br>
         <button class="popup-btn ${buttonClass}" data-peak-id="${peak.id}">
@@ -290,8 +301,12 @@ export class PeakPickerComponent implements OnInit, OnDestroy, AfterViewInit {
 
         const query = this.searchQuery.toLowerCase();
         this.filteredPeaks = this.allPeaks
-            .filter(p => p.name?.toLowerCase().includes(query))
-            .slice(0, 10); // Limit results
+            .filter(p =>
+                p.name?.toLowerCase().includes(query) ||
+                p.alt_name?.toLowerCase().includes(query) ||
+                p.region?.toLowerCase().includes(query)
+            )
+            .slice(0, 15); // Limit results
 
         this.showSearchResults = this.filteredPeaks.length > 0;
     }

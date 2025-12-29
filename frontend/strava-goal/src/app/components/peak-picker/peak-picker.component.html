@@ -23,11 +23,17 @@
         *ngFor="let peak of filteredPeaks"
         (mousedown)="selectFromSearch(peak)"
       >
-        <span class="peak-name">{{ peak.name || 'Unnamed Peak' }} <span class="peak-coords">({{ peak.latitude.toFixed(2) }}°, {{ peak.longitude.toFixed(2) }}°)</span></span>
-        <span class="peak-elev">{{ peak.elevation_meters?.toFixed(0) || '?' }} m</span>
-        <span class="peak-status" [class.summited]="peak.is_summited">
-          {{ peak.is_summited ? '✅' : '⭕' }}
-        </span>
+        <div class="result-main">
+          <span class="peak-name">{{ peak.name || 'Unnamed Peak' }}</span>
+          <span class="peak-region" *ngIf="peak.region">{{ peak.region }}</span>
+          <span class="peak-coords" *ngIf="!peak.region">({{ peak.latitude.toFixed(2) }}°, {{ peak.longitude.toFixed(2) }}°)</span>
+        </div>
+        <div class="result-meta">
+          <span class="peak-elev">{{ peak.elevation_meters?.toFixed(0) || '?' }} m</span>
+          <span class="peak-status" [class.summited]="peak.is_summited">
+            {{ peak.is_summited ? '✅' : '⭕' }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -50,7 +56,8 @@
         [class.summited]="peak.is_summited"
         (click)="focusOnPeak(peak)"
       >
-        <span class="chip-name">{{ peak.name }}</span>
+        <span class="chip-name">{{ peak.name || 'Unnamed' }}</span>
+        <span class="chip-elev">{{ peak.elevation_meters?.toFixed(0) || '?' }}m</span>
         <button class="chip-remove" (click)="removeSelectedPeak(peak); $event.stopPropagation()">×</button>
       </div>
     </div>

@@ -75,6 +75,7 @@ func (s *PeakService) StorePeaks(resp *models.OverpassResponse) error {
 			continue
 		}
 
+		// Parse standard fields
 		var name string
 		var elev float64
 		if val, ok := el.Tags["name"]; ok {
@@ -85,12 +86,51 @@ func (s *PeakService) StorePeaks(resp *models.OverpassResponse) error {
 			elev = parsedElev
 		}
 
+		// Parse additional metadata for differentiation
+		var altName, nameEN, region, wikipedia, wikidata, description string
+		var prominence float64
+
+		if val, ok := el.Tags["alt_name"]; ok {
+			altName = val
+		}
+		if val, ok := el.Tags["name:en"]; ok {
+			nameEN = val
+		}
+		// Try multiple tags for region info
+		if val, ok := el.Tags["is_in"]; ok {
+			region = val
+		} else if val, ok := el.Tags["is_in:region"]; ok {
+			region = val
+		} else if val, ok := el.Tags["is_in:mountain_range"]; ok {
+			region = val
+		}
+		if val, ok := el.Tags["wikipedia"]; ok {
+			wikipedia = val
+		}
+		if val, ok := el.Tags["wikidata"]; ok {
+			wikidata = val
+		}
+		if val, ok := el.Tags["description"]; ok {
+			description = val
+		}
+		if val, ok := el.Tags["prominence"]; ok {
+			parsedProm, _ := strconv.ParseFloat(val, 64)
+			prominence = parsedProm
+		}
+
 		peak := &models.Peak{
 			OsmID:           el.ID,
 			Latitude:        el.Lat,
 			Longitude:       el.Lon,
 			Name:            name,
 			ElevationMeters: elev,
+			AltName:         altName,
+			NameEN:          nameEN,
+			Region:          region,
+			Wikipedia:       wikipedia,
+			Wikidata:        wikidata,
+			Description:     description,
+			Prominence:      prominence,
 		}
 
 		err := s.peaksDao.UpsertPeak(peak)

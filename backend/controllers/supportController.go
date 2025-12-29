@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"run-goals/daos"
 	"run-goals/meta"
 	"run-goals/services"
@@ -12,17 +13,29 @@ import (
 )
 
 type SupportController struct {
-	l           *log.Logger
-	userService *services.UserService
+	l               *log.Logger
+	userService     *services.UserService
+	peakService     *services.PeakService
+	overpassService *services.OverpassService
+	activityDao     *daos.ActivityDao
+	userPeaksDao    *daos.UserPeaksDao
 }
 
 func NewSupportController(
 	l *log.Logger,
 	userService *services.UserService,
+	peakService *services.PeakService,
+	overpassService *services.OverpassService,
+	activityDao *daos.ActivityDao,
+	userPeaksDao *daos.UserPeaksDao,
 ) *SupportController {
 	return &SupportController{
-		l:           l,
-		userService: userService,
+		l:               l,
+		userService:     userService,
+		peakService:     peakService,
+		overpassService: overpassService,
+		activityDao:     activityDao,
+		userPeaksDao:    userPeaksDao,
 	}
 }
 
@@ -98,4 +111,92 @@ func (c *SupportController) DeleteUserAccount(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(response)
 
 	c.l.Printf("Successfully processed account deletion for strava_athlete_id: %d", stravaAthleteID)
+}
+
+// RefreshPeaks fetches fresh peak data from OpenStreetMap and optionally
+// recalculates summit data for all activities.
+// Query params:
+//   - recalculate=true: Also clear user_peaks and reset summits_calculated flags
+//
+// Note: This endpoint is unauthenticated but requires admin_key query param
+func (c *SupportController) RefreshPeaks(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Simple admin key check (set ADMIN_KEY env var)
+	adminKey := r.URL.Query().Get("admin_key")
+	expectedKey := os.Getenv("ADMIN_KEY")
+	if expectedKey == "" {
+		expectedKey = "dev-admin-key" // Default for local development
+	}
+	if adminKey != expectedKey {
+		c.l.Printf("Unauthorized refresh-peaks attempt")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	recalculate := r.URL.Query().Get("recalculate") == "true"
+
+	c.l.Printf("Starting peak data refresh (recalculate=%v)...", recalculate)
+
+	// Step 1: Force fetch fresh peaks from Overpass API (bypasses "already stored" check)
+	peaks, err := c.overpassService.ForceFetchPeaks()
+	if err != nil {
+		c.l.Printf("Error fetching peaks from Overpass: %v", err)
+		http.Error(w, "Failed to fetch peaks from OpenStreetMap", http.StatusInternalServerError)
+		return
+	}
+
+	if peaks == nil || len(peaks.Elements) == 0 {
+		c.l.Printf("No peaks returned from Overpass")
+		http.Error(w, "No peaks returned from OpenStreetMap", http.StatusInternalServerError)
+		return
+	}
+
+	// Step 2: Store/update peaks (upsert based on osm_id)
+	err = c.peakService.StorePeaks(peaks)
+	if err != nil {
+		c.l.Printf("Error storing peaks: %v", err)
+		http.Error(w, "Failed to store peaks", http.StatusInternalServerError)
+		return
+	}
+
+	c.l.Printf("Stored/updated %d peaks", len(peaks.Elements))
+
+	result := map[string]interface{}{
+		"peaksUpdated": len(peaks.Elements),
+	}
+
+	// Step 3 (optional): Recalculate summits
+	if recalculate {
+		c.l.Printf("Clearing user_peaks and resetting summits_calculated flags...")
+
+		// Clear user_peaks table
+		err = c.userPeaksDao.ClearUserPeaks()
+		if err != nil {
+			c.l.Printf("Error clearing user_peaks: %v", err)
+			http.Error(w, "Failed to clear user peaks", http.StatusInternalServerError)
+			return
+		}
+
+		// Reset summits_calculated flags on all activities
+		rowsAffected, err := c.activityDao.ResetSummitsCalculated()
+		if err != nil {
+			c.l.Printf("Error resetting summits_calculated: %v", err)
+			http.Error(w, "Failed to reset summit calculations", http.StatusInternalServerError)
+			return
+		}
+
+		c.l.Printf("Reset %d activities for summit recalculation", rowsAffected)
+		result["activitiesReset"] = rowsAffected
+		result["message"] = "Peak data refreshed. User peaks cleared. Activities will recalculate summits on next sync."
+	} else {
+		result["message"] = "Peak data refreshed successfully"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
 }

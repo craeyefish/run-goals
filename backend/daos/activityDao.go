@@ -445,3 +445,21 @@ func (dao *ActivityDao) DeleteNonAllowedActivityTypes() (int64, error) {
 	dao.l.Printf("Deleted %d activities with non-allowed types", count)
 	return count, nil
 }
+
+// ResetSummitsCalculated resets summits_calculated flag on all activities
+// This forces re-calculation of summit detection
+func (dao *ActivityDao) ResetSummitsCalculated() (int64, error) {
+	sqlQuery := `
+		UPDATE activity
+		SET summits_calculated = false, has_summit = false
+		WHERE summits_calculated = true
+	`
+	result, err := dao.db.Exec(sqlQuery)
+	if err != nil {
+		dao.l.Printf("Error resetting summits_calculated: %v", err)
+		return 0, err
+	}
+	count, _ := result.RowsAffected()
+	dao.l.Printf("Reset summits_calculated on %d activities", count)
+	return count, nil
+}
