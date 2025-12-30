@@ -7,8 +7,46 @@ A fitness goal tracking application integrated with Strava that enables users to
 - Log summit achievements by detecting peaks crossed during activities
 - Join groups and contribute to shared distance/elevation/summit goals
 - Visualize activities and summits on an interactive map
+- **Personal summit wishlist** - users can select peaks they want to summit
 
 **Live URL**: summitseekers.co.za
+
+---
+
+## Recent Session Context (December 2024)
+
+### What Was Done Recently
+
+1. **Peak Data Enhancement** - Extended the `peaks` table with additional OSM metadata:
+   - New fields: `alt_name`, `name_en`, `region`, `wikipedia`, `wikidata`, `description`, `prominence`
+   - Admin endpoint `POST /admin/refresh-peaks?admin_key=dev-admin-key` to refresh peak data
+   - Now fetches ALL peaks from Western Cape (including unnamed) - **1,629 peaks total**
+
+2. **Peak Picker Component** - New reusable component for selecting peaks:
+   - Map-based selection with marker clusters
+   - Search by name, region, or alt_name
+   - Shows region/elevation for peak differentiation
+   - Located at `frontend/strava-goal/src/app/components/peak-picker/`
+
+3. **Home Page Redesign** - Summit-focused dashboard:
+   - Slim stats banner (distance, elevation, activities, summits)
+   - Distance & elevation charts
+   - Personal summit wishlist with add/remove functionality
+
+4. **Sync Optimizations**:
+   - Increased page size 30→200 for Strava API calls
+   - Split into daily (30 days) and weekly (full) sync jobs
+   - Added `summits_calculated` flag for incremental summit detection
+
+5. **#hg Activities Fix** (Just Done):
+   - Fixed `FetchAndStoreDetailedActivity` to include `MovingTime` and `Elevation`
+   - Updated workflow to re-fetch #hg activities missing these fields
+   - Triggered sync: `POST /hikegang/sync`
+
+### Activity Types Filtered
+
+Only these Strava activity types are synced:
+- Run, Walk, Hike, VirtualRun, TrailRun
 
 ---
 
@@ -194,6 +232,22 @@ kubectl logs deployment/summitseekers-backend
 
 1. **Strava Rate Limits**: Be careful with activity fetching during development
 2. **Summit Detection**: Uses 0.0007 degree threshold (~70m) to match route to peaks
-3. **Peak Data**: Fetched from OpenStreetMap Overpass API on backend startup
-4. **Background Job**: Runs daily to sync all user activities (see `workflows/useractivities.go`)
+3. **Peak Data**: Fetched from OpenStreetMap Overpass API on backend startup (Western Cape region)
+4. **Background Job**: Daily (recent 30 days) + Weekly (full) sync - see `workflows/useractivities.go`
 5. **Managed DB SSL**: Production requires `sslmode=require`
+6. **#hg Activities**: These are "HikeGang" activities fetched separately via detailed API (not list API) to get full data
+7. **Admin Endpoints**: Use `/admin/refresh-peaks?admin_key=dev-admin-key` for admin operations (no JWT)
+
+---
+
+## Key Files to Know
+
+| File | Purpose |
+|------|---------|
+| `backend/services/StravaService.go` | Strava OAuth, activity sync, webhook handling |
+| `backend/services/summitService.go` | Detects peaks crossed in activity GPS routes |
+| `backend/workflows/useractivities.go` | Background sync jobs (daily/weekly) |
+| `backend/controllers/supportController.go` | Admin endpoints (delete account, refresh peaks) |
+| `frontend/.../components/peak-picker/` | Reusable peak selection component |
+| `frontend/.../pages/home-page/` | Main dashboard with stats, charts, wishlist |
+| `database/sql/migrations/` | Database migration scripts |

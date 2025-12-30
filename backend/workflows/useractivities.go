@@ -81,8 +81,9 @@ func (s *StravaActivityFetcher) fetchActivities(recentOnly bool) {
 				continue
 			}
 
-			// Skip if we already have detailed data (description is populated from detailed endpoint)
-			if activity.Description != "" {
+			// Skip if we already have detailed data (has moving_time and elevation from detailed endpoint)
+			// We check MovingTime > 0 because the list endpoint doesn't include these fields
+			if activity.MovingTime > 0 && activity.Elevation > 0 {
 				continue
 			}
 

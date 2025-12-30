@@ -169,7 +169,9 @@ func (service *StravaService) FetchAndStoreDetailedActivity(user *models.User, a
 		Type:             detailedActivity.Type,
 		SportType:        detailedActivity.SportType,
 		Description:      detailedActivity.Description,
-		Distance:         detailedActivity.Distance, // in meters
+		Distance:         detailedActivity.Distance,               // in meters
+		MovingTime:       float64(detailedActivity.MovingTime),    // convert int seconds to float64
+		Elevation:        detailedActivity.Elevation,              // in meters
 		PhotoURL:         photoURL,
 		StartDate:        t,
 		MapPolyline:      detailedActivity.Map.SummaryPolyline,
