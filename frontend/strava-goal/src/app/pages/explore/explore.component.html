@@ -1,0 +1,304 @@
+<div class="explore-container">
+  <!-- Map Section -->
+  <div class="map-section">
+    <div id="explore-map" class="map"></div>
+    
+    <!-- Map Controls Overlay -->
+    <div class="map-controls">
+      <div class="control-group">
+        <button 
+          class="control-btn" 
+          [class.active]="showPeaks"
+          (click)="togglePeaks()"
+          title="Toggle Peaks"
+        >
+          🏔️
+        </button>
+        <button 
+          class="control-btn" 
+          [class.active]="showActivities"
+          (click)="toggleActivities()"
+          title="Toggle Activities"
+        >
+          🏃
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Overlay -->
+    <div class="stats-overlay">
+      <div class="stat-item">
+        <span class="stat-value">{{ summitedCount }}</span>
+        <span class="stat-label">Summited</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ totalPeaks }}</span>
+        <span class="stat-label">Total Peaks</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ totalActivities }}</span>
+        <span class="stat-label">Activities</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <!-- Tabs -->
+    <div class="sidebar-tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'peaks'"
+        (click)="setActiveTab('peaks')"
+      >
+        Peaks
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'activities'"
+        (click)="setActiveTab('activities')"
+      >
+        Activities
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'challenges'"
+        (click)="setActiveTab('challenges')"
+      >
+        Challenges
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="sidebar-content">
+      <!-- Peaks Tab -->
+      <div *ngIf="activeTab === 'peaks'" class="tab-panel">
+        <!-- Search & Filter -->
+        <div class="filters">
+          <input 
+            type="text" 
+            class="search-input"
+            placeholder="Search peaks..."
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+          />
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn" 
+              [class.active]="peakFilter === 'all'"
+              (click)="peakFilter = 'all'; onFilterChange()"
+            >
+              All
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.active]="peakFilter === 'summited'"
+              (click)="peakFilter = 'summited'; onFilterChange()"
+            >
+              ✅ Summited
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.active]="peakFilter === 'not-summited'"
+              (click)="peakFilter = 'not-summited'; onFilterChange()"
+            >
+              ⬜ To Do
+            </button>
+          </div>
+        </div>
+
+        <!-- Peak List -->
+        <div class="list-container">
+          <div 
+            *ngFor="let peak of filteredPeaks" 
+            class="list-item peak-item"
+            [class.summited]="peak.is_summited"
+            (click)="focusPeakOnMap(peak)"
+          >
+            <div class="item-icon">{{ peak.is_summited ? '✅' : '🏔️' }}</div>
+            <div class="item-content">
+              <div class="item-name">{{ peak.name }}</div>
+              <div class="item-meta">
+                <span>{{ peak.elevation_meters?.toFixed(0) || '?' }} m</span>
+                <span *ngIf="peak.region" class="separator">•</span>
+                <span *ngIf="peak.region">{{ peak.region }}</span>
+              </div>
+              <div class="item-extra" *ngIf="peak.summitCount">
+                Summited {{ peak.summitCount }}x
+                <span *ngIf="peak.lastSummitDate">
+                  - Last: {{ peak.lastSummitDate | date:'MMM d, yyyy' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="filteredPeaks.length === 0" class="empty-state">
+            <p>No peaks found matching your criteria.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activities Tab -->
+      <div *ngIf="activeTab === 'activities'" class="tab-panel">
+        <div class="list-container">
+          <div 
+            *ngFor="let activity of activities" 
+            class="list-item activity-item"
+            [class.has-summit]="activity.has_summit"
+            (click)="focusActivityOnMap(activity)"
+          >
+            <div class="item-icon">{{ activity.has_summit ? '⛰️' : '🏃' }}</div>
+            <div class="item-content">
+              <div class="item-name">{{ activity.name }}</div>
+              <div class="item-meta">
+                <span>{{ (activity.distance / 1000).toFixed(1) }} km</span>
+                <span class="separator">•</span>
+                <span>{{ activity.total_elevation_gain?.toFixed(0) || 0 }} m ↑</span>
+              </div>
+              <div class="item-date">
+                {{ activity.start_date | date:'MMM d, yyyy' }}
+              </div>
+            </div>
+            <button 
+              class="strava-btn" 
+              (click)="openStravaActivity(activity); $event.stopPropagation()"
+              title="View on Strava"
+            >
+              🔗
+            </button>
+          </div>
+
+          <div *ngIf="activities.length === 0" class="empty-state">
+            <p>No activities found.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challenges Tab -->
+      <div *ngIf="activeTab === 'challenges'" class="tab-panel">
+        <!-- Challenge Filter Clear Button -->
+        <div *ngIf="challengeFilterActive" class="filter-notice">
+          <button class="clear-filter-btn" (click)="clearChallengeFilter()">
+            ← Show All Peaks
+          </button>
+        </div>
+
+        <div class="list-container">
+          <ng-container *ngFor="let challenge of challenges">
+            <!-- Challenge Card -->
+            <div 
+              class="list-item challenge-item"
+              [class.completed]="challenge.isCompleted"
+              [class.expanded]="expandedChallengeId === challenge.id"
+              (click)="toggleChallengeExpand(challenge, $event)"
+            >
+              <div class="item-content">
+                <div class="challenge-header">
+                  <div class="item-name">{{ challenge.name }}</div>
+                  <span class="expand-icon">{{ expandedChallengeId === challenge.id ? '▼' : '▶' }}</span>
+                </div>
+                <div class="item-meta">
+                  <span>{{ challenge.completedPeaks }}/{{ challenge.totalPeaks }} peaks</span>
+                </div>
+                <div class="progress-bar">
+                  <div 
+                    class="progress-fill" 
+                    [style.width.%]="challenge.totalPeaks ? (challenge.completedPeaks / challenge.totalPeaks * 100) : 0"
+                  ></div>
+                </div>
+              </div>
+              <div class="item-badge" *ngIf="challenge.isCompleted">✅</div>
+            </div>
+
+            <!-- Expanded Peaks List -->
+            <div 
+              *ngIf="expandedChallengeId === challenge.id && challenge.peaks" 
+              class="challenge-peaks-list"
+            >
+              <div 
+                *ngFor="let peak of challenge.peaks"
+                class="challenge-peak-item"
+                [class.summited]="peak.isSummited"
+                (click)="focusChallengePeakOnMap(peak, $event)"
+              >
+                <div class="peak-status-icon">{{ peak.isSummited ? '✅' : '⬜' }}</div>
+                <div class="peak-info">
+                  <div class="peak-name">{{ peak.name }}</div>
+                  <div class="peak-elevation">{{ peak.elevation }}m</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <div *ngIf="challenges.length === 0" class="empty-state">
+            <p>You haven't joined any challenges yet.</p>
+            <button class="primary-btn" (click)="navigateToChallenge(0)">
+              Discover Challenges
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Peak Detail Modal -->
+<div *ngIf="selectedPeak" class="modal-overlay" (click)="closePeakDetail()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closePeakDetail()">×</button>
+    
+    <div class="peak-detail-header">
+      <div class="peak-icon-large">{{ selectedPeak.is_summited ? '✅' : '🏔️' }}</div>
+      <h2>{{ selectedPeak.name }}</h2>
+      <div class="peak-elevation">{{ selectedPeak.elevation_meters?.toFixed(0) || '?' }} m</div>
+    </div>
+
+    <div class="peak-detail-body">
+      <div class="detail-row" *ngIf="selectedPeak.region">
+        <span class="detail-label">Region</span>
+        <span class="detail-value">{{ selectedPeak.region }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <span class="detail-label">Status</span>
+        <span class="detail-value">
+          {{ selectedPeak.is_summited ? 'Summited' : 'Not yet summited' }}
+        </span>
+      </div>
+
+      <div class="detail-row" *ngIf="selectedPeak.summitCount">
+        <span class="detail-label">Summit Count</span>
+        <span class="detail-value">{{ selectedPeak.summitCount }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="selectedPeak.lastSummitDate">
+        <span class="detail-label">Last Summit</span>
+        <span class="detail-value">{{ selectedPeak.lastSummitDate | date:'MMMM d, yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="peak-detail-challenges" *ngIf="peakChallenges.length > 0">
+      <h3>In Challenges</h3>
+      <div class="challenge-list">
+        <div 
+          *ngFor="let challenge of peakChallenges" 
+          class="mini-challenge"
+          (click)="navigateToChallenge(challenge.id)"
+        >
+          {{ challenge.name }}
+        </div>
+      </div>
+    </div>
+
+    <div class="peak-detail-actions">
+      <button class="action-btn" (click)="focusPeakOnMap(selectedPeak); closePeakDetail()">
+        📍 Show on Map
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div *ngIf="loading" class="loading-overlay">
+  <div class="loading-spinner">Loading...</div>
+</div>

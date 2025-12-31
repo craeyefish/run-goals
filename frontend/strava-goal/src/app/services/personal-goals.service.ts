@@ -151,4 +151,11 @@ export class PersonalGoalsService {
     getCurrentGoalValue(): PersonalYearlyGoal | null {
         return this.currentGoalSubject.value;
     }
+
+    /**
+     * Get all historical goals for the current user
+     */
+    getAllGoals(): Observable<PersonalYearlyGoal[]> {
+        return this.http.get<PersonalYearlyGoal[]>(`${this.apiUrl}/personal-goals/all`);
+    }
 }

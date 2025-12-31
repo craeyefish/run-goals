@@ -22,6 +22,58 @@
       ></groups-goals-table>
     </div>
   </div>
+
+  <!-- Group Challenges Section -->
+  <div class="challenges-outer-container">
+    <div class="challenges-header-container">
+      <div class="button-container">
+        <div class="text-container">
+          <span>🏆 Group Challenges</span>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="text-container">
+          <span>adopt challenge</span>
+        </div>
+        <button class="add-goal-button" (click)="openAdoptChallengeModal()">
+          +
+        </button>
+      </div>
+    </div>
+    
+    <div class="challenges-list" *ngIf="groupChallenges().length > 0">
+      <div 
+        *ngFor="let challenge of groupChallenges()" 
+        class="challenge-card"
+        (click)="navigateToChallenge(challenge.id)"
+      >
+        <div class="challenge-info">
+          <div class="challenge-name">{{ challenge.name }}</div>
+          <div class="challenge-meta">
+            <span *ngIf="challenge.region">{{ challenge.region }}</span>
+            <span class="mode-badge" [class]="challenge.competitionMode">
+              {{ challenge.competitionMode === 'collaborative' ? '🤝' : '🏅' }}
+            </span>
+          </div>
+        </div>
+        <button 
+          class="remove-btn" 
+          (click)="removeGroupChallenge(challenge.id, $event)"
+          title="Remove from group"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+    
+    <div class="empty-challenges" *ngIf="groupChallenges().length === 0">
+      <p>No challenges adopted yet.</p>
+      <button class="adopt-btn" (click)="openAdoptChallengeModal()">
+        Adopt a Challenge
+      </button>
+    </div>
+  </div>
+
   <div class="members-outer-container">
     <div class="members-header-container">
       <span>members</span>
@@ -55,3 +107,51 @@
   (onCancel)="onDeleteGoalCancel()"
 >
 </goal-delete-confirmation>
+
+<!-- Adopt Challenge Modal -->
+<div *ngIf="showAdoptChallengeModal()" class="modal-overlay" (click)="closeAdoptChallengeModal()">
+  <div class="modal-content adopt-challenge-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Adopt a Challenge</h3>
+      <button class="close-btn" (click)="closeAdoptChallengeModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Search challenges..." 
+          [(ngModel)]="challengeSearchQuery"
+          (input)="filterAvailableChallenges()"
+        />
+      </div>
+      
+      <div class="challenges-list-modal" *ngIf="!loadingChallenges()">
+        <div 
+          *ngFor="let challenge of filteredAvailableChallenges()"
+          class="challenge-option"
+          [class.already-adopted]="isChallengeAdopted(challenge.id)"
+          (click)="adoptChallenge(challenge)"
+        >
+          <div class="challenge-option-info">
+            <div class="challenge-option-name">{{ challenge.name }}</div>
+            <div class="challenge-option-meta">
+              <span *ngIf="challenge.region">{{ challenge.region }}</span>
+              <span *ngIf="challenge.difficulty">• {{ challenge.difficulty }}</span>
+            </div>
+          </div>
+          <span *ngIf="isChallengeAdopted(challenge.id)" class="adopted-badge">Already adopted</span>
+          <span *ngIf="!isChallengeAdopted(challenge.id)" class="adopt-icon">+</span>
+        </div>
+        
+        <div *ngIf="filteredAvailableChallenges().length === 0" class="no-challenges">
+          <p>No challenges found matching your search.</p>
+        </div>
+      </div>
+      
+      <div *ngIf="loadingChallenges()" class="loading">
+        Loading challenges...
+      </div>
+    </div>
+  </div>
+</div>

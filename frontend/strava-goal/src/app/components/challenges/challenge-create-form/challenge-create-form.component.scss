@@ -1,0 +1,452 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: linear-gradient(180deg, var(--background-light-shade) 0%, var(--background-primary) 100%);
+    border: 0.25rem solid var(--text-primary);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--background-shade-color-2);
+    border-bottom: 2px solid var(--text-primary);
+
+    h2 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        line-height: 1;
+
+        &:hover {
+            color: var(--text-primary);
+        }
+    }
+}
+
+// Step Indicator
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem;
+    gap: 0.25rem;
+    background: var(--background-shade-color-1);
+    border-bottom: 1px solid var(--background-shade-color-2);
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    cursor: pointer;
+
+    .step-number {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: var(--background-shade-color-2);
+        color: var(--text-secondary);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 600;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+    }
+
+    .step-label {
+        font-size: 0.65rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+
+    &.active .step-number {
+        background-color: var(--secondary-color);
+        color: var(--text-on-dark);
+        border-color: var(--text-primary);
+    }
+
+    &.completed .step-number {
+        background-color: var(--success-color);
+        color: var(--text-on-dark);
+    }
+}
+
+.step-line {
+    width: 30px;
+    height: 2px;
+    background-color: var(--background-secondary);
+    margin-bottom: 0.75rem;
+    transition: background-color 0.2s;
+
+    &.active {
+        background-color: var(--success-color);
+    }
+}
+
+// Step Content
+.step-content {
+    padding: 1rem;
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+
+    label {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        background: var(--background-primary);
+        border: 2px solid var(--background-shade-color-2);
+        border-radius: 4px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+
+        &:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+
+            &::placeholder {
+                color: transparent;
+            }
+        }
+
+        &.invalid {
+            border-color: var(--danger-color);
+        }
+
+        &::placeholder {
+            color: var(--text-muted);
+        }
+    }
+
+    select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        padding-right: 2.5rem;
+
+        option {
+            background: var(--background-primary);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 50px;
+    }
+
+    .hint {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.checkbox-group {
+    label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    }
+}
+
+.info-box {
+    background: var(--background-primary);
+    border: 2px solid var(--background-shade-color-2);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+
+    p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+}
+
+// Step 3: Peaks
+.peaks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    h3 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .add-peaks-btn {
+        padding: 0.4rem 0.75rem;
+        background-color: var(--secondary-color);
+        color: var(--text-on-dark);
+        border: 2px solid var(--text-primary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}
+
+.selected-peaks {
+    .peak-summary {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+
+        .total-elevation {
+            color: var(--secondary-color);
+        }
+    }
+}
+
+.peak-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.peak-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--background-shade-color-2);
+    border-radius: 8px;
+
+    .peak-order {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: var(--secondary-color);
+        color: var(--text-on-dark);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .peak-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .peak-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .peak-elevation {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0.25rem;
+
+        &:hover {
+            color: var(--danger-color);
+        }
+    }
+}
+
+.empty-peaks {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+
+    p {
+        margin: 0.5rem 0;
+    }
+}
+
+// Modal Footer
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--background-shade-color-1);
+    border-top: 2px solid var(--text-primary);
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.primary-btn,
+.secondary-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.primary-btn {
+    background-color: var(--secondary-color);
+    color: var(--text-on-dark);
+    border: 2px solid var(--text-primary);
+
+    &:hover:not(:disabled) {
+        opacity: 0.9;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &.submit {
+        background-color: var(--success-color);
+
+        &:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+    }
+}
+
+.secondary-btn {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 2px solid var(--background-shade-color-2);
+
+    &:hover {
+        background-color: var(--background-shade-color-1);
+        color: var(--text-primary);
+        border-color: var(--text-primary);
+    }
+}
+
+// Peak Picker Modal
+.peak-picker-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10001; // Higher than create challenge modal (9999)
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .peak-picker-container {
+        width: 95%;
+        height: 90%;
+        max-width: 1200px;
+        background-color: var(--background-shade-color-4, #1a1a1a);
+        border-radius: 16px;
+        overflow: hidden;
+        border: 0.25rem solid var(--text-primary);
+    }
+}
+
+// Responsive
+@media (max-width: 600px) {
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .step-indicator {
+        padding: 1rem;
+    }
+
+    .step-label {
+        display: none;
+    }
+}

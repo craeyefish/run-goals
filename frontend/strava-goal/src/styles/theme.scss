@@ -1,4 +1,28 @@
-// Light Theme Colors
+// ===========================================
+// THEME COLOR SYSTEM
+// ===========================================
+// 
+// TEXT COLORS (for use on ANY background - base, white boxes, etc.)
+// - text-primary: #000000 (black) - main headings, important text
+// - text-secondary: #444444 (dark grey) - secondary text, descriptions
+// - text-muted: #666666 (medium grey) - hints, placeholders, less important
+//
+// WHITE TEXT (ONLY for dark backgrounds like buttons, sidebar, overlays)
+// - text-on-dark: #ffffff
+//
+// BACKGROUNDS
+// - background-primary: #fcfcfc (white cards/boxes)
+// - background-light-shade: rgba(255,255,255,0.6) (semi-transparent white)
+// - background-shade-1 to 5: rgba(0,0,0,0.1-0.5) (dark overlays)
+//
+// ACCENT COLORS
+// - secondary-color: #78d5d7 (Tiffany Blue) - buttons, highlights
+// - success: #00d4aa (green) - completed states
+// - warning: #e65100 (orange) - warnings
+// - danger: #c62828 (red) - errors, destructive actions
+// ===========================================
+
+// Core palette
 $primary: #000000;
 $secondary: #78d5d7; // Tiffany Blue
 $background: #f7f9f9; // Seasalt
@@ -11,13 +35,20 @@ $background-shade-4: rgba(0, 0, 0, 0.4);
 $background-shade-5: rgba(0, 0, 0, 0.5);
 $background-light-shade: rgba(255, 255, 255, 0.6);
 $surface: #bed8d4; // Ash Gray
-$text: #ffffff; // Standard dark text
-$text-primary: #000000;
-$text-secondary: #fcfcfc;
 $accent: #2081c3; // Steel Blue
 
-@mixin theme(
-  $primary,
+// Text colors - DARK for readability on light/transparent backgrounds
+$text-primary: #000000; // Black - main text
+$text-secondary: #444444; // Dark grey - secondary text  
+$text-muted: #666666; // Medium grey - hints, placeholders
+$text-on-dark: #ffffff; // White - ONLY for dark backgrounds
+
+// Status colors
+$success: #00d4aa;
+$warning: #e65100;
+$danger: #c62828;
+
+@mixin theme($primary,
   $secondary,
   $background,
   $background-primary,
@@ -29,11 +60,14 @@ $accent: #2081c3; // Steel Blue
   $background-shade-5,
   $background-light-shade,
   $surface,
-  $text,
   $text-primary,
   $text-secondary,
-  $accent
-) {
+  $text-muted,
+  $text-on-dark,
+  $accent,
+  $success,
+  $warning,
+  $danger) {
   --primary-color: #{$primary};
   --secondary-color: #{$secondary};
   --background-color: #{$background};
@@ -46,15 +80,18 @@ $accent: #2081c3; // Steel Blue
   --background-shade-color-5: #{$background-shade-5};
   --background-light-shade: #{$background-light-shade};
   --surface-color: #{$surface};
-  --text-color: #{$text};
   --text-primary: #{$text-primary};
   --text-secondary: #{$text-secondary};
+  --text-muted: #{$text-muted};
+  --text-on-dark: #{$text-on-dark};
   --accent-color: #{$accent};
+  --success-color: #{$success};
+  --warning-color: #{$warning};
+  --danger-color: #{$danger};
 }
 
 :root {
-  @include theme(
-    $primary,
+  @include theme($primary,
     $secondary,
     $background,
     $background-primary,
@@ -66,9 +103,12 @@ $accent: #2081c3; // Steel Blue
     $background-shade-5,
     $background-light-shade,
     $surface,
-    $text,
     $text-primary,
     $text-secondary,
-    $accent
-  );
+    $text-muted,
+    $text-on-dark,
+    $accent,
+    $success,
+    $warning,
+    $danger );
 }

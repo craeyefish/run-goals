@@ -1,0 +1,15 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+
+    .breadcrumb-container {
+        padding: 0.5rem 1rem;
+    }
+
+    .content-container {
+        flex: 1;
+        overflow: auto;
+    }
+}

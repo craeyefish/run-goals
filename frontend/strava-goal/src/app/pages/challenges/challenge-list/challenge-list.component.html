@@ -1,0 +1,106 @@
+<div class="challenge-list-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Challenges</h1>
+    <button class="create-btn" (click)="openCreateForm()">
+      <span class="icon">+</span>
+      Create Challenge
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab" 
+      [class.active]="activeTab() === 'my'"
+      (click)="setTab('my')">
+      My Challenges
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab() === 'discover'"
+      (click)="setTab('discover')">
+      Discover
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="isLoading()">
+    Loading challenges...
+  </div>
+
+  <!-- My Challenges Tab -->
+  <ng-container *ngIf="activeTab() === 'my' && !isLoading()">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="myChallenges.length === 0">
+      <div class="empty-content">
+        <h2>No challenges yet!</h2>
+        <p>Create your first challenge or join an existing one from the Discover tab.</p>
+        <button class="primary-btn" (click)="openCreateForm()">Create Your First Challenge</button>
+      </div>
+    </div>
+
+    <!-- Active Challenges -->
+    <div class="section" *ngIf="activeChallenges.length > 0">
+      <h2 class="section-title">Active ({{ activeChallenges.length }})</h2>
+      <div class="challenge-grid">
+        <challenge-card
+          *ngFor="let challenge of activeChallenges"
+          [challenge]="challenge"
+          (click)="onChallengeClick(challenge)">
+        </challenge-card>
+      </div>
+    </div>
+
+    <!-- Completed Challenges -->
+    <div class="section" *ngIf="completedChallenges.length > 0">
+      <h2 class="section-title">Completed ({{ completedChallenges.length }})</h2>
+      <div class="challenge-grid">
+        <challenge-card
+          *ngFor="let challenge of completedChallenges"
+          [challenge]="challenge"
+          (click)="onChallengeClick(challenge)">
+        </challenge-card>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Discover Tab -->
+  <ng-container *ngIf="activeTab() === 'discover' && !isLoading()">
+    <!-- Featured Section -->
+    <div class="section" *ngIf="featuredChallenges().length > 0">
+      <h2 class="section-title">⭐ Featured Challenges</h2>
+      <div class="challenge-grid">
+        <challenge-card
+          *ngFor="let challenge of featuredChallenges()"
+          [challenge]="challenge"
+          [showJoinButton]="true"
+          (click)="onChallengeClick(challenge)">
+        </challenge-card>
+      </div>
+    </div>
+
+    <!-- Public Challenges -->
+    <div class="section">
+      <h2 class="section-title">Public Challenges</h2>
+      <div class="challenge-grid" *ngIf="challengeService.publicChallenges().length > 0">
+        <challenge-card
+          *ngFor="let challenge of challengeService.publicChallenges()"
+          [challenge]="challenge"
+          [showJoinButton]="true"
+          (click)="onChallengeClick(challenge)">
+        </challenge-card>
+      </div>
+      <div class="empty-discover" *ngIf="challengeService.publicChallenges().length === 0">
+        <p>No public challenges available yet.</p>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Create Challenge Modal -->
+<challenge-create-form
+  *ngIf="showCreateForm()"
+  (onSubmit)="onChallengeCreated($event)"
+  (onCancel)="closeCreateForm()">
+</challenge-create-form>

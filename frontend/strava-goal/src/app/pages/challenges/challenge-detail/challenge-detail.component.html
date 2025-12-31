@@ -1,0 +1,229 @@
+<div class="challenge-detail-container" *ngIf="challenge(); else loading">
+  <!-- Header -->
+  <div class="detail-header">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    
+    <div class="header-content">
+      <div class="title-row">
+        <h1>{{ challenge()!.name }}</h1>
+        <div class="badges">
+          <span class="type-badge" [class]="challenge()!.challengeType">
+            {{ challengeService.getChallengeTypeLabel(challenge()!.challengeType) }}
+          </span>
+          <span class="mode-badge" [class]="challenge()!.competitionMode">
+            {{ challenge()!.competitionMode === 'collaborative' ? '🤝' : '🏆' }}
+          </span>
+        </div>
+      </div>
+      
+      <p class="description" *ngIf="challenge()!.description">
+        {{ challenge()!.description }}
+      </p>
+      
+      <div class="meta-info">
+        <span *ngIf="challenge()!.region">📍 {{ challenge()!.region }}</span>
+        <span *ngIf="challenge()!.difficulty" 
+          [style.color]="challengeService.getDifficultyColor(challenge()!.difficulty)">
+          {{ challenge()!.difficulty }}
+        </span>
+        <span *ngIf="challenge()!.deadline">📅 Due: {{ formatDate(challenge()!.deadline) }}</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="join-btn" *ngIf="!challenge()!.isJoined" (click)="onJoinChallenge()">
+        Join Challenge
+      </button>
+      <button class="leave-btn" *ngIf="challenge()!.isJoined" (click)="onLeaveChallenge()">
+        Leave
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress Section -->
+  <div class="progress-section" *ngIf="challenge()!.isJoined">
+    <div class="progress-card">
+      <div class="progress-header">
+        <h3>Your Progress</h3>
+        <span class="progress-text">
+          {{ challenge()!.completedPeaks }} / {{ challenge()!.totalPeaks }} peaks
+        </span>
+      </div>
+      
+      <div class="progress-bar-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+        </div>
+        <span class="percentage">{{ progressPercentage() }}%</span>
+      </div>
+
+      <div class="completion-badge" *ngIf="challenge()!.isCompleted">
+        🎉 Challenge Completed!
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'peaks'"
+        (click)="setTab('peaks')">
+        Peaks ({{ peaks().length }})
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'participants'"
+        (click)="setTab('participants')">
+        Participants ({{ participants().length }})
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'activity'"
+        (click)="setTab('activity')">
+        Activity
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Peaks Tab -->
+    <div class="peaks-tab" *ngIf="activeTab === 'peaks'">
+      <!-- Remaining Peaks -->
+      <div class="peaks-section" *ngIf="remainingPeaks.length > 0">
+        <h3>🎯 To Summit ({{ remainingPeaks.length }})</h3>
+        <div class="peaks-grid">
+          <div class="peak-card" *ngFor="let peak of remainingPeaks">
+            <div class="peak-icon">⛰️</div>
+            <div class="peak-details">
+              <span class="peak-name">{{ peak.name }}</span>
+              <span class="peak-alt" *ngIf="peak.altName">({{ peak.altName }})</span>
+              <span class="peak-elevation">{{ peak.elevation }}m</span>
+              <span class="peak-region" *ngIf="peak.region">{{ peak.region }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Peaks -->
+      <div class="peaks-section completed" *ngIf="completedPeaks.length > 0">
+        <h3>✅ Summited ({{ completedPeaks.length }})</h3>
+        <div class="peaks-grid">
+          <div class="peak-card summited" *ngFor="let peak of completedPeaks">
+            <div class="peak-icon">✅</div>
+            <div class="peak-details">
+              <span class="peak-name">{{ peak.name }}</span>
+              <span class="peak-alt" *ngIf="peak.altName">({{ peak.altName }})</span>
+              <span class="peak-elevation">{{ peak.elevation }}m</span>
+              <span class="peak-region" *ngIf="peak.region">{{ peak.region }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="peaks().length === 0">
+        <p>No peaks in this challenge yet.</p>
+      </div>
+    </div>
+
+    <!-- Participants Tab -->
+    <div class="participants-tab" *ngIf="activeTab === 'participants'">
+      <!-- Leaderboard for Competitive Challenges -->
+      <div class="leaderboard-section" *ngIf="challenge()!.competitionMode === 'competitive' && leaderboard().length > 0">
+        <h3>🏆 Leaderboard</h3>
+        <div class="leaderboard">
+          <div 
+            class="leaderboard-row" 
+            *ngFor="let entry of leaderboard()"
+            [class.top3]="entry.rank <= 3"
+            [class.completed]="entry.completedAt">
+            <span class="rank">
+              <ng-container *ngIf="entry.rank === 1">🥇</ng-container>
+              <ng-container *ngIf="entry.rank === 2">🥈</ng-container>
+              <ng-container *ngIf="entry.rank === 3">🥉</ng-container>
+              <ng-container *ngIf="entry.rank > 3">#{{ entry.rank }}</ng-container>
+            </span>
+            
+            <div class="participant-info">
+              <img 
+                class="avatar" 
+                [src]="entry.profilePicture || 'assets/default-avatar.png'" 
+                [alt]="entry.userName">
+              <span class="name">{{ entry.userName }}</span>
+            </div>
+            
+            <div class="participant-progress">
+              <span class="peaks-count">{{ entry.peaksCompleted }}/{{ entry.totalPeaks }}</span>
+              <div class="mini-progress">
+                <div 
+                  class="mini-fill" 
+                  [style.width.%]="entry.progress">
+                </div>
+              </div>
+            </div>
+
+            <span class="completed-badge" *ngIf="entry.completedAt">✅</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regular Participants List for Collaborative Challenges -->
+      <div class="leaderboard" *ngIf="challenge()!.competitionMode === 'collaborative' && sortedParticipants.length > 0">
+        <div 
+          class="participant-row" 
+          *ngFor="let participant of sortedParticipants; let i = index">
+          <div class="participant-info">
+            <img 
+              class="avatar" 
+              [src]="participant.profilePicture || 'assets/default-avatar.png'" 
+              [alt]="participant.userName">
+            <span class="name">{{ participant.userName }}</span>
+          </div>
+          
+          <div class="participant-progress">
+            <span class="peaks-count">{{ participant.peaksCompleted }}/{{ participant.totalPeaks }}</span>
+            <div class="mini-progress">
+              <div 
+                class="mini-fill" 
+                [style.width.%]="participant.totalPeaks > 0 ? (participant.peaksCompleted / participant.totalPeaks * 100) : 0">
+              </div>
+            </div>
+          </div>
+
+          <span class="completed-badge" *ngIf="participant.completedAt">✅</span>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="participants().length === 0 && leaderboard().length === 0">
+        <p>No participants yet. Be the first to join!</p>
+      </div>
+    </div>
+
+    <!-- Activity Tab -->
+    <div class="activity-tab" *ngIf="activeTab === 'activity'">
+      <div class="activity-feed" *ngIf="summitLog().length > 0">
+        <div class="activity-item" *ngFor="let entry of summitLog()">
+          <div class="activity-icon">🏔️</div>
+          <div class="activity-content">
+            <span class="activity-text">
+              <strong>{{ entry.peakName || 'Unknown Peak' }}</strong> summited
+            </span>
+            <span class="activity-date">{{ formatDate(entry.summitedAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="summitLog().length === 0">
+        <p>No activity yet. Start summiting peaks!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-container">
+    <p>Loading challenge...</p>
+  </div>
+</ng-template>

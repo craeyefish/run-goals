@@ -19,6 +19,10 @@ import { GroupsListPageComponent } from './pages/groups/group-list/group-list.co
 import { MapPageComponent } from './pages/map-page/map-page.component';
 import { ActivitiesPageComponent } from './pages/activities-page/activities-page.component';
 import { SupportComponent } from './pages/support/support.component';
+import { ChallengesComponent } from './pages/challenges/challenges.component';
+import { ChallengeListComponent } from './pages/challenges/challenge-list/challenge-list.component';
+import { ChallengeDetailComponent } from './pages/challenges/challenge-detail/challenge-detail.component';
+import { ExploreComponent } from './pages/explore/explore.component';
 
 export const routes: Routes = [
   {
@@ -59,6 +63,15 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
+      {
+        path: 'challenges',
+        component: ChallengesComponent,
+        children: [
+          { path: '', component: ChallengeListComponent },
+          { path: ':id', component: ChallengeDetailComponent },
+        ],
+      },
+      { path: 'explore', component: ExploreComponent },
       {
         path: 'groups',
         component: GroupsComponent,

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, WritableSignal, OnInit } from '@angular/core';
+import { Component, signal, WritableSignal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { GoalProgressComponent } from 'src/app/components/goal-progress/goal-progress.component';
 import { GoalDeleteConfirmationComponent } from 'src/app/components/groups/goal-delete-confirmation/goal-delete-confirmation.component';
 import { GoalsCreateFormComponent } from 'src/app/components/groups/goals-create-form/goals-create-form.component';
@@ -14,12 +15,17 @@ import {
   GroupService,
   UpdateGoalRequest,
 } from 'src/app/services/groups.service';
+import { ChallengeService } from 'src/app/services/challenge.service';
+import { Challenge, ChallengeWithProgress } from 'src/app/models/challenge.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'group-details-page',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     GoalsCreateFormComponent,
     GoalsEditFormComponent,
     GoalDeleteConfirmationComponent,
@@ -30,11 +36,14 @@ import {
   styleUrls: ['./group-details.component.scss'],
 })
 export class GroupsDetailsPageComponent implements OnInit {
+  private destroy$ = new Subject<void>();
+
   constructor(
     private groupService: GroupService,
+    private challengeService: ChallengeService,
     private breadcrumbService: BreadcrumbService,
     private router: Router
-  ) {}
+  ) { }
 
   createGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
     signal({ show: false, data: null });
@@ -44,6 +53,14 @@ export class GroupsDetailsPageComponent implements OnInit {
     show: boolean;
     data: Goal | null;
   }> = signal({ show: false, data: null });
+
+  // Challenge-related signals
+  groupChallenges = signal<Challenge[]>([]);
+  availableChallenges = signal<Challenge[]>([]);
+  filteredAvailableChallenges = signal<Challenge[]>([]);
+  showAdoptChallengeModal = signal(false);
+  loadingChallenges = signal(false);
+  challengeSearchQuery = '';
 
   openCreateGoalForm = () =>
     this.createGoalFormSignal.set({ show: true, data: null });
@@ -76,6 +93,120 @@ export class GroupsDetailsPageComponent implements OnInit {
     // Load group data if needed
     this.groupService.loadGoals(selectedGroup.id);
     this.groupService.getGroupMembers(selectedGroup.id);
+
+    // Load group challenges
+    this.loadGroupChallenges(selectedGroup.id);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ==================== Challenge Methods ====================
+
+  loadGroupChallenges(groupId: number): void {
+    this.challengeService.getGroupChallenges(groupId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.groupChallenges.set(response.challenges || []);
+      },
+      error: (err) => console.error('Error loading group challenges:', err)
+    });
+  }
+
+  openAdoptChallengeModal(): void {
+    this.showAdoptChallengeModal.set(true);
+    this.loadAvailableChallenges();
+  }
+
+  closeAdoptChallengeModal(): void {
+    this.showAdoptChallengeModal.set(false);
+    this.challengeSearchQuery = '';
+  }
+
+  loadAvailableChallenges(): void {
+    this.loadingChallenges.set(true);
+    this.challengeService.getPublicChallenges().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.availableChallenges.set(response.challenges || []);
+        this.filteredAvailableChallenges.set(response.challenges || []);
+        this.loadingChallenges.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading available challenges:', err);
+        this.loadingChallenges.set(false);
+      }
+    });
+  }
+
+  filterAvailableChallenges(): void {
+    const query = this.challengeSearchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredAvailableChallenges.set(this.availableChallenges());
+      return;
+    }
+
+    const filtered = this.availableChallenges().filter(c =>
+      c.name.toLowerCase().includes(query) ||
+      c.region?.toLowerCase().includes(query) ||
+      c.description?.toLowerCase().includes(query)
+    );
+    this.filteredAvailableChallenges.set(filtered);
+  }
+
+  isChallengeAdopted(challengeId: number): boolean {
+    return this.groupChallenges().some(c => c.id === challengeId);
+  }
+
+  adoptChallenge(challenge: Challenge): void {
+    if (this.isChallengeAdopted(challenge.id)) return;
+
+    const selectedGroup = this.selectedGroup();
+    if (!selectedGroup) return;
+
+    this.challengeService.addGroupToChallenge(challenge.id, { groupId: selectedGroup.id }).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        console.log('Challenge adopted:', challenge.name);
+        this.loadGroupChallenges(selectedGroup.id);
+        this.closeAdoptChallengeModal();
+      },
+      error: (err) => {
+        console.error('Error adopting challenge:', err);
+        alert('Failed to adopt challenge. Please try again.');
+      }
+    });
+  }
+
+  removeGroupChallenge(challengeId: number, event: Event): void {
+    event.stopPropagation();
+
+    const selectedGroup = this.selectedGroup();
+    if (!selectedGroup) return;
+
+    if (!confirm('Remove this challenge from the group?')) return;
+
+    this.challengeService.removeGroupFromChallenge(challengeId, selectedGroup.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        console.log('Challenge removed from group');
+        this.loadGroupChallenges(selectedGroup.id);
+      },
+      error: (err) => {
+        console.error('Error removing challenge:', err);
+        alert('Failed to remove challenge. Please try again.');
+      }
+    });
+  }
+
+  navigateToChallenge(challengeId: number): void {
+    this.router.navigate(['/challenges', challengeId]);
   }
 
   onCreateGoalFormSubmit = (data: CreateGoalRequest) => {

@@ -26,63 +26,29 @@
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <ng-container *ngIf="!loading && !error">
-    <!-- Charts Grid -->
-    <div class="charts-grid">
-      <!-- Distance Progress Chart -->
-      <div class="chart-section">
-        <div class="chart-header">
-          <h3>📈 Distance Progress</h3>
-          <div class="chart-goal">
-            <span>Goal: {{ distanceGoal | number }} km</span>
-            <button class="edit-goal-btn" (click)="openGoalEditor('distance')">Edit</button>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas #distanceChart></canvas>
-        </div>
-      </div>
+    <!-- Yearly Goals Section -->
+    <app-yearly-goals
+      [currentDistance]="totalDistance"
+      [currentElevation]="totalElevation"
+      [currentSummits]="totalSummits"
+      [yearActivities]="yearActivities"
+      [recentSummits]="recentSummits"
+      (openPeakPicker)="openSummitPicker()"
+    ></app-yearly-goals>
 
-      <!-- Elevation Progress Chart -->
-      <div class="chart-section">
-        <div class="chart-header">
-          <h3>⛰️ Elevation Progress</h3>
-          <div class="chart-goal">
-            <span>Goal: {{ elevationGoal | number }} m</span>
-            <button class="edit-goal-btn" (click)="openGoalEditor('elevation')">Edit</button>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas #elevationChart></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Summit Goals -->
-    <div class="summit-goals">
+    <!-- Summit Wishlist (kept separate for detailed peak list) -->
+    <div class="summit-goals" *ngIf="targetSummits.length > 0">
       <div class="summit-header">
-        <h3>
-          🏔️ Summit Wishlist
-        </h3>
+        <h3>📋 Peak Wishlist</h3>
         <div class="summit-progress">
-          <div class="progress-ring">
-            <svg viewBox="0 0 36 36">
-              <circle class="progress-bg" cx="18" cy="18" r="16"/>
-              <circle 
-                class="progress-value" 
-                cx="18" cy="18" r="16"
-                [attr.stroke-dasharray]="100"
-                [attr.stroke-dashoffset]="100 - summitProgressPercentage"
-              />
-            </svg>
-          </div>
-          <span>{{ completedTargetSummits }}/{{ targetSummits.length || summitGoal }}</span>
+          <span>{{ completedTargetSummits }}/{{ targetSummits.length }} completed</span>
         </div>
         <button class="add-summit-btn" (click)="openSummitPicker()">
-          {{ targetSummits.length > 0 ? '± Edit Peaks' : '+ Add Peak' }}
+          ± Edit Peaks
         </button>
       </div>
 
-      <div class="summit-list" *ngIf="targetSummits.length > 0">
+      <div class="summit-list">
         <div 
           class="summit-item" 
           *ngFor="let summit of targetSummits"
@@ -100,35 +66,35 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="no-summits" *ngIf="targetSummits.length === 0">
-        <p>No peaks on your wishlist yet. Add peaks you want to summit this year!</p>
+    <!-- Active Challenges Section -->
+    <div class="active-challenges-section">
+      <div class="section-header">
+        <h3>🏆 Active Challenges</h3>
+        <button class="view-all-btn" (click)="navigateToChallenges()">
+          View All Challenges →
+        </button>
+      </div>
+
+      <div class="challenges-grid" *ngIf="activeChallenges.length > 0">
+        <div 
+          *ngFor="let challenge of activeChallenges" 
+          class="challenge-wrapper"
+          (click)="navigateToChallenge(challenge.id)"
+        >
+          <challenge-card [challenge]="challenge"></challenge-card>
+        </div>
+      </div>
+
+      <div class="no-challenges" *ngIf="activeChallenges.length === 0">
+        <p>You haven't joined any challenges yet.</p>
+        <button class="primary-btn" (click)="navigateToChallenges()">
+          Discover Challenges
+        </button>
       </div>
     </div>
   </ng-container>
-</div>
-
-<!-- Goal Editor Modal - OUTSIDE home-container -->
-<div *ngIf="showGoalEditor" 
-     class="modal-overlay"
-     (mousedown)="onOverlayMouseDown($event)">
-  <div class="modal-content"
-       (mousedown)="$event.stopPropagation()">
-    <h4>Edit {{ editingGoalType === 'distance' ? 'Distance' : 'Elevation' }} Goal</h4>
-    <div class="form-group">
-      <label>
-        Target {{ editingGoalType === 'distance' ? '(km)' : '(meters)' }}
-      </label>
-      <input 
-        type="number" 
-        [(ngModel)]="editingGoalValue"
-      />
-    </div>
-    <div class="modal-buttons">
-      <button class="modal-btn" (click)="showGoalEditor = false">Cancel</button>
-      <button class="modal-btn" (click)="saveGoal()">Save</button>
-    </div>
-  </div>
 </div>
 
 <!-- Peak Picker Modal - OUTSIDE home-container -->

@@ -36,6 +36,7 @@ func NewServer() *http.Server {
 	userPeaksDao := daos.NewUserPeaksDao(logger, db)
 	groupsDao := daos.NewGroupsDao(logger, db)
 	personalYearlyGoalDao := daos.NewPersonalYearlyGoalDao(logger, db)
+	challengeDao := daos.NewChallengeDao(logger, db)
 
 	// initialise services
 	jwtService := services.NewJWTService(logger, config)
@@ -48,6 +49,7 @@ func NewServer() *http.Server {
 	groupsService := services.NewGroupsService(logger, groupsDao)
 	userService := services.NewUserService(logger, userDao)
 	personalGoalsService := services.NewPersonalGoalsService(logger, personalYearlyGoalDao)
+	challengeService := services.NewChallengeService(logger, challengeDao)
 
 	// Services for background jobs
 	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
@@ -77,6 +79,7 @@ func NewServer() *http.Server {
 	)
 	authController := controllers.NewAuthController(logger, jwtService)
 	groupsController := controllers.NewGroupsController(logger, groupsService, goalProgressService)
+	challengesController := controllers.NewChallengesController(logger, challengeService)
 
 	// background jobs
 	// TODO(cian): Move out of server.
@@ -87,7 +90,7 @@ func NewServer() *http.Server {
 	supportController := controllers.NewSupportController(logger, userService, peakService, overpassService, activityDao, userPeaksDao)
 
 	// initialise handlers
-	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController)
+	apiHandler := handlers.NewApiHandler(logger, apiController, groupsController, challengesController)
 	authHandler := handlers.NewAuthHandler(logger, authController, stravaController)
 	hgHandler := handlers.NewHgHandler(logger, hgController)
 	stravaHandler := handlers.NewStravaHandler(logger, stravaController)

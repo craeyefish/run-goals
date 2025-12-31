@@ -1,0 +1,198 @@
+<div class="modal-overlay" (mousedown)="onOverlayMouseDown($event)" (mouseup)="onOverlayMouseUp($event)">
+  <div class="modal-content" (mousedown)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>Create Challenge</h2>
+      <button class="close-btn" (click)="cancel()">×</button>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="step-indicator">
+      <div class="step" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1" (click)="goToStep(1)">
+        <span class="step-number">1</span>
+        <span class="step-label">Details</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep() > 1"></div>
+      <div class="step" [class.active]="currentStep() >= 2" [class.completed]="currentStep() > 2" (click)="goToStep(2)">
+        <span class="step-number">2</span>
+        <span class="step-label">Dates</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep() > 2"></div>
+      <div class="step" [class.active]="currentStep() >= 3" (click)="goToStep(3)">
+        <span class="step-number">3</span>
+        <span class="step-label">Peaks</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Basic Info -->
+    <div class="step-content" *ngIf="currentStep() === 1">
+      <div class="form-group">
+        <label for="name">Challenge Name *</label>
+        <input 
+          type="text" 
+          id="name" 
+          [(ngModel)]="name" 
+          placeholder="e.g., Cape Town 13 Peaks Challenge"
+          [class.invalid]="name.length > 0 && name.length < 3">
+        <span class="hint" *ngIf="name.length > 0 && name.length < 3">Name must be at least 3 characters</span>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea 
+          id="description" 
+          [(ngModel)]="description" 
+          placeholder="What's this challenge about?"
+          rows="2"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="challengeType">Type</label>
+          <select id="challengeType" [(ngModel)]="challengeType">
+            <option value="custom">Custom</option>
+            <option value="yearly_goal">Yearly Goal</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="competitionMode">Mode</label>
+          <select id="competitionMode" [(ngModel)]="competitionMode">
+            <option value="collaborative">🤝 Collaborative</option>
+            <option value="competitive">🏆 Competitive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="visibility">Visibility</label>
+          <select id="visibility" [(ngModel)]="visibility">
+            <option value="private">🔒 Private</option>
+            <option value="friends">👥 Friends</option>
+            <option value="public">🌍 Public</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty" [(ngModel)]="difficulty">
+            <option value="">Not specified</option>
+            <option value="easy">Easy</option>
+            <option value="moderate">Moderate</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="region">Region</label>
+        <input 
+          type="text" 
+          id="region" 
+          [(ngModel)]="region" 
+          placeholder="e.g., Cape Town, Western Cape">
+      </div>
+    </div>
+
+    <!-- Step 2: Dates -->
+    <div class="step-content" *ngIf="currentStep() === 2">
+      <div class="form-group">
+        <label for="startDate">Start Date</label>
+        <input type="date" id="startDate" [(ngModel)]="startDate">
+        <span class="hint">Optional - when does this challenge begin?</span>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label>
+          <input type="checkbox" [(ngModel)]="hasDeadline">
+          Set a deadline for this challenge
+        </label>
+      </div>
+
+      <div class="form-group" *ngIf="hasDeadline">
+        <label for="deadline">Deadline *</label>
+        <input type="date" id="deadline" [(ngModel)]="deadline" [min]="startDate">
+        <span class="hint" *ngIf="!step2Valid">Deadline must be after start date</span>
+      </div>
+
+      <div class="info-box">
+        <p>💡 <strong>Tip:</strong> Challenges without deadlines are ongoing - complete them at your own pace!</p>
+      </div>
+    </div>
+
+    <!-- Step 3: Peaks -->
+    <div class="step-content" *ngIf="currentStep() === 3">
+      <div class="peaks-header">
+        <h3>Select Peaks</h3>
+        <button class="add-peaks-btn" (click)="openPeakPicker()">
+          + Add Peaks from Map
+        </button>
+      </div>
+
+      <div class="selected-peaks" *ngIf="selectedPeaks.length > 0">
+        <div class="peak-summary">
+          <span>{{ selectedPeaks.length }} peak{{ selectedPeaks.length !== 1 ? 's' : '' }} selected</span>
+          <span class="total-elevation">{{ getTotalElevation() | number }}m total elevation</span>
+        </div>
+
+        <div class="peak-list">
+          <div class="peak-item" *ngFor="let peak of selectedPeaks; let i = index">
+            <span class="peak-order">{{ i + 1 }}</span>
+            <div class="peak-info">
+              <span class="peak-name">{{ peak.name }}</span>
+              <span class="peak-elevation">{{ peak.elevation_meters }}m</span>
+            </div>
+            <button class="remove-btn" (click)="removePeak(peak)">×</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-peaks" *ngIf="selectedPeaks.length === 0">
+        <p>No peaks selected yet.</p>
+        <p>Click "Add Peaks from Map" to choose the peaks for this challenge.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="secondary-btn" (click)="cancel()">Cancel</button>
+      
+      <div class="nav-buttons">
+        <button class="secondary-btn" *ngIf="currentStep() > 1" (click)="prevStep()">
+          ← Back
+        </button>
+        
+        <button 
+          class="primary-btn" 
+          *ngIf="currentStep() < totalSteps" 
+          (click)="nextStep()"
+          [disabled]="currentStep() === 1 && !step1Valid">
+          Next →
+        </button>
+        
+        <button 
+          class="primary-btn submit" 
+          *ngIf="currentStep() === totalSteps" 
+          (click)="submit()"
+          [disabled]="!canSubmit">
+          Create Challenge
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Peak Picker Modal -->
+<div class="peak-picker-modal" *ngIf="showPeakPicker()">
+  <div class="peak-picker-container">
+    <app-peak-picker
+      [initialSelectedIds]="selectedPeakIds"
+      (selectionChange)="onPeakSelectionChange($event)"
+      (peakAdded)="onPeakAdded($event)"
+      (peakRemoved)="onPeakRemoved($event)"
+      (close)="closePeakPicker()">
+    </app-peak-picker>
+  </div>
+</div>

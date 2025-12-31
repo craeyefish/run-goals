@@ -7,20 +7,23 @@ import (
 )
 
 type ApiHandler struct {
-	l                *log.Logger
-	apiController    *controllers.ApiController
-	groupsController *controllers.GroupsController
+	l                    *log.Logger
+	apiController        *controllers.ApiController
+	groupsController     *controllers.GroupsController
+	challengesController *controllers.ChallengesController
 }
 
 func NewApiHandler(
 	l *log.Logger,
 	apiController *controllers.ApiController,
 	groupsController *controllers.GroupsController,
+	challengesController *controllers.ChallengesController,
 ) *ApiHandler {
 	return &ApiHandler{
 		l,
 		apiController,
 		groupsController,
+		challengesController,
 	}
 }
 
@@ -113,6 +116,103 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 		if r.Method == http.MethodPost {
 			handler.apiController.SavePersonalGoals(rw, r)
+			return
+		}
+	case "/api/personal-goals/all":
+		if r.Method == http.MethodGet {
+			handler.apiController.GetAllPersonalGoals(rw, r)
+			return
+		}
+
+	// ==================== Challenge Routes ====================
+	case "/api/challenges":
+		if r.Method == http.MethodPost {
+			handler.challengesController.CreateChallenge(rw, r)
+			return
+		}
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetUserChallenges(rw, r)
+			return
+		}
+	case "/api/challenge":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetChallenge(rw, r)
+			return
+		}
+		if r.Method == http.MethodPut {
+			handler.challengesController.UpdateChallenge(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.challengesController.DeleteChallenge(rw, r)
+			return
+		}
+	case "/api/challenges/featured":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetFeaturedChallenges(rw, r)
+			return
+		}
+	case "/api/challenges/public":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetPublicChallenges(rw, r)
+			return
+		}
+	case "/api/challenges/search":
+		if r.Method == http.MethodGet {
+			handler.challengesController.SearchChallenges(rw, r)
+			return
+		}
+	case "/api/challenge-peaks":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetChallengePeaks(rw, r)
+			return
+		}
+		if r.Method == http.MethodPut {
+			handler.challengesController.SetChallengePeaks(rw, r)
+			return
+		}
+	case "/api/challenge-join":
+		if r.Method == http.MethodPost {
+			handler.challengesController.JoinChallenge(rw, r)
+			return
+		}
+	case "/api/challenge-leave":
+		if r.Method == http.MethodDelete {
+			handler.challengesController.LeaveChallenge(rw, r)
+			return
+		}
+	case "/api/challenge-participants":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetParticipants(rw, r)
+			return
+		}
+	case "/api/challenge-leaderboard":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetLeaderboard(rw, r)
+			return
+		}
+	case "/api/challenge-summit-log":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetSummitLog(rw, r)
+			return
+		}
+	case "/api/challenge-summit":
+		if r.Method == http.MethodPost {
+			handler.challengesController.RecordSummit(rw, r)
+			return
+		}
+	case "/api/challenge-group":
+		if r.Method == http.MethodPost {
+			handler.challengesController.AddGroupToChallenge(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.challengesController.RemoveGroupFromChallenge(rw, r)
+			return
+		}
+	case "/api/group-challenges":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetGroupChallenges(rw, r)
 			return
 		}
 	}

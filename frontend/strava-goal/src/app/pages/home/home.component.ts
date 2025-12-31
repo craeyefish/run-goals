@@ -8,11 +8,16 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ActivityService, Activity } from '../../services/activity.service';
 import { PeakSummitService } from '../../services/peak-summit.service';
 import { PeakService, Peak } from '../../services/peak.service';
 import { PersonalGoalsService, PersonalYearlyGoal } from '../../services/personal-goals.service';
+import { ChallengeService } from '../../services/challenge.service';
+import { ChallengeWithProgress } from '../../models/challenge.model';
 import { PeakPickerComponent, SelectedPeak } from '../../components/peak-picker/peak-picker.component';
+import { ChallengeCardComponent } from '../../components/challenges/challenge-card/challenge-card.component';
+import { YearlyGoalsComponent } from '../../components/yearly-goals/yearly-goals.component';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import {
@@ -33,10 +38,17 @@ interface TargetSummit {
   summitedAt?: Date;
 }
 
+interface RecentSummit {
+  peakId: number;
+  peakName: string;
+  summitedAt: Date;
+  activityId: number;
+}
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, PeakPickerComponent],
+  imports: [CommonModule, FormsModule, PeakPickerComponent, ChallengeCardComponent, YearlyGoalsComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -62,6 +74,13 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   completedTargetSummits = 0;
   summitProgressPercentage = 0;
 
+  // Active challenges
+  activeChallenges: ChallengeWithProgress[] = [];
+  showAllChallenges = false;
+
+  // Recent summits
+  recentSummits: RecentSummit[] = [];
+
   // Modal states
   showGoalEditor = false;
   editingGoalType: 'distance' | 'elevation' = 'distance';
@@ -73,7 +92,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   elevationChart: Chart | null = null;
 
   // Store activities for chart creation
-  private yearActivities: Activity[] = [];
+  yearActivities: Activity[] = [];
   private peakSummaries: any[] = [];
 
   private destroy$ = new Subject<void>();
@@ -82,7 +101,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     private activityService: ActivityService,
     private peakSummitService: PeakSummitService,
     private peakService: PeakService,
-    private personalGoalsService: PersonalGoalsService
+    private personalGoalsService: PersonalGoalsService,
+    private challengeService: ChallengeService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -118,6 +139,20 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       error: (err) => console.error('Error loading personal goals:', err)
     });
 
+    // Load active challenges
+    this.challengeService.loadUserChallenges();
+    this.challengeService.getUserChallenges().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        const allChallenges = response.challenges || [];
+        this.activeChallenges = allChallenges
+          .filter((c: ChallengeWithProgress) => !c.isCompleted)
+          .slice(0, 3);
+      },
+      error: (err) => console.error('Error loading challenges:', err)
+    });
+
     combineLatest([
       this.activityService.activities$.pipe(
         filter((activities) => activities !== null)
@@ -131,6 +166,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
           this.peakSummaries = peakSummaries || [];
 
           this.calculateStats(validActivities, this.peakSummaries);
+          this.loadRecentSummits(this.peakSummaries);
 
           // Store for chart creation
           this.yearActivities = validActivities.filter(
@@ -201,6 +237,31 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.completedTargetSummits = this.targetSummits.filter(s => s.completed).length;
     const total = this.targetSummits.length || this.personalGoals?.summit_goal || 1;
     this.summitProgressPercentage = Math.min(100, (this.completedTargetSummits / total) * 100);
+  }
+
+  loadRecentSummits(peakSummaries: any[]): void {
+    const allSummits: RecentSummit[] = [];
+
+    // Extract all summits from the current year
+    peakSummaries.forEach((peak: any) => {
+      if (peak.activities && Array.isArray(peak.activities)) {
+        peak.activities.forEach((activity: any) => {
+          const activityYear = new Date(activity.start_date).getFullYear();
+          if (activityYear === this.currentYear) {
+            allSummits.push({
+              peakId: peak.peak_id,
+              peakName: peak.peak_name,
+              summitedAt: new Date(activity.start_date),
+              activityId: activity.id
+            });
+          }
+        });
+      }
+    });
+
+    // Sort by date descending - keep all summits for the expanded view
+    this.recentSummits = allSummits
+      .sort((a, b) => b.summitedAt.getTime() - a.summitedAt.getTime());
   }
 
   calculateStats(activities: Activity[], peakSummaries: any[]): void {
@@ -355,6 +416,15 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err: any) => console.error('Error removing summit:', err)
     });
+  }
+
+  // Navigation methods
+  navigateToChallenges(): void {
+    this.router.navigate(['/challenges']);
+  }
+
+  navigateToChallenge(challengeId: number): void {
+    this.router.navigate(['/challenges', challengeId]);
   }
 
   createDistanceChart(): void {

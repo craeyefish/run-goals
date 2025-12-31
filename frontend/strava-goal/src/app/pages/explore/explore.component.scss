@@ -1,0 +1,661 @@
+.explore-container {
+    display: flex;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+// ==================== MAP SECTION ====================
+.map-section {
+    flex: 1;
+    position: relative;
+}
+
+.map {
+    width: 100%;
+    height: 100%;
+}
+
+.map-controls {
+    position: absolute;
+    top: 5rem;
+    left: 0.5rem;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--background-light-shade);
+    border-radius: 6px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background: var(--background-shade-color-1);
+    }
+
+    &.active {
+        background: var(--secondary-color);
+        color: var(--text-on-dark);
+    }
+}
+
+.stats-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 999;
+    display: flex;
+    gap: 1rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: var(--secondary-color);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+}
+
+// ==================== SIDEBAR ====================
+.sidebar {
+    width: 380px;
+    background: var(--background-light-shade);
+    border-left: 1px solid var(--background-shade-color-2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--background-shade-color-2);
+    flex-shrink: 0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--text-primary);
+        background: var(--background-shade-color-1);
+    }
+
+    &.active {
+        color: var(--secondary-color);
+        border-bottom-color: var(--secondary-color);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+// ==================== FILTERS ====================
+.filters {
+    padding: 1rem;
+    border-bottom: 1px solid var(--background-shade-color-2);
+    flex-shrink: 0;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+
+    &:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+    }
+
+    &::placeholder {
+        color: var(--text-muted);
+    }
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: var(--secondary-color);
+    }
+
+    &.active {
+        background: var(--secondary-color);
+        color: var(--text-on-dark);
+        border-color: var(--secondary-color);
+    }
+}
+
+// ==================== LIST ====================
+.list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: var(--secondary-color);
+        transform: translateX(2px);
+    }
+}
+
+.item-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+
+    .separator {
+        margin: 0 0.4rem;
+    }
+}
+
+.item-extra {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.item-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.item-badge {
+    font-size: 1.25rem;
+}
+
+// Peak specific
+.peak-item {
+    &.summited {
+        background: rgba(0, 212, 170, 0.1);
+        border-color: rgba(0, 212, 170, 0.3);
+    }
+}
+
+// Activity specific
+.activity-item {
+    &.has-summit {
+        background: rgba(0, 212, 170, 0.1);
+        border-color: rgba(0, 212, 170, 0.3);
+    }
+}
+
+.strava-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+// Challenge specific
+.challenge-item {
+    flex-direction: column;
+    gap: 0.5rem;
+
+    &.completed {
+        opacity: 0.7;
+    }
+
+    &.expanded {
+        background: var(--secondary-color);
+        border-color: var(--secondary-color);
+
+        .item-name,
+        .item-meta {
+            color: var(--text-on-dark);
+        }
+
+        .expand-icon {
+            color: var(--text-on-dark);
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+
+            .progress-fill {
+                background: white;
+            }
+        }
+    }
+
+    .item-content {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .challenge-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .expand-icon {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        transition: transform 0.2s;
+    }
+}
+
+// Challenge Peaks List (expanded)
+.challenge-peaks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--secondary-color);
+}
+
+.challenge-peak-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--background-shade-color-1);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: var(--background-shade-color-2);
+        transform: translateX(4px);
+    }
+
+    &.summited {
+        background: rgba(0, 212, 170, 0.15);
+    }
+
+    .peak-status-icon {
+        font-size: 1rem;
+    }
+
+    .peak-info {
+        flex: 1;
+
+        .peak-name {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .peak-elevation {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+    }
+}
+
+// Filter Notice
+.filter-notice {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 212, 170, 0.1);
+    border-bottom: 1px solid var(--background-shade-color-2);
+
+    .clear-filter-btn {
+        background: none;
+        border: none;
+        color: var(--secondary-color);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.progress-bar {
+    height: 6px;
+    background: var(--background-shade-color-2);
+    border-radius: 3px;
+    overflow: hidden;
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--secondary-color), #9be8e9);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+
+    p {
+        margin: 0 0 1rem;
+    }
+}
+
+.primary-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--secondary-color);
+    color: var(--text-on-dark);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+// ==================== MODAL ====================
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--background-primary);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 420px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-primary);
+    }
+}
+
+.peak-detail-header {
+    text-align: center;
+    padding: 2rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--background-shade-color-2);
+
+    .peak-icon-large {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    h2 {
+        margin: 0 0 0.25rem;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+    }
+
+    .peak-elevation {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+}
+
+.peak-detail-body {
+    padding: 1.5rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--background-shade-color-2);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+}
+
+.peak-detail-challenges {
+    padding: 0 1.5rem 1.5rem;
+
+    h3 {
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin: 0 0 0.75rem;
+    }
+}
+
+.challenge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.mini-challenge {
+    padding: 0.5rem 0.75rem;
+    background: var(--background-light-shade);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--secondary-color);
+        color: var(--text-on-dark);
+    }
+}
+
+.peak-detail-actions {
+    padding: 1rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--background-primary);
+    border: 1px solid var(--background-shade-color-2);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+
+    &:hover {
+        background: black;
+        color: white;
+        border-color: black;
+    }
+}
+
+// ==================== LOADING ====================
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    color: var(--text-light);
+    font-size: 1.25rem;
+}
+
+// ==================== RESPONSIVE ====================
+@media (max-width: 900px) {
+    .explore-container {
+        flex-direction: column;
+    }
+
+    .map-section {
+        height: 50vh;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: 50vh;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-overlay {
+        bottom: auto;
+        top: 1rem;
+        right: 1rem;
+        left: auto;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .stat-item {
+        flex-direction: row;
+        gap: 0.5rem;
+
+        .stat-value {
+            font-size: 1rem;
+        }
+    }
+}

@@ -1,0 +1,496 @@
+.yearly-goals-container {
+    background: var(--background-light-shade);
+    border: 3px solid black;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+// ==================== Header ====================
+.goals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--background-shade-color-2);
+
+    .header-left {
+        h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .set-goals-btn,
+    .history-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 2px solid black;
+        background: var(--background-primary);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+            background: black;
+            color: white;
+        }
+    }
+}
+
+// ==================== Progress Cards ====================
+.progress-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.goal-card {
+    background: var(--background-primary);
+    border: 2px solid black;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &.achieved {
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 212, 170, 0.05));
+        border-color: var(--success-color);
+    }
+
+    &:hover:not(.expanded) {
+        transform: translateY(-2px);
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    &.expanded {
+        grid-column: 1 / -1;
+        cursor: default;
+    }
+}
+
+.goal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .goal-icon {
+        font-size: 1.25rem;
+    }
+
+    .goal-title {
+        flex: 1;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+    }
+
+    .expand-hint {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        margin-right: 0.25rem;
+    }
+
+    .edit-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.8rem;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+        padding: 0.25rem;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+.goal-stats {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+
+    .current {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .separator {
+        color: var(--text-secondary);
+    }
+
+    .target {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: var(--background-shade-color-2);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary-color), #9be8e9);
+    border-radius: 0;
+    transition: width 0.5s ease;
+
+    &.complete {
+        background: linear-gradient(90deg, #00d4aa, #4ade80);
+    }
+}
+
+.goal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .percentage {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .milestone {
+        font-size: 1rem;
+    }
+}
+
+// ==================== Expanded Content ====================
+.expanded-content {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--background-shade-color-2);
+    animation: expandIn 0.3s ease;
+}
+
+@keyframes expandIn {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+.chart-container {
+    height: 250px;
+    position: relative;
+    background: var(--background-light-shade);
+    border: 1px solid var(--background-shade-color-2);
+    padding: 0.5rem;
+}
+
+// ==================== Expanded Summits ====================
+.summits-expanded {
+    .summits-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+
+        span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .wishlist-btn {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border: 2px solid black;
+            background: var(--background-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+
+            &:hover {
+                background: black;
+                color: white;
+            }
+        }
+    }
+}
+
+.summits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.summit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--background-light-shade);
+    border: 1px solid var(--background-shade-color-2);
+    cursor: default;
+
+    .summit-icon {
+        font-size: 1rem;
+    }
+
+    .summit-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+
+        .summit-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .summit-date {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+    }
+
+    .strava-link {
+        font-size: 0.7rem;
+        color: var(--secondary-color);
+        text-decoration: none;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--secondary-color);
+
+        &:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+    }
+}
+
+.no-summits {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    
+    p {
+        margin: 0;
+    }
+}
+
+// ==================== History Section ====================
+.history-section {
+    margin-top: 1rem;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.history-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--background-primary);
+    border: 2px solid var(--background-shade-color-2);
+
+    .history-year {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        min-width: 60px;
+    }
+
+    .history-goals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .history-goal {
+        display: flex;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+
+        .label {
+            color: var(--text-secondary);
+        }
+
+        .value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+    }
+}
+
+.no-history {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+// ==================== Modals ====================
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: var(--background-primary);
+    border: 4px solid black;
+    width: 90%;
+    max-width: 400px;
+    animation: modalSlideIn 0.2s ease;
+
+    &.modal-large {
+        max-width: 500px;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid black;
+    background: var(--background-light-shade);
+
+    h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        line-height: 1;
+
+        &:hover {
+            color: var(--text-primary);
+        }
+    }
+}
+
+.modal-body {
+    padding: 1rem;
+
+    .form-group {
+        margin-bottom: 1rem;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.9rem;
+            border: 2px solid black;
+            background: var(--background-primary);
+            color: var(--text-primary);
+
+            &:focus {
+                outline: none;
+                border-color: var(--secondary-color);
+            }
+        }
+    }
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 2px solid var(--background-shade-color-2);
+    background: var(--background-light-shade);
+
+    .btn-secondary,
+    .btn-primary {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 2px solid black;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-secondary {
+        background: var(--background-primary);
+        color: var(--text-primary);
+
+        &:hover {
+            background: var(--background-shade-color-2);
+        }
+    }
+
+    .btn-primary {
+        background: black;
+        color: white;
+
+        &:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+    }
+}

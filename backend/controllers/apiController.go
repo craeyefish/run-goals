@@ -203,3 +203,23 @@ func (c *ApiController) SavePersonalGoals(rw http.ResponseWriter, r *http.Reques
 		log.Println("Error encoding personal goals response:", err)
 	}
 }
+
+// GetAllPersonalGoals returns all yearly goals for the user (for history view)
+// GET /api/personal-goals/all
+func (c *ApiController) GetAllPersonalGoals(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle GET AllPersonalGoals")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	goals, err := c.personalGoalsService.GetAllGoals(userID)
+	if err != nil {
+		c.l.Printf("Error fetching all personal goals: %v", err)
+		http.Error(rw, "Failed to fetch personal goals", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(goals); err != nil {
+		log.Println("Error encoding personal goals response:", err)
+	}
+}

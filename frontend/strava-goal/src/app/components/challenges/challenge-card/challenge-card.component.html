@@ -1,0 +1,69 @@
+<div class="challenge-card" [class.completed]="progressChallenge?.isCompleted">
+  <!-- Header -->
+  <div class="card-header">
+    <div class="type-badge" [class]="challenge.challengeType">
+      {{ challengeService.getChallengeTypeLabel(challenge.challengeType) }}
+    </div>
+    <div class="visibility-badge" *ngIf="challenge.visibility !== 'private'">
+      {{ challenge.visibility === 'public' ? '🌍' : '👥' }}
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="card-content">
+    <h3 class="challenge-name">{{ challenge.name }}</h3>
+    
+    <p class="challenge-description" *ngIf="challenge.description">
+      {{ challenge.description | slice:0:100 }}{{ (challenge.description!.length) > 100 ? '...' : '' }}
+    </p>
+
+    <!-- Meta info -->
+    <div class="meta-row">
+      <span class="region" *ngIf="challenge.region">
+        📍 {{ challenge.region }}
+      </span>
+      <span class="difficulty" *ngIf="challenge.difficulty"
+        [style.color]="challengeService.getDifficultyColor(challenge.difficulty)">
+        {{ challenge.difficulty }}
+      </span>
+    </div>
+
+    <!-- Progress (only for ChallengeWithProgress) -->
+    <div class="progress-section" *ngIf="progressChallenge">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+      </div>
+      <div class="progress-text">
+        <span>{{ progressChallenge.completedPeaks }}/{{ progressChallenge.totalPeaks }} peaks</span>
+        <span class="percentage">{{ progressPercentage }}%</span>
+      </div>
+    </div>
+
+    <!-- Deadline -->
+    <div class="deadline-row" *ngIf="hasDeadline">
+      <span class="deadline" [class.overdue]="isOverdue" [class.soon]="daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0">
+        <ng-container *ngIf="isOverdue">
+          ⚠️ Overdue by {{ -daysRemaining! }} days
+        </ng-container>
+        <ng-container *ngIf="!isOverdue && daysRemaining !== null">
+          📅 {{ daysRemaining }} days remaining
+        </ng-container>
+      </span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer">
+    <div class="mode-badge" [class]="challenge.competitionMode">
+      {{ challenge.competitionMode === 'collaborative' ? '🤝 Collaborative' : '🏆 Competitive' }}
+    </div>
+    
+    <button class="join-btn" *ngIf="showJoinButton && !isJoined" (click)="onJoinClick($event)">
+      Join
+    </button>
+    
+    <div class="completed-badge" *ngIf="progressChallenge?.isCompleted">
+      ✅ Completed
+    </div>
+  </div>
+</div>
