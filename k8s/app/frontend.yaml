@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/craeyefish/summitseekers-frontend:frontend-v1.2.18 # {"$imagepolicy": "flux-system:summitseekers-frontend"}
+          image: ghcr.io/craeyefish/summitseekers-frontend:frontend-v1.2.19 # {"$imagepolicy": "flux-system:summitseekers-frontend"}
           resources:
             requests:
               memory: '128Mi'
