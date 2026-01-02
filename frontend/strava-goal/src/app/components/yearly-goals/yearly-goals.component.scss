@@ -63,7 +63,7 @@
 }
 
 .goal-card {
-    background: var(--background-primary);
+    background: var(--background-light-shade);
     border: 2px solid black;
     padding: 1rem;
     display: flex;
@@ -73,7 +73,7 @@
     cursor: pointer;
 
     &.achieved {
-        background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 212, 170, 0.05));
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(0, 212, 170, 0.1));
         border-color: var(--success-color);
     }
 
@@ -83,7 +83,9 @@
     }
 
     &.expanded {
-        grid-column: 1 / -1;
+        border-width: 3px;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.2);
         cursor: default;
     }
 }
@@ -180,23 +182,34 @@
     }
 }
 
-// ==================== Expanded Content ====================
-.expanded-content {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--background-shade-color-2);
-    animation: expandIn 0.3s ease;
+// ==================== Expanded Details Section ====================
+.expanded-details-section {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background: var(--background-primary);
+    border: 2px solid var(--secondary-color);
+    border-radius: 4px;
+    animation: slideDown 0.3s ease;
 }
 
-@keyframes expandIn {
+@keyframes slideDown {
     from {
         opacity: 0;
-        max-height: 0;
+        transform: translateY(-10px);
     }
 
     to {
         opacity: 1;
-        max-height: 500px;
+        transform: translateY(0);
+    }
+}
+
+.expanded-content {
+    h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
     }
 }
 

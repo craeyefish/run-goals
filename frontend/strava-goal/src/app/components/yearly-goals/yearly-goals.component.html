@@ -2,19 +2,16 @@
   <!-- Header -->
   <div class="goals-header">
     <div class="header-left">
-      <h2>{{ currentYear }} Goals</h2>
+      <h2>{{ selectedYear }} Goals</h2>
       <span class="header-subtitle">Click a card to expand details</span>
     </div>
     <div class="header-actions">
-      <button class="set-goals-btn" (click)="openQuickSetModal()">
-        ⚙️ Set Goals
-      </button>
-      <button 
-        class="history-btn" 
-        (click)="toggleHistory()"
-        *ngIf="historicalGoals.length > 0"
+      <button
+        class="set-goals-btn"
+        (click)="openQuickSetModal()"
+        *ngIf="selectedYear === currentYear"
       >
-        {{ showHistory ? '← Back' : '📅 History' }}
+        ⚙️ Set Goals
       </button>
     </div>
   </div>
@@ -32,30 +29,29 @@
         <div class="goal-icon">🏃</div>
         <div class="goal-title">Distance</div>
         <span class="expand-hint">{{ expandedSection === 'distance' ? '▲' : '▼' }}</span>
-        <button class="edit-btn" (click)="openGoalEditor('distance', $event)">✏️</button>
+        <button
+          class="edit-btn"
+          (click)="openGoalEditor('distance', $event)"
+          *ngIf="selectedYear === currentYear"
+        >✏️</button>
       </div>
       <div class="goal-stats">
-        <span class="current">{{ progress.distance.current | number:'1.0-0' }}</span>
-        <span class="separator">/</span>
-        <span class="target">{{ progress.distance.goal | number:'1.0-0' }} km</span>
+        <span class="current">{{ progress.distance.current | number:'1.0-0' }} km</span>
+        <ng-container *ngIf="progress.distance.goal > 0">
+          <span class="separator">/</span>
+          <span class="target">{{ progress.distance.goal | number:'1.0-0' }} km</span>
+        </ng-container>
       </div>
-      <div class="progress-bar-container">
-        <div 
-          class="progress-bar" 
+      <div class="progress-bar-container" *ngIf="progress.distance.goal > 0">
+        <div
+          class="progress-bar"
           [style.width.%]="progress.distance.percentage"
           [class.complete]="progress.distance.percentage >= 100"
         ></div>
       </div>
       <div class="goal-footer">
-        <span class="percentage">{{ progress.distance.percentage | number:'1.0-0' }}%</span>
-        <span class="milestone">{{ getMilestone(progress.distance.percentage) }}</span>
-      </div>
-      
-      <!-- Expanded Chart Section -->
-      <div class="expanded-content" *ngIf="expandedSection === 'distance'">
-        <div class="chart-container">
-          <canvas #distanceChart></canvas>
-        </div>
+        <span class="percentage" *ngIf="progress.distance.goal > 0">{{ progress.distance.percentage | number:'1.0-0' }}%</span>
+        <span class="milestone" *ngIf="progress.distance.goal > 0">{{ getMilestone(progress.distance.percentage) }}</span>
       </div>
     </div>
 
@@ -70,30 +66,29 @@
         <div class="goal-icon">⛰️</div>
         <div class="goal-title">Elevation</div>
         <span class="expand-hint">{{ expandedSection === 'elevation' ? '▲' : '▼' }}</span>
-        <button class="edit-btn" (click)="openGoalEditor('elevation', $event)">✏️</button>
+        <button
+          class="edit-btn"
+          (click)="openGoalEditor('elevation', $event)"
+          *ngIf="selectedYear === currentYear"
+        >✏️</button>
       </div>
       <div class="goal-stats">
-        <span class="current">{{ progress.elevation.current | number:'1.0-0' }}</span>
-        <span class="separator">/</span>
-        <span class="target">{{ progress.elevation.goal | number:'1.0-0' }} m</span>
+        <span class="current">{{ progress.elevation.current | number:'1.0-0' }} m</span>
+        <ng-container *ngIf="progress.elevation.goal > 0">
+          <span class="separator">/</span>
+          <span class="target">{{ progress.elevation.goal | number:'1.0-0' }} m</span>
+        </ng-container>
       </div>
-      <div class="progress-bar-container">
-        <div 
-          class="progress-bar" 
+      <div class="progress-bar-container" *ngIf="progress.elevation.goal > 0">
+        <div
+          class="progress-bar"
           [style.width.%]="progress.elevation.percentage"
           [class.complete]="progress.elevation.percentage >= 100"
         ></div>
       </div>
       <div class="goal-footer">
-        <span class="percentage">{{ progress.elevation.percentage | number:'1.0-0' }}%</span>
-        <span class="milestone">{{ getMilestone(progress.elevation.percentage) }}</span>
-      </div>
-      
-      <!-- Expanded Chart Section -->
-      <div class="expanded-content" *ngIf="expandedSection === 'elevation'">
-        <div class="chart-container">
-          <canvas #elevationChart></canvas>
-        </div>
+        <span class="percentage" *ngIf="progress.elevation.goal > 0">{{ progress.elevation.percentage | number:'1.0-0' }}%</span>
+        <span class="milestone" *ngIf="progress.elevation.goal > 0">{{ getMilestone(progress.elevation.percentage) }}</span>
       </div>
     </div>
 
@@ -108,61 +103,86 @@
         <div class="goal-icon">🗻</div>
         <div class="goal-title">Summits</div>
         <span class="expand-hint">{{ expandedSection === 'summits' ? '▲' : '▼' }}</span>
-        <button class="edit-btn" (click)="openGoalEditor('summits', $event)">✏️</button>
+        <button
+          class="edit-btn"
+          (click)="openGoalEditor('summits', $event)"
+          *ngIf="selectedYear === currentYear"
+        >✏️</button>
       </div>
       <div class="goal-stats">
-        <span class="current">{{ progress.summits.current }}</span>
-        <span class="separator">/</span>
-        <span class="target">{{ progress.summits.goal }} peaks</span>
+        <span class="current">{{ progress.summits.current }} peaks</span>
+        <ng-container *ngIf="progress.summits.goal > 0">
+          <span class="separator">/</span>
+          <span class="target">{{ progress.summits.goal }} peaks</span>
+        </ng-container>
       </div>
-      <div class="progress-bar-container">
-        <div 
-          class="progress-bar" 
+      <div class="progress-bar-container" *ngIf="progress.summits.goal > 0">
+        <div
+          class="progress-bar"
           [style.width.%]="progress.summits.percentage"
           [class.complete]="progress.summits.percentage >= 100"
         ></div>
       </div>
       <div class="goal-footer">
-        <span class="percentage">{{ progress.summits.percentage | number:'1.0-0' }}%</span>
-        <span class="milestone">{{ getMilestone(progress.summits.percentage) }}</span>
+        <span class="percentage" *ngIf="progress.summits.goal > 0">{{ progress.summits.percentage | number:'1.0-0' }}%</span>
+        <span class="milestone" *ngIf="progress.summits.goal > 0">{{ getMilestone(progress.summits.percentage) }}</span>
       </div>
-      
-      <!-- Expanded Summits Section -->
-      <div class="expanded-content" *ngIf="expandedSection === 'summits'">
-        <div class="summits-expanded">
-          <div class="summits-header">
-            <span>{{ currentYear }} Summits</span>
-            <button class="wishlist-btn" (click)="openPeakPicker.emit(); $event.stopPropagation()">
-              📋 Wishlist
-            </button>
-          </div>
-          
-          <div class="summits-list" *ngIf="recentSummits.length > 0">
-            <div 
-              class="summit-item" 
-              *ngFor="let summit of recentSummits"
+    </div>
+  </div>
+
+  <!-- Expanded Details Section (appears below all cards) -->
+  <div class="expanded-details-section" *ngIf="expandedSection">
+    <!-- Distance Chart -->
+    <div class="expanded-content" *ngIf="expandedSection === 'distance'">
+      <h4>📊 Distance Progress</h4>
+      <div class="chart-container">
+        <canvas #distanceChart></canvas>
+      </div>
+    </div>
+
+    <!-- Elevation Chart -->
+    <div class="expanded-content" *ngIf="expandedSection === 'elevation'">
+      <h4>📊 Elevation Progress</h4>
+      <div class="chart-container">
+        <canvas #elevationChart></canvas>
+      </div>
+    </div>
+
+    <!-- Summits List -->
+    <div class="expanded-content" *ngIf="expandedSection === 'summits'">
+      <div class="summits-expanded">
+        <div class="summits-header">
+          <span>{{ selectedYear }} Summits</span>
+          <button class="wishlist-btn" (click)="openPeakPicker.emit(); $event.stopPropagation()">
+            📋 Wishlist
+          </button>
+        </div>
+
+        <div class="summits-list" *ngIf="recentSummits.length > 0">
+          <div
+            class="summit-item"
+            *ngFor="let summit of recentSummits"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="summit-icon">⛰️</div>
+            <div class="summit-details">
+              <span class="summit-name">{{ summit.peakName }}</span>
+              <span class="summit-date">{{ summit.summitedAt | date:'MMM d, yyyy' }}</span>
+            </div>
+            <a
+              class="strava-link"
+              [href]="'https://www.strava.com/activities/' + summit.activityId"
+              target="_blank"
+              rel="noopener noreferrer"
               (click)="$event.stopPropagation()"
             >
-              <div class="summit-icon">⛰️</div>
-              <div class="summit-details">
-                <span class="summit-name">{{ summit.peakName }}</span>
-                <span class="summit-date">{{ summit.summitedAt | date:'MMM d, yyyy' }}</span>
-              </div>
-              <a 
-                class="strava-link" 
-                [href]="'https://www.strava.com/activities/' + summit.activityId"
-                target="_blank"
-                rel="noopener noreferrer"
-                (click)="$event.stopPropagation()"
-              >
-                Strava ↗
-              </a>
-            </div>
+              Strava ↗
+            </a>
           </div>
-          
-          <div class="no-summits" *ngIf="recentSummits.length === 0">
-            <p>No summits yet this year. Get out there! 🏔️</p>
-          </div>
+        </div>
+
+        <div class="no-summits" *ngIf="recentSummits.length === 0">
+          <p>No summits yet this year. Get out there! 🏔️</p>
         </div>
       </div>
     </div>
@@ -238,7 +258,7 @@
 >
   <div class="modal-content modal-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>Set {{ currentYear }} Goals</h3>
+      <h3>Set {{ selectedYear }} Goals</h3>
       <button class="close-btn" (click)="closeQuickSetModal()">×</button>
     </div>
     <div class="modal-body">

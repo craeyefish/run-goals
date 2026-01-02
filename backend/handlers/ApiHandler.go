@@ -123,6 +123,19 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.apiController.GetAllPersonalGoals(rw, r)
 			return
 		}
+	case "/api/summit-favourites":
+		if r.Method == http.MethodGet {
+			handler.apiController.GetSummitFavourites(rw, r)
+			return
+		}
+		if r.Method == http.MethodPost {
+			handler.apiController.AddSummitFavourite(rw, r)
+			return
+		}
+		if r.Method == http.MethodDelete {
+			handler.apiController.RemoveSummitFavourite(rw, r)
+			return
+		}
 
 	// ==================== Challenge Routes ====================
 	case "/api/challenges":

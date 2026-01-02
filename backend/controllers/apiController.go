@@ -22,13 +22,14 @@ type ApiControllerInterface interface {
 }
 
 type ApiController struct {
-	l                    *log.Logger
-	activityService      *services.ActivityService
-	progressService      *services.ProgressService
-	peakService          *services.PeakService
-	summariesService     *services.SummariesService
-	userService          *services.UserService
-	personalGoalsService *services.PersonalGoalsService
+	l                       *log.Logger
+	activityService         *services.ActivityService
+	progressService         *services.ProgressService
+	peakService             *services.PeakService
+	summariesService        *services.SummariesService
+	userService             *services.UserService
+	personalGoalsService    *services.PersonalGoalsService
+	summitFavouritesService *services.SummitFavouritesService
 }
 
 func NewApiController(
@@ -39,15 +40,17 @@ func NewApiController(
 	summariesService *services.SummariesService,
 	userService *services.UserService,
 	personalGoalsService *services.PersonalGoalsService,
+	summitFavouritesService *services.SummitFavouritesService,
 ) *ApiController {
 	return &ApiController{
-		l:                    l,
-		activityService:      activityService,
-		progressService:      progressService,
-		peakService:          peakService,
-		summariesService:     summariesService,
-		userService:          userService,
-		personalGoalsService: personalGoalsService,
+		l:                       l,
+		activityService:         activityService,
+		progressService:         progressService,
+		peakService:             peakService,
+		summariesService:        summariesService,
+		userService:             userService,
+		personalGoalsService:    personalGoalsService,
+		summitFavouritesService: summitFavouritesService,
 	}
 }
 
@@ -221,5 +224,97 @@ func (c *ApiController) GetAllPersonalGoals(rw http.ResponseWriter, r *http.Requ
 	rw.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(rw).Encode(goals); err != nil {
 		log.Println("Error encoding personal goals response:", err)
+	}
+}
+
+// GetSummitFavourites returns all favourite peak IDs for the user
+// GET /api/summit-favourites
+func (c *ApiController) GetSummitFavourites(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle GET SummitFavourites")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	peakIDs, err := c.summitFavouritesService.GetFavourites(userID)
+	if err != nil {
+		c.l.Printf("Error fetching summit favourites: %v", err)
+		http.Error(rw, "Failed to fetch summit favourites", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(peakIDs); err != nil {
+		log.Println("Error encoding summit favourites response:", err)
+	}
+}
+
+// AddSummitFavourite adds a peak to user's favourites
+// POST /api/summit-favourites
+func (c *ApiController) AddSummitFavourite(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle POST AddSummitFavourite")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	var req struct {
+		PeakID int64 `json:"peak_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.l.Printf("Error decoding request body: %v", err)
+		http.Error(rw, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.summitFavouritesService.AddFavourite(userID, req.PeakID); err != nil {
+		c.l.Printf("Error adding summit favourite: %v", err)
+		http.Error(rw, "Failed to add summit favourite", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated list
+	peakIDs, err := c.summitFavouritesService.GetFavourites(userID)
+	if err != nil {
+		c.l.Printf("Error fetching summit favourites: %v", err)
+		http.Error(rw, "Failed to fetch summit favourites", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(peakIDs); err != nil {
+		log.Println("Error encoding summit favourites response:", err)
+	}
+}
+
+// RemoveSummitFavourite removes a peak from user's favourites
+// DELETE /api/summit-favourites/:peak_id
+func (c *ApiController) RemoveSummitFavourite(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle DELETE RemoveSummitFavourite")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	// Get peak_id from query params
+	peakIDStr := r.URL.Query().Get("peak_id")
+	peakID, err := strconv.ParseInt(peakIDStr, 10, 64)
+	if err != nil {
+		c.l.Printf("Invalid peak_id: %v", err)
+		http.Error(rw, "Invalid peak_id", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.summitFavouritesService.RemoveFavourite(userID, peakID); err != nil {
+		c.l.Printf("Error removing summit favourite: %v", err)
+		http.Error(rw, "Failed to remove summit favourite", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated list
+	peakIDs, err := c.summitFavouritesService.GetFavourites(userID)
+	if err != nil {
+		c.l.Printf("Error fetching summit favourites: %v", err)
+		http.Error(rw, "Failed to fetch summit favourites", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(peakIDs); err != nil {
+		log.Println("Error encoding summit favourites response:", err)
 	}
 }

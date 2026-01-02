@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
 import * as polyline from '@mapbox/polyline';
 import 'leaflet.markercluster';
@@ -12,6 +12,7 @@ import { ActivityService, Activity } from '../../services/activity.service';
 import { PeakService, Peak } from '../../services/peak.service';
 import { PeakSummitService } from '../../services/peak-summit.service';
 import { ChallengeService } from '../../services/challenge.service';
+import { SummitFavouritesService } from '../../services/summit-favourites.service';
 import { ChallengeWithProgress, ChallengePeakWithDetails } from '../../models/challenge.model';
 
 // Icons
@@ -49,7 +50,7 @@ interface ChallengeWithPeaks extends ChallengeWithProgress {
 }
 
 type TabType = 'peaks' | 'activities' | 'challenges';
-type FilterType = 'all' | 'summited' | 'not-summited';
+type FilterType = 'all' | 'summited' | 'not-summited' | 'wishlist';
 
 @Component({
     selector: 'app-explore',
@@ -80,6 +81,8 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
     selectedChallengeId: number | null = null;
     expandedChallengeId: number | null = null;
     challengeFilterActive = false;
+    wishlistFilterActive = false;
+    wishlistPeakIds: number[] = [];
 
     // Track highlighted activity
     highlightedActivityPolyline: L.Polyline | null = null;
@@ -99,10 +102,21 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
         private peakService: PeakService,
         private peakSummitService: PeakSummitService,
         private challengeService: ChallengeService,
-        private router: Router
+        private summitFavouritesService: SummitFavouritesService,
+        private router: Router,
+        private route: ActivatedRoute
     ) { }
 
     ngOnInit(): void {
+        // Check for wishlist query parameter
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+            if (params['filter'] === 'wishlist') {
+                this.peakFilter = 'wishlist';
+                this.wishlistFilterActive = true;
+                this.loadWishlistPeaks();
+            }
+        });
+
         this.loadData();
     }
 
@@ -272,6 +286,8 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
             filtered = filtered.filter(p => p.is_summited);
         } else if (this.peakFilter === 'not-summited') {
             filtered = filtered.filter(p => !p.is_summited);
+        } else if (this.peakFilter === 'wishlist') {
+            filtered = filtered.filter(p => this.wishlistPeakIds.includes(p.id));
         }
 
         // Apply search
@@ -315,6 +331,42 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
     togglePeaks(): void {
         this.showPeaks = !this.showPeaks;
         this.displayPeaks();
+    }
+
+    // ==================== Wishlist Filtering ====================
+
+    loadWishlistPeaks(): void {
+        this.summitFavouritesService.getFavourites().pipe(
+            takeUntil(this.destroy$)
+        ).subscribe({
+            next: (favouriteIds) => {
+                this.wishlistPeakIds = favouriteIds;
+                this.applyPeakFilter();
+
+                // Zoom to wishlist peaks if any exist
+                if (this.wishlistPeakIds.length > 0 && this.filteredPeaks.length > 0) {
+                    const peakCoords = this.filteredPeaks.map(p => L.latLng(p.latitude, p.longitude));
+                    if (peakCoords.length > 0) {
+                        const bounds = L.latLngBounds(peakCoords);
+                        this.map.fitBounds(bounds, { padding: [80, 80] });
+                    }
+                }
+            },
+            error: (err) => console.error('Error loading wishlist peaks:', err)
+        });
+    }
+
+    clearWishlistFilter(): void {
+        this.wishlistFilterActive = false;
+        this.peakFilter = 'all';
+        this.applyPeakFilter();
+
+        // Update URL to remove query parameter
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            queryParamsHandling: 'merge'
+        });
     }
 
     // ==================== Peak Detail Modal ====================

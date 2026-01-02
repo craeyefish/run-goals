@@ -39,12 +39,12 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
     @Input() currentSummits = 0;
     @Input() yearActivities: Activity[] = [];
     @Input() recentSummits: RecentSummit[] = [];
+    @Input() selectedYear = new Date().getFullYear();
     @Output() openPeakPicker = new EventEmitter<void>();
 
     private destroy$ = new Subject<void>();
 
     currentYear = new Date().getFullYear();
-    selectedYear = this.currentYear;
 
     // Current goals
     goals: PersonalYearlyGoal | null = null;
@@ -97,7 +97,12 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.destroyCharts();
     }
 
-    ngOnChanges(): void {
+    ngOnChanges(changes: any): void {
+        // Reload goals if selected year changed
+        if (changes.selectedYear && !changes.selectedYear.firstChange) {
+            this.loadGoals();
+        }
+
         this.updateProgress();
         // Recreate charts if expanded and data changed
         if (this.expandedSection === 'distance' && this.distanceChartCanvas) {
@@ -126,6 +131,9 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
             next: (goals) => {
                 this.goals = goals;
                 this.updateProgress();
+                // Collapse expanded sections when year changes
+                this.expandedSection = null;
+                this.destroyCharts();
             },
             error: (err) => console.error('Error loading goals:', err)
         });
@@ -143,25 +151,27 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     updateProgress(): void {
-        const distanceGoal = this.goals?.distance_goal || 1000;
-        const elevationGoal = this.goals?.elevation_goal || 50000;
-        const summitGoal = this.goals?.summit_goal || 20;
+        // For past years without goals set, show 0 as goal (not defaults)
+        const hasGoalsSet = this.goals?.id !== undefined;
+        const distanceGoal = hasGoalsSet ? (this.goals?.distance_goal || 0) : 0;
+        const elevationGoal = hasGoalsSet ? (this.goals?.elevation_goal || 0) : 0;
+        const summitGoal = hasGoalsSet ? (this.goals?.summit_goal || 0) : 0;
 
         this.progress = {
             distance: {
                 current: this.currentDistance,
                 goal: distanceGoal,
-                percentage: Math.min(100, (this.currentDistance / distanceGoal) * 100)
+                percentage: distanceGoal > 0 ? Math.min(100, (this.currentDistance / distanceGoal) * 100) : 0
             },
             elevation: {
                 current: this.currentElevation,
                 goal: elevationGoal,
-                percentage: Math.min(100, (this.currentElevation / elevationGoal) * 100)
+                percentage: elevationGoal > 0 ? Math.min(100, (this.currentElevation / elevationGoal) * 100) : 0
             },
             summits: {
                 current: this.currentSummits,
                 goal: summitGoal,
-                percentage: Math.min(100, (this.currentSummits / summitGoal) * 100)
+                percentage: summitGoal > 0 ? Math.min(100, (this.currentSummits / summitGoal) * 100) : 0
             }
         };
     }
@@ -218,8 +228,7 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
                 year: this.currentYear,
                 distance_goal: this.progress.distance.goal,
                 elevation_goal: this.progress.elevation.goal,
-                summit_goal: this.progress.summits.goal,
-                target_summits: []
+                summit_goal: this.progress.summits.goal
             };
         }
 
@@ -268,8 +277,7 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
             year: this.currentYear,
             distance_goal: this.quickSetGoals.distance,
             elevation_goal: this.quickSetGoals.elevation,
-            summit_goal: this.quickSetGoals.summits,
-            target_summits: this.goals?.target_summits || []
+            summit_goal: this.quickSetGoals.summits
         };
 
         this.personalGoalsService.saveGoals(goalData).pipe(
@@ -320,23 +328,30 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
             data: {
                 datasets: [
                     {
-                        label: 'Actual',
+                        label: 'Distance (km)',
                         data: cumulativeData,
-                        borderColor: '#00d4aa',
-                        backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                        borderColor: '#fc4c02',
+                        backgroundColor: 'rgba(252, 76, 2, 0.1)',
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
+                        tension: 0.1,
+                        pointBackgroundColor: '#fc4c02',
+                        pointRadius: 3,
+                        pointBorderWidth: 1,
+                        pointBorderColor: '#fff',
+                        order: 1,
                     },
                     {
-                        label: 'Goal pace',
+                        label: `Goal (${goal} km)`,
                         data: goalLine,
-                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                        borderColor: '#00d4aa',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
                         borderDash: [5, 5],
                         fill: false,
                         tension: 0,
                         pointRadius: 0,
+                        order: 2,
                     }
                 ]
             },
@@ -363,23 +378,30 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
             data: {
                 datasets: [
                     {
-                        label: 'Actual',
+                        label: 'Elevation (m)',
                         data: cumulativeData,
-                        borderColor: '#ff6b6b',
-                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderColor: '#6b5b95',
+                        backgroundColor: 'rgba(107, 91, 149, 0.1)',
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
+                        tension: 0.1,
+                        pointBackgroundColor: '#6b5b95',
+                        pointRadius: 3,
+                        pointBorderWidth: 1,
+                        pointBorderColor: '#fff',
+                        order: 1,
                     },
                     {
-                        label: 'Goal pace',
+                        label: `Goal (${goal.toLocaleString()} m)`,
                         data: goalLine,
-                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                        borderColor: '#00d4aa',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
                         borderDash: [5, 5],
                         fill: false,
                         tension: 0,
                         pointRadius: 0,
+                        order: 2,
                     }
                 ]
             },
@@ -399,21 +421,31 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
             }
             return {
                 x: new Date(activity.start_date).getTime(),
-                y: Math.round(cumulative)
+                y: parseFloat(cumulative.toFixed(type === 'distance' ? 1 : 0))
             };
         });
     }
 
     private getGoalLine(goal: number): { x: number; y: number }[] {
-        const startOfYear = new Date(this.currentYear, 0, 1).getTime();
-        const endOfYear = new Date(this.currentYear, 11, 31).getTime();
+        const startOfYear = new Date(this.selectedYear, 0, 1);
+        const endOfYear = new Date(this.selectedYear, 11, 31);
+        const today = new Date();
+
+        const totalDays = Math.ceil((endOfYear.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const dailyNeeded = goal / totalDays;
+        const daysSoFar = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+
         return [
-            { x: startOfYear, y: 0 },
-            { x: endOfYear, y: goal }
+            { x: startOfYear.getTime(), y: 0 },
+            { x: today.getTime(), y: parseFloat((dailyNeeded * daysSoFar).toFixed(1)) },
+            { x: endOfYear.getTime(), y: goal }
         ];
     }
 
     private getChartOptions(unit: string): ChartConfiguration['options'] {
+        const startOfYear = new Date(this.selectedYear, 0, 1);
+        const endOfYear = new Date(this.selectedYear, 11, 31, 23, 59, 59);
+
         return {
             responsive: true,
             maintainAspectRatio: false,
@@ -422,39 +454,34 @@ export class YearlyGoalsComponent implements OnInit, OnDestroy, AfterViewInit {
                 mode: 'index'
             },
             plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 10,
-                        font: { size: 11 }
-                    }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (context) => `${context.dataset.label}: ${context.parsed.y.toLocaleString()} ${unit}`
+                        title: (context: any) => {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        }
                     }
                 }
             },
             scales: {
                 x: {
                     type: 'time',
+                    min: startOfYear.getTime(),
+                    max: endOfYear.getTime(),
                     time: {
                         unit: 'month',
                         displayFormats: { month: 'MMM' }
                     },
-                    min: new Date(this.currentYear, 0, 1).getTime(),
-                    max: new Date(this.currentYear, 11, 31).getTime(),
-                    grid: { display: false },
-                    ticks: { font: { size: 10 } }
+                    grid: { color: 'rgba(100, 100, 100, 0.2)' },
+                    ticks: { color: '#666' }
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    grid: { color: 'rgba(100, 100, 100, 0.2)' },
                     ticks: {
-                        font: { size: 10 },
-                        callback: (value) => value.toLocaleString()
+                        color: '#666',
+                        callback: (value: any) => value.toLocaleString() + ' ' + unit
                     }
                 }
             }

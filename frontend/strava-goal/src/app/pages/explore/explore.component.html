@@ -83,26 +83,26 @@
             (ngModelChange)="onSearchChange()"
           />
           <div class="filter-buttons">
-            <button 
-              class="filter-btn" 
+            <button
+              class="filter-btn"
               [class.active]="peakFilter === 'all'"
               (click)="peakFilter = 'all'; onFilterChange()"
             >
               All
             </button>
-            <button 
-              class="filter-btn" 
+            <button
+              class="filter-btn"
               [class.active]="peakFilter === 'summited'"
               (click)="peakFilter = 'summited'; onFilterChange()"
             >
               ✅ Summited
             </button>
-            <button 
-              class="filter-btn" 
-              [class.active]="peakFilter === 'not-summited'"
-              (click)="peakFilter = 'not-summited'; onFilterChange()"
+            <button
+              class="filter-btn"
+              [class.active]="peakFilter === 'wishlist'"
+              (click)="peakFilter = 'wishlist'; loadWishlistPeaks(); onFilterChange()"
             >
-              ⬜ To Do
+              ⭐ Wishlist
             </button>
           </div>
         </div>

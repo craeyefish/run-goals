@@ -11,7 +11,6 @@ export interface PersonalYearlyGoal {
     distance_goal: number;  // km
     elevation_goal: number; // meters
     summit_goal: number;    // count
-    target_summits: number[]; // peak IDs
     created_at?: string;
     updated_at?: string;
 }
@@ -63,8 +62,7 @@ export class PersonalGoalsService {
                 year: new Date().getFullYear(),
                 distance_goal: distance,
                 elevation_goal: 50000,
-                summit_goal: 20,
-                target_summits: []
+                summit_goal: 20
             });
         }
         return this.saveGoals({ ...currentGoal, distance_goal: distance });
@@ -77,8 +75,7 @@ export class PersonalGoalsService {
                 year: new Date().getFullYear(),
                 distance_goal: 1000,
                 elevation_goal: elevation,
-                summit_goal: 20,
-                target_summits: []
+                summit_goal: 20
             });
         }
         return this.saveGoals({ ...currentGoal, elevation_goal: elevation });
@@ -91,58 +88,10 @@ export class PersonalGoalsService {
                 year: new Date().getFullYear(),
                 distance_goal: 1000,
                 elevation_goal: 50000,
-                summit_goal: count,
-                target_summits: []
+                summit_goal: count
             });
         }
         return this.saveGoals({ ...currentGoal, summit_goal: count });
-    }
-
-    /**
-     * Add a peak to the target summits list
-     */
-    addTargetSummit(peakId: number): Observable<PersonalYearlyGoal> {
-        const currentGoal = this.currentGoalSubject.value;
-        if (!currentGoal) {
-            return this.saveGoals({
-                year: new Date().getFullYear(),
-                distance_goal: 1000,
-                elevation_goal: 50000,
-                summit_goal: 20,
-                target_summits: [peakId]
-            });
-        }
-
-        // Don't add duplicates
-        if (currentGoal.target_summits.includes(peakId)) {
-            return new Observable(observer => {
-                observer.next(currentGoal);
-                observer.complete();
-            });
-        }
-
-        return this.saveGoals({
-            ...currentGoal,
-            target_summits: [...currentGoal.target_summits, peakId]
-        });
-    }
-
-    /**
-     * Remove a peak from the target summits list
-     */
-    removeTargetSummit(peakId: number): Observable<PersonalYearlyGoal> {
-        const currentGoal = this.currentGoalSubject.value;
-        if (!currentGoal) {
-            return new Observable(observer => {
-                observer.next(null as any);
-                observer.complete();
-            });
-        }
-
-        return this.saveGoals({
-            ...currentGoal,
-            target_summits: currentGoal.target_summits.filter(id => id !== peakId)
-        });
     }
 
     /**

@@ -7,22 +7,23 @@
 // Header
 .detail-header {
     background: var(--background-light-shade);
-    border: 1px solid var(--background-shade-color-2);
-    border-radius: 12px;
+    border: 3px solid black;
     padding: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 
     .back-btn {
-        background: none;
-        border: none;
-        color: var(--text-secondary);
+        background: var(--background-primary);
+        border: 2px solid black;
+        color: var(--text-primary);
         cursor: pointer;
-        padding: 0.5rem 0;
+        padding: 0.4rem 0.75rem;
         margin-bottom: 1rem;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        transition: all 0.15s;
 
         &:hover {
-            color: var(--text-primary);
+            background: black;
+            color: white;
         }
     }
 
@@ -51,22 +52,22 @@
     .type-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-weight: 500;
+        font-weight: 600;
+        border: 1px solid black;
 
         &.predefined {
-            background-color: rgba(255, 193, 7, 0.2);
-            color: #b8860b;
+            background-color: rgba(255, 193, 7, 0.3);
+            color: #8b6914;
         }
 
         &.custom {
-            background-color: rgba(33, 150, 243, 0.2);
-            color: #1976d2;
+            background-color: rgba(33, 150, 243, 0.3);
+            color: #1565c0;
         }
 
         &.yearly_goal {
-            background-color: rgba(156, 39, 176, 0.2);
-            color: #7b1fa2;
+            background-color: rgba(156, 39, 176, 0.3);
+            color: #6a1b9a;
         }
     }
 
@@ -94,43 +95,44 @@
     }
 
     .join-btn {
-        padding: 0.75rem 1.5rem;
-        background-color: var(--secondary-color);
-        color: var(--text-on-dark);
-        border: none;
-        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        background: var(--secondary-color);
+        color: white;
+        border: 2px solid var(--secondary-color);
         cursor: pointer;
         font-weight: 500;
+        transition: all 0.15s;
 
         &:hover {
-            opacity: 0.9;
+            background: black;
+            border-color: black;
         }
     }
 
     .leave-btn {
-        padding: 0.75rem 1.5rem;
-        background-color: transparent;
-        color: var(--text-secondary);
-        border: 1px solid var(--background-shade-color-2);
-        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        background: var(--background-primary);
+        color: var(--text-primary);
+        border: 2px solid black;
         cursor: pointer;
+        transition: all 0.15s;
 
         &:hover {
-            color: var(--danger-color);
+            background: var(--danger-color);
             border-color: var(--danger-color);
+            color: white;
         }
     }
 }
 
 // Progress Section
 .progress-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 
     .progress-card {
         background: var(--background-light-shade);
-        border: 1px solid var(--background-shade-color-2);
-        border-radius: 12px;
-        padding: 1.5rem;
+        border: 3px solid black;
+        padding: 1.25rem;
     }
 
     .progress-header {
@@ -160,13 +162,11 @@
         flex: 1;
         height: 12px;
         background-color: var(--background-shade-color-2);
-        border-radius: 6px;
         overflow: hidden;
 
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--secondary-color), #9be8e9);
-            border-radius: 6px;
             transition: width 0.3s ease;
         }
     }
@@ -189,31 +189,31 @@
 
 // Tabs
 .tabs-container {
-    border-bottom: 1px solid var(--text-muted-light);
+    border-bottom: 2px solid var(--background-shade-color-2);
     margin-bottom: 1.5rem;
 }
 
 .tabs {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.5rem;
 
     .tab {
-        padding: 0.75rem 1.5rem;
-        background: none;
-        border: none;
-        color: var(--text-muted-light);
+        padding: 0.5rem 1rem;
+        background: var(--background-primary);
+        border: 2px solid black;
+        color: var(--text-primary);
         cursor: pointer;
-        font-size: 0.95rem;
-        border-bottom: 2px solid transparent;
-        transition: all 0.2s;
+        font-size: 0.9rem;
+        transition: all 0.15s;
 
         &:hover {
-            color: var(--text-light);
+            background: var(--background-shade-color-2);
         }
 
         &.active {
-            color: var(--text-light);
-            border-bottom-color: var(--secondary-color);
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
         }
     }
 }
@@ -222,9 +222,8 @@
 .tab-content {
     min-height: 300px;
     background: var(--background-light-shade);
-    border: 1px solid var(--background-shade-color-2);
-    border-radius: 12px;
-    padding: 1.5rem;
+    border: 3px solid black;
+    padding: 1.25rem;
 }
 
 // Peaks Tab
@@ -249,12 +248,11 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-shade-color-2);
+    background: var(--background-light-shade);
+    border: 2px solid black;
 
     &.summited {
-        background: rgba(0, 212, 170, 0.15);
+        background: rgba(0, 212, 170, 0.2);
         border-color: var(--success-color);
     }
 
@@ -309,28 +307,23 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-shade-color-2);
+    background: var(--background-light-shade);
+    border: 2px solid black;
     transition: all 0.2s;
 
     &.top3 {
-        background: rgba(255, 215, 0, 0.1);
-        border-color: rgba(255, 215, 0, 0.3);
+        background: rgba(255, 215, 0, 0.15);
 
         &:nth-child(1) {
-            background: rgba(255, 215, 0, 0.15);
-            border-color: rgba(255, 215, 0, 0.4);
+            background: rgba(255, 215, 0, 0.2);
         }
 
         &:nth-child(2) {
-            background: rgba(192, 192, 192, 0.15);
-            border-color: rgba(192, 192, 192, 0.4);
+            background: rgba(192, 192, 192, 0.2);
         }
 
         &:nth-child(3) {
-            background: rgba(205, 127, 50, 0.15);
-            border-color: rgba(205, 127, 50, 0.4);
+            background: rgba(205, 127, 50, 0.2);
         }
     }
 
@@ -361,7 +354,7 @@
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--background-shade-color-2);
+            border: 2px solid black;
         }
 
         .name {
@@ -387,13 +380,11 @@
             width: 80px;
             height: 8px;
             background-color: var(--background-shade-color-2);
-            border-radius: 4px;
             overflow: hidden;
 
             .mini-fill {
                 height: 100%;
                 background: linear-gradient(90deg, var(--secondary-color), #9be8e9);
-                border-radius: 4px;
                 transition: width 0.3s ease;
             }
         }
@@ -409,13 +400,11 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-shade-color-2);
+    background: var(--background-light-shade);
+    border: 2px solid black;
 
     &.top3 {
-        background: rgba(0, 212, 170, 0.1);
-        border-color: rgba(0, 212, 170, 0.3);
+        background: rgba(0, 212, 170, 0.15);
     }
 
     .rank {
@@ -436,6 +425,7 @@
             height: 36px;
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid black;
         }
 
         .name {
@@ -460,13 +450,11 @@
             width: 60px;
             height: 6px;
             background-color: var(--background-shade-color-2);
-            border-radius: 3px;
             overflow: hidden;
 
             .mini-fill {
                 height: 100%;
                 background-color: var(--secondary-color);
-                border-radius: 3px;
             }
         }
     }
@@ -488,9 +476,8 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-shade-color-2);
+    background: var(--background-light-shade);
+    border: 2px solid black;
 
     .activity-icon {
         font-size: 1.25rem;
@@ -517,6 +504,8 @@
     text-align: center;
     padding: 3rem;
     color: var(--text-secondary);
+    background: var(--background-primary);
+    border: 2px solid black;
 
     p {
         margin: 0;
@@ -528,7 +517,7 @@
     justify-content: center;
     align-items: center;
     min-height: 300px;
-    color: var(--text-muted-light);
+    color: var(--text-secondary);
 }
 
 // Responsive

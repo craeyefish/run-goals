@@ -13,6 +13,7 @@ import { ActivityService, Activity } from '../../services/activity.service';
 import { PeakSummitService } from '../../services/peak-summit.service';
 import { PeakService, Peak } from '../../services/peak.service';
 import { PersonalGoalsService, PersonalYearlyGoal } from '../../services/personal-goals.service';
+import { SummitFavouritesService } from '../../services/summit-favourites.service';
 import { ChallengeService } from '../../services/challenge.service';
 import { ChallengeWithProgress } from '../../models/challenge.model';
 import { PeakPickerComponent, SelectedPeak } from '../../components/peak-picker/peak-picker.component';
@@ -30,13 +31,6 @@ import {
 import 'chartjs-adapter-date-fns';
 
 Chart.register(...registerables);
-
-interface TargetSummit {
-  id: number;
-  name: string;
-  completed: boolean;
-  summitedAt?: Date;
-}
 
 interface RecentSummit {
   peakId: number;
@@ -59,6 +53,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = true;
   error: string | null = null;
   currentYear = new Date().getFullYear();
+  selectedYear = this.currentYear;
+  availableYears: number[] = [];
 
   // Stats
   totalDistance = 0;
@@ -69,10 +65,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   // Personal goals from API
   personalGoals: PersonalYearlyGoal | null = null;
 
-  // Summit wishlist
-  targetSummits: TargetSummit[] = [];
-  completedTargetSummits = 0;
-  summitProgressPercentage = 0;
+  // Summit favourites (new year-independent wishlist)
+  favouriteIds: number[] = [];
+  favouritePeaks: any[] = [];
+  completedFavourites: any[] = [];
+  incompleteFavourites: any[] = [];
+  wishlistTab: 'incomplete' | 'complete' = 'incomplete';
 
   // Active challenges
   activeChallenges: ChallengeWithProgress[] = [];
@@ -93,6 +91,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Store activities for chart creation
   yearActivities: Activity[] = [];
+  private allActivities: Activity[] = [];
   private peakSummaries: any[] = [];
 
   private destroy$ = new Subject<void>();
@@ -102,6 +101,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     private peakSummitService: PeakSummitService,
     private peakService: PeakService,
     private personalGoalsService: PersonalGoalsService,
+    private summitFavouritesService: SummitFavouritesService,
     private challengeService: ChallengeService,
     private router: Router
   ) { }
@@ -134,9 +134,19 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: (goals) => {
         this.personalGoals = goals;
-        this.loadTargetSummits();
       },
       error: (err) => console.error('Error loading personal goals:', err)
+    });
+
+    // Load summit favourites
+    this.summitFavouritesService.getFavourites().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (favouriteIds) => {
+        this.favouriteIds = favouriteIds;
+        this.loadFavouritePeaks();
+      },
+      error: (err) => console.error('Error loading summit favourites:', err)
     });
 
     // Load active challenges
@@ -162,15 +172,19 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([activities, peakSummaries]) => {
-          const validActivities = activities || [];
+          this.allActivities = activities || [];
           this.peakSummaries = peakSummaries || [];
 
-          this.calculateStats(validActivities, this.peakSummaries);
+          // Extract available years from activities
+          this.extractAvailableYears();
+
+          // Calculate stats for selected year
+          this.calculateStatsForYear(this.selectedYear);
           this.loadRecentSummits(this.peakSummaries);
 
           // Store for chart creation
-          this.yearActivities = validActivities.filter(
-            (activity) => new Date(activity.start_date).getFullYear() === this.currentYear
+          this.yearActivities = this.allActivities.filter(
+            (activity) => new Date(activity.start_date).getFullYear() === this.selectedYear
           ).sort(
             (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
           );
@@ -190,14 +204,15 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  loadTargetSummits(): void {
-    if (!this.personalGoals?.target_summits?.length) {
-      this.targetSummits = [];
-      this.updateSummitProgress();
+  loadFavouritePeaks(): void {
+    if (!this.favouriteIds.length) {
+      this.favouritePeaks = [];
+      this.completedFavourites = [];
+      this.incompleteFavourites = [];
       return;
     }
 
-    // Load peaks data first, then match with summit summaries
+    // Load peaks data
     this.peakService.loadPeaks();
 
     combineLatest([
@@ -206,48 +221,43 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     ]).pipe(
       takeUntil(this.destroy$)
     ).subscribe(([allPeaks, summaries]) => {
-      this.targetSummits = this.personalGoals!.target_summits.map(peakId => {
-        // Get peak name from allPeaks (has ALL peaks)
+      this.favouritePeaks = this.favouriteIds.map(peakId => {
         const peakInfo = allPeaks!.find((p: Peak) => p.id === peakId);
-        // Get summit data from summaries (only summited peaks have activities)
         const summitData = summaries.find((s: any) => s.peak_id === peakId);
-        const summitedActivity = summitData?.activities?.find((a: any) =>
-          new Date(a.start_date).getFullYear() === this.currentYear
-        );
+        const latestActivity = summitData?.activities?.[0]; // Most recent summit
 
         return {
           id: peakId,
           name: peakInfo?.name || summitData?.peak_name || 'Unknown Peak',
-          completed: !!summitedActivity,
-          summitedAt: summitedActivity ? new Date(summitedActivity.start_date) : undefined
+          elevation: peakInfo?.elevation_meters || 0,
+          completed: !!summitData?.activities?.length,
+          summitedAt: latestActivity ? new Date(latestActivity.start_date) : undefined
         };
       });
 
-      // Sort: incomplete first, then completed
-      this.targetSummits.sort((a, b) => {
-        if (a.completed !== b.completed) return a.completed ? 1 : -1;
-        return a.name.localeCompare(b.name);
-      });
+      // Split into completed and incomplete
+      this.completedFavourites = this.favouritePeaks
+        .filter(p => p.completed)
+        .sort((a, b) => {
+          if (!a.summitedAt || !b.summitedAt) return 0;
+          return b.summitedAt.getTime() - a.summitedAt.getTime(); // Most recent first
+        });
 
-      this.updateSummitProgress();
+      this.incompleteFavourites = this.favouritePeaks
+        .filter(p => !p.completed)
+        .sort((a, b) => a.name.localeCompare(b.name));
     });
-  }
-
-  updateSummitProgress(): void {
-    this.completedTargetSummits = this.targetSummits.filter(s => s.completed).length;
-    const total = this.targetSummits.length || this.personalGoals?.summit_goal || 1;
-    this.summitProgressPercentage = Math.min(100, (this.completedTargetSummits / total) * 100);
   }
 
   loadRecentSummits(peakSummaries: any[]): void {
     const allSummits: RecentSummit[] = [];
 
-    // Extract all summits from the current year
+    // Extract all summits from the selected year
     peakSummaries.forEach((peak: any) => {
       if (peak.activities && Array.isArray(peak.activities)) {
         peak.activities.forEach((activity: any) => {
           const activityYear = new Date(activity.start_date).getFullYear();
-          if (activityYear === this.currentYear) {
+          if (activityYear === this.selectedYear) {
             allSummits.push({
               peakId: peak.peak_id,
               peakName: peak.peak_name,
@@ -264,12 +274,44 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       .sort((a, b) => b.summitedAt.getTime() - a.summitedAt.getTime());
   }
 
-  calculateStats(activities: Activity[], peakSummaries: any[]): void {
-    const currentYear = new Date().getFullYear();
+  extractAvailableYears(): void {
+    const years = new Set<number>();
+    years.add(this.currentYear); // Always include current year
 
-    const yearActivities = activities.filter((activity) => {
+    this.allActivities.forEach(activity => {
+      const year = new Date(activity.start_date).getFullYear();
+      years.add(year);
+    });
+
+    // Sort descending (most recent first)
+    this.availableYears = Array.from(years).sort((a, b) => b - a);
+  }
+
+  selectYear(year: number): void {
+    this.selectedYear = year;
+    this.calculateStatsForYear(year);
+    this.loadRecentSummits(this.peakSummaries);
+
+    // Update year activities for charts
+    this.yearActivities = this.allActivities.filter(
+      (activity) => new Date(activity.start_date).getFullYear() === year
+    ).sort(
+      (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+    );
+
+    // Recreate charts
+    if (this.distanceChart) this.distanceChart.destroy();
+    if (this.elevationChart) this.elevationChart.destroy();
+    setTimeout(() => {
+      this.createDistanceChart();
+      this.createElevationChart();
+    }, 100);
+  }
+
+  calculateStatsForYear(year: number): void {
+    const yearActivities = this.allActivities.filter((activity) => {
       const activityYear = new Date(activity.start_date).getFullYear();
-      return activityYear === currentYear;
+      return activityYear === year;
     });
 
     this.totalActivities = yearActivities.length;
@@ -286,12 +328,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     let summitCount = 0;
-    if (peakSummaries && Array.isArray(peakSummaries)) {
-      peakSummaries.forEach((peak) => {
+    if (this.peakSummaries && Array.isArray(this.peakSummaries)) {
+      this.peakSummaries.forEach((peak) => {
         if (peak.activities && Array.isArray(peak.activities)) {
           peak.activities.forEach((activity: any) => {
             const activityYear = new Date(activity.start_date).getFullYear();
-            if (activityYear === currentYear) {
+            if (activityYear === year) {
               summitCount++;
             }
           });
@@ -299,6 +341,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
     this.totalSummits = summitCount;
+  }
+
+  calculateStats(activities: Activity[], peakSummaries: any[]): void {
+    this.calculateStatsForYear(this.selectedYear);
   }
 
   // Goal getters with defaults
@@ -377,44 +423,38 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onPeakAdded(peak: SelectedPeak): void {
-    if (!this.personalGoals) return;
-
-    this.personalGoalsService.addTargetSummit(peak.id).pipe(
+    this.summitFavouritesService.addFavourite(peak.id).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (updated: PersonalYearlyGoal) => {
-        this.personalGoals = updated;
-        this.loadTargetSummits();
+      next: (favouriteIds: number[]) => {
+        this.favouriteIds = favouriteIds;
+        this.loadFavouritePeaks();
       },
-      error: (err: any) => console.error('Error adding summit:', err)
+      error: (err: any) => console.error('Error adding favourite:', err)
     });
   }
 
   onPeakRemoved(peak: SelectedPeak): void {
-    if (!this.personalGoals) return;
-
-    this.personalGoalsService.removeTargetSummit(peak.id).pipe(
+    this.summitFavouritesService.removeFavourite(peak.id).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (updated: PersonalYearlyGoal) => {
-        this.personalGoals = updated;
-        this.loadTargetSummits();
+      next: (favouriteIds: number[]) => {
+        this.favouriteIds = favouriteIds;
+        this.loadFavouritePeaks();
       },
-      error: (err: any) => console.error('Error removing summit:', err)
+      error: (err: any) => console.error('Error removing favourite:', err)
     });
   }
 
-  removeTargetSummit(summitId: number): void {
-    if (!this.personalGoals) return;
-
-    this.personalGoalsService.removeTargetSummit(summitId).pipe(
+  removeFavourite(summitId: number): void {
+    this.summitFavouritesService.removeFavourite(summitId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (updated: PersonalYearlyGoal) => {
-        this.personalGoals = updated;
-        this.loadTargetSummits();
+      next: (favouriteIds: number[]) => {
+        this.favouriteIds = favouriteIds;
+        this.loadFavouritePeaks();
       },
-      error: (err: any) => console.error('Error removing summit:', err)
+      error: (err: any) => console.error('Error removing favourite:', err)
     });
   }
 
@@ -425,6 +465,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   navigateToChallenge(challengeId: number): void {
     this.router.navigate(['/challenges', challengeId]);
+  }
+
+  viewWishlistOnMap(): void {
+    this.router.navigate(['/explore'], { queryParams: { filter: 'wishlist' } });
   }
 
   createDistanceChart(): void {

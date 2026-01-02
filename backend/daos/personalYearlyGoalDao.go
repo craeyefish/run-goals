@@ -5,8 +5,6 @@ import (
 	"log"
 	"run-goals/models"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 type PersonalYearlyGoalDao struct {
@@ -25,12 +23,11 @@ func NewPersonalYearlyGoalDao(logger *log.Logger, db *sql.DB) *PersonalYearlyGoa
 func (dao *PersonalYearlyGoalDao) GetByUserAndYear(userID int64, year int) (*models.PersonalYearlyGoal, error) {
 	goal := &models.PersonalYearlyGoal{}
 	query := `
-		SELECT id, user_id, year, distance_goal, elevation_goal, summit_goal, 
-			   COALESCE(target_summits, '{}') as target_summits, created_at, updated_at
+		SELECT id, user_id, year, distance_goal, elevation_goal, summit_goal,
+			   created_at, updated_at
 		FROM personal_yearly_goals
 		WHERE user_id = $1 AND year = $2
 	`
-	var targetSummits pq.Int64Array
 	err := dao.db.QueryRow(query, userID, year).Scan(
 		&goal.ID,
 		&goal.UserID,
@@ -38,7 +35,6 @@ func (dao *PersonalYearlyGoalDao) GetByUserAndYear(userID int64, year int) (*mod
 		&goal.DistanceGoal,
 		&goal.ElevationGoal,
 		&goal.SummitGoal,
-		&targetSummits,
 		&goal.CreatedAt,
 		&goal.UpdatedAt,
 	)
@@ -49,7 +45,6 @@ func (dao *PersonalYearlyGoalDao) GetByUserAndYear(userID int64, year int) (*mod
 		dao.l.Printf("Error getting personal yearly goal: %v", err)
 		return nil, err
 	}
-	goal.TargetSummits = targetSummits
 	return goal, nil
 }
 
@@ -58,7 +53,7 @@ func (dao *PersonalYearlyGoalDao) GetByUser(userID int64) ([]models.PersonalYear
 	goals := []models.PersonalYearlyGoal{}
 	query := `
 		SELECT id, user_id, year, distance_goal, elevation_goal, summit_goal,
-			   COALESCE(target_summits, '{}') as target_summits, created_at, updated_at
+			   created_at, updated_at
 		FROM personal_yearly_goals
 		WHERE user_id = $1
 		ORDER BY year DESC
@@ -72,7 +67,6 @@ func (dao *PersonalYearlyGoalDao) GetByUser(userID int64) ([]models.PersonalYear
 
 	for rows.Next() {
 		var goal models.PersonalYearlyGoal
-		var targetSummits pq.Int64Array
 		err := rows.Scan(
 			&goal.ID,
 			&goal.UserID,
@@ -80,7 +74,6 @@ func (dao *PersonalYearlyGoalDao) GetByUser(userID int64) ([]models.PersonalYear
 			&goal.DistanceGoal,
 			&goal.ElevationGoal,
 			&goal.SummitGoal,
-			&targetSummits,
 			&goal.CreatedAt,
 			&goal.UpdatedAt,
 		)
@@ -88,7 +81,6 @@ func (dao *PersonalYearlyGoalDao) GetByUser(userID int64) ([]models.PersonalYear
 			dao.l.Printf("Error scanning personal yearly goal: %v", err)
 			return nil, err
 		}
-		goal.TargetSummits = targetSummits
 		goals = append(goals, goal)
 	}
 
@@ -99,13 +91,12 @@ func (dao *PersonalYearlyGoalDao) GetByUser(userID int64) ([]models.PersonalYear
 func (dao *PersonalYearlyGoalDao) Upsert(goal *models.PersonalYearlyGoal) error {
 	query := `
 		INSERT INTO personal_yearly_goals (
-			user_id, year, distance_goal, elevation_goal, summit_goal, target_summits, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			user_id, year, distance_goal, elevation_goal, summit_goal, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (user_id, year) DO UPDATE SET
 			distance_goal = EXCLUDED.distance_goal,
 			elevation_goal = EXCLUDED.elevation_goal,
 			summit_goal = EXCLUDED.summit_goal,
-			target_summits = EXCLUDED.target_summits,
 			updated_at = EXCLUDED.updated_at
 		RETURNING id
 	`
@@ -115,11 +106,6 @@ func (dao *PersonalYearlyGoalDao) Upsert(goal *models.PersonalYearlyGoal) error 
 	}
 	goal.UpdatedAt = now
 
-	var targetSummits pq.Int64Array = goal.TargetSummits
-	if targetSummits == nil {
-		targetSummits = pq.Int64Array{}
-	}
-
 	err := dao.db.QueryRow(
 		query,
 		goal.UserID,
@@ -127,7 +113,6 @@ func (dao *PersonalYearlyGoalDao) Upsert(goal *models.PersonalYearlyGoal) error 
 		goal.DistanceGoal,
 		goal.ElevationGoal,
 		goal.SummitGoal,
-		targetSummits,
 		goal.CreatedAt,
 		goal.UpdatedAt,
 	).Scan(&goal.ID)

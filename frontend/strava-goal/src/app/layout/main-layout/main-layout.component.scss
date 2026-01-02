@@ -3,6 +3,7 @@
 .main-layout-container {
   display: grid;
   grid-template-rows: auto 1fr;
+  grid-template-columns: 11rem 1fr;
   /* Full viewport height so the background shows fully. */
   height: 100vh;
   /* Position relative to the viewport or container. */
@@ -11,24 +12,24 @@
   font-family: "Press Start 2P";
 }
 
+app-header {
+  grid-column: 1 / -1;
+}
+
 .content-container {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  gap: 0.5rem;
-  padding: 1rem;
-  overflow: hidden;
+  display: contents;
 }
 
 app-sidebar {
   width: 11rem;
   flex-shrink: 0;
   background-color: var(--background-shade-color-4);
+  overflow-y: auto;
 }
 
 main {
   flex-grow: 1;
   overflow-y: auto;
   color: --text-color;
-  padding: 0.5rem;
+  padding: 1rem;
 }
