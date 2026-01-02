@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface UserProfile {
   id: number;
   strava_athelete_id: number;
+  username?: string;
   last_distance: number;
   last_updated: string;
   created_at: string;
@@ -19,5 +20,9 @@ export class ProfileService {
 
   getUserProfile(): Observable<UserProfile> {
     return this.http.get<UserProfile>('/api/profile');
+  }
+
+  updateUsername(username: string): Observable<UserProfile> {
+    return this.http.put<UserProfile>('/api/profile', { username });
   }
 }

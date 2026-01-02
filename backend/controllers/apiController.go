@@ -144,6 +144,48 @@ func (c *ApiController) GetUserProfile(rw http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (c *ApiController) UpdateUserProfile(rw http.ResponseWriter, r *http.Request) {
+	c.l.Println("Handle PUT/PATCH UserProfile")
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	var req struct {
+		Username string `json:"username"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.l.Println("Error decoding request body", err)
+		http.Error(rw, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate username (3-50 characters, alphanumeric + underscores)
+	if len(req.Username) < 3 || len(req.Username) > 50 {
+		http.Error(rw, "Username must be between 3 and 50 characters", http.StatusBadRequest)
+		return
+	}
+
+	err := c.userService.UpdateUsername(userID, req.Username)
+	if err != nil {
+		c.l.Println("Error updating username", err)
+		http.Error(rw, "Failed to update username", http.StatusInternalServerError)
+		return
+	}
+
+	// Return updated profile
+	response, err := c.userService.GetUserProfile(userID)
+	if err != nil {
+		c.l.Println("Error fetching updated user profile", err)
+		http.Error(rw, "Failed to fetch updated profile", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(rw).Encode(response); err != nil {
+		log.Println("Error encoding user profile response:", err)
+	}
+}
+
 // GetPersonalGoals returns the user's personal yearly goals
 // GET /api/personal-goals?year=2025 (defaults to current year if not specified)
 func (c *ApiController) GetPersonalGoals(rw http.ResponseWriter, r *http.Request) {

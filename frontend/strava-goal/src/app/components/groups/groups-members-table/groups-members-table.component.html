@@ -1,7 +1,7 @@
 <table>
   <thead>
     <tr>
-      <th>UserID</th>
+      <th>Username</th>
       <th>Role</th>
       <th>Activities</th>
       <th>Distance</th>
@@ -12,7 +12,7 @@
   </thead>
   <tbody>
     <tr *ngFor="let member of membersComputed()">
-      <td>{{ member.userId }}</td>
+      <td>{{ member.username && member.username.trim() ? member.username : 'User ' + member.userId }}</td>
       <td>{{ member.role }}</td>
       <td>{{ member.totalActivities ?? "-" }}</td>
       <td>

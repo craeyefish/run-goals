@@ -108,12 +108,15 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
-        // Check for wishlist query parameter
+        // Check for query parameters
         this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
             if (params['filter'] === 'wishlist') {
                 this.peakFilter = 'wishlist';
                 this.wishlistFilterActive = true;
                 this.loadWishlistPeaks();
+            }
+            if (params['tab'] === 'challenges') {
+                this.activeTab = 'challenges';
             }
         });
 
@@ -173,7 +176,7 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewInit {
 
                 // Enrich peaks with summit data
                 this.peaks = (peaks || []).map(peak => {
-                    const summary = summaries.find((s: any) => s.peak_id === peak.id);
+                    const summary = (summaries || []).find((s: any) => s.peak_id === peak.id);
                     return {
                         ...peak,
                         summitCount: summary?.activities?.length || 0,

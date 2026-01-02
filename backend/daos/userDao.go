@@ -76,6 +76,7 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 		SELECT
 			id,
 			strava_athlete_id,
+			username,
 			access_token,
 			refresh_token,
 			expires_at,
@@ -96,6 +97,7 @@ func (dao *UserDao) GetUsers() ([]models.User, error) {
 		err = rows.Scan(
 			&user.ID,
 			&user.StravaAthleteID,
+			&user.Username,
 			&user.AccessToken,
 			&user.RefreshToken,
 			&user.ExpiresAt,
@@ -125,6 +127,7 @@ func (dao *UserDao) GetUserByID(id int64) (*models.User, error) {
 		SELECT
 			id,
 			strava_athlete_id,
+			username,
 			access_token,
 			refresh_token,
 			expires_at,
@@ -140,6 +143,7 @@ func (dao *UserDao) GetUserByID(id int64) (*models.User, error) {
 	err := row.Scan(
 		&user.ID,
 		&user.StravaAthleteID,
+		&user.Username,
 		&user.AccessToken,
 		&user.RefreshToken,
 		&user.ExpiresAt,
@@ -165,6 +169,7 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 		SELECT
 			id,
 			strava_athlete_id,
+			username,
 			access_token,
 			refresh_token,
 			expires_at,
@@ -180,6 +185,7 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 	err := row.Scan(
 		&user.ID,
 		&user.StravaAthleteID,
+		&user.Username,
 		&user.AccessToken,
 		&user.RefreshToken,
 		&user.ExpiresAt,
@@ -197,6 +203,29 @@ func (dao *UserDao) GetUserByStravaAthleteID(id int64) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+// UpdateUsername updates just the username for a user
+func (dao *UserDao) UpdateUsername(userID int64, username string) error {
+	query := `UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2`
+	result, err := dao.db.Exec(query, username, userID)
+	if err != nil {
+		dao.l.Printf("Error updating username for user_id=%d: %v", userID, err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		dao.l.Printf("Error getting rows affected: %v", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		dao.l.Printf("No user found with id=%d", userID)
+		return ErrUserNotFound
+	}
+
+	return nil
 }
 
 func (dao *UserDao) DeleteUserByStravaAthleteID(stravaAthleteID int64) error {

@@ -8,6 +8,7 @@ type GroupMemberGoalContribution struct {
 	GroupMemberID      int64     `json:"group_member_id"`
 	GroupID            int64     `json:"group_id"`
 	UserID             int64     `json:"user_id"`
+	Username           string    `json:"username"`
 	Role               string    `json:"role"`
 	JoinedAt           time.Time `json:"joined_at"`
 	TotalActivities    int64     `json:"total_activities"`

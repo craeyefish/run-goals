@@ -153,9 +153,6 @@
       <div class="summits-expanded">
         <div class="summits-header">
           <span>{{ selectedYear }} Summits</span>
-          <button class="wishlist-btn" (click)="openPeakPicker.emit(); $event.stopPropagation()">
-            📋 Wishlist
-          </button>
         </div>
 
         <div class="summits-list" *ngIf="recentSummits.length > 0">

@@ -26,6 +26,7 @@ export class GroupsMembersTableComponent {
 
     return members.map((member) => {
       const userId = member.user_id;
+      const username = member.username;
       const role = member.role;
       const totalActivities = member.total_activities;
       const totalDistance = member.total_distance;
@@ -40,6 +41,7 @@ export class GroupsMembersTableComponent {
             );
       return {
         userId,
+        username,
         role,
         totalActivities,
         totalDistance,
@@ -83,6 +85,7 @@ export class GroupsMembersTableComponent {
                 group_member_id: member.id,
                 group_id: member.group_id,
                 user_id: member.user_id,
+                username: member.username,
                 role: member.role,
                 joined_at: member.joined_at,
                 total_activities: null,

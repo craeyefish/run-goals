@@ -434,7 +434,7 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 		SELECT
 			cp.id, cp.challenge_id, cp.user_id, cp.joined_at, cp.completed_at,
 			cp.peaks_completed, cp.total_peaks,
-			u.name as user_name, u.profile_picture
+			COALESCE(u.username, '') as user_name
 		FROM challenge_participants cp
 		JOIN users u ON cp.user_id = u.id
 		WHERE cp.challenge_id = $1
@@ -453,7 +453,7 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 		err := rows.Scan(
 			&p.ID, &p.ChallengeID, &p.UserID, &p.JoinedAt, &p.CompletedAt,
 			&p.PeaksCompleted, &p.TotalPeaks,
-			&p.UserName, &p.ProfilePicture,
+			&p.UserName,
 		)
 		if err != nil {
 			dao.l.Printf("Error scanning participant: %v", err)
@@ -467,7 +467,7 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 func (dao *ChallengeDao) GetChallengeLeaderboard(challengeID int64) ([]models.LeaderboardEntry, error) {
 	query := `
 		SELECT
-			cp.user_id, u.name as user_name, u.profile_picture,
+			cp.user_id, COALESCE(u.username, '') as user_name,
 			cp.peaks_completed, cp.total_peaks, cp.joined_at, cp.completed_at
 		FROM challenge_participants cp
 		JOIN users u ON cp.user_id = u.id
@@ -489,7 +489,7 @@ func (dao *ChallengeDao) GetChallengeLeaderboard(challengeID int64) ([]models.Le
 	for rows.Next() {
 		var entry models.LeaderboardEntry
 		err := rows.Scan(
-			&entry.UserID, &entry.UserName, &entry.ProfilePicture,
+			&entry.UserID, &entry.UserName,
 			&entry.PeaksCompleted, &entry.TotalPeaks, &entry.JoinedAt, &entry.CompletedAt,
 		)
 		if err != nil {
@@ -655,7 +655,7 @@ func (dao *ChallengeDao) GetChallengeSummitLog(challengeID int64, userID *int64)
 	query := `
 		SELECT
 			csl.id, csl.challenge_id, csl.user_id, csl.peak_id, csl.activity_id, csl.summited_at, csl.created_at,
-			p.name as peak_name, p.elevation as peak_elevation
+			p.name as peak_name, p.elevation_meters as peak_elevation
 		FROM challenge_summit_log csl
 		LEFT JOIN peaks p ON csl.peak_id = p.id
 		WHERE csl.challenge_id = $1

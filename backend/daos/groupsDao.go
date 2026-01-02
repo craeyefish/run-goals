@@ -318,13 +318,15 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 	groupMembers := []models.GroupMember{}
 	sql := `
 		SELECT
-			id,
-			group_id,
-			user_id,
-			role,
-			joined_at
-		FROM group_members
-		WHERE group_id = $1;
+			gm.id,
+			gm.group_id,
+			gm.user_id,
+			COALESCE(u.username, ''),
+			gm.role,
+			gm.joined_at
+		FROM group_members gm
+		LEFT JOIN users u ON gm.user_id = u.id
+		WHERE gm.group_id = $1;
 	`
 	rows, err := dao.db.Query(sql, groupID)
 	if err != nil {
@@ -338,6 +340,7 @@ func (dao *GroupsDao) GetGroupMembers(groupID int64) ([]models.GroupMember, erro
 			&groupMember.ID,
 			&groupMember.GroupID,
 			&groupMember.UserID,
+			&groupMember.Username,
 			&groupMember.Role,
 			&groupMember.JoinedAt,
 		)
@@ -421,13 +424,15 @@ func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate t
 	sql := `
 		WITH members_tbl AS (
 			SELECT
-				id as group_member_id,
-				group_id,
-				user_id,
-				role,
-				joined_at
-			FROM group_members
-			WHERE group_id = $1
+				gm.id as group_member_id,
+				gm.group_id,
+				gm.user_id,
+				COALESCE(u.username, '') as username,
+				gm.role,
+				gm.joined_at
+			FROM group_members gm
+			LEFT JOIN users u ON gm.user_id = u.id
+			WHERE gm.group_id = $1
 		),
 
 		member_activity_tbl AS (
@@ -458,6 +463,7 @@ func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate t
 			members_tbl.group_member_id,
 			members_tbl.group_id,
 			members_tbl.user_id,
+			members_tbl.username,
 			members_tbl.role,
 			members_tbl.joined_at,
 			coalesce(member_activity_tbl.total_activities, 0),
@@ -480,6 +486,7 @@ func (dao *GroupsDao) GetGroupMembersGoalContribution(groupID int64, startDate t
 			&contribution.GroupMemberID,
 			&contribution.GroupID,
 			&contribution.UserID,
+			&contribution.Username,
 			&contribution.Role,
 			&contribution.JoinedAt,
 			&contribution.TotalActivities,

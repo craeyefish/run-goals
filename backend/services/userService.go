@@ -50,6 +50,16 @@ func (s *UserService) GetUserProfile(userID int64) (*models.User, error) {
 	return user, nil
 }
 
+func (s *UserService) UpdateUsername(userID int64, username string) error {
+	err := s.userDao.UpdateUsername(userID, username)
+	if err != nil {
+		s.l.Printf("Error updating username for user %d: %v", userID, err)
+		return err
+	}
+	s.l.Printf("Successfully updated username for user %d to %s", userID, username)
+	return nil
+}
+
 func (s *UserService) DeleteUserAccount(stravaAthleteID int64) error {
 	err := s.userDao.DeleteUserByStravaAthleteID(stravaAthleteID)
 	if err != nil {

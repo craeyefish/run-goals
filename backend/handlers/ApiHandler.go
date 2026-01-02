@@ -41,6 +41,10 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		handler.apiController.GetProgress(rw, r)
 		return
 	case "/api/profile":
+		if r.Method == http.MethodPut || r.Method == http.MethodPatch {
+			handler.apiController.UpdateUserProfile(rw, r)
+			return
+		}
 		handler.apiController.GetUserProfile(rw, r)
 		return
 	case "/api/peak-summaries":

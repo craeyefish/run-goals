@@ -223,7 +223,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe(([allPeaks, summaries]) => {
       this.favouritePeaks = this.favouriteIds.map(peakId => {
         const peakInfo = allPeaks!.find((p: Peak) => p.id === peakId);
-        const summitData = summaries.find((s: any) => s.peak_id === peakId);
+        const summitData = (summaries || []).find((s: any) => s.peak_id === peakId);
         const latestActivity = summitData?.activities?.[0]; // Most recent summit
 
         return {
@@ -469,6 +469,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   viewWishlistOnMap(): void {
     this.router.navigate(['/explore'], { queryParams: { filter: 'wishlist' } });
+  }
+
+  viewChallengesOnMap(): void {
+    this.router.navigate(['/explore'], { queryParams: { tab: 'challenges' } });
   }
 
   createDistanceChart(): void {

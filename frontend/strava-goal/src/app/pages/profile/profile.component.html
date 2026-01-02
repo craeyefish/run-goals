@@ -14,6 +14,55 @@
     <div class="profile-card">
       <h2>Account Information</h2>
 
+      <!-- Username Section -->
+      <div class="info-row username-row">
+        <span class="label">Username:</span>
+        <div class="value-with-edit">
+          <span class="value" *ngIf="!editingUsername">
+            {{ profile.username || 'Not set' }}
+          </span>
+          <input
+            *ngIf="editingUsername"
+            type="text"
+            [(ngModel)]="newUsername"
+            class="username-input"
+            placeholder="Enter username (3-50 characters)"
+            [disabled]="updating"
+          />
+          <button
+            *ngIf="!editingUsername"
+            class="edit-btn"
+            (click)="startEditingUsername()"
+          >
+            ✏️ Edit
+          </button>
+          <div *ngIf="editingUsername" class="edit-actions">
+            <button
+              class="save-btn"
+              (click)="saveUsername()"
+              [disabled]="updating"
+            >
+              {{ updating ? 'Saving...' : '✓ Save' }}
+            </button>
+            <button
+              class="cancel-btn"
+              (click)="cancelEditingUsername()"
+              [disabled]="updating"
+            >
+              ✕ Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="updateError" class="error-message">
+        {{ updateError }}
+      </div>
+
+      <div *ngIf="updateSuccess" class="success-message">
+        Username updated successfully!
+      </div>
+
       <div class="info-row">
         <span class="label">Strava Athlete ID:</span>
         <span class="value">{{ profile.strava_athelete_id }}</span>

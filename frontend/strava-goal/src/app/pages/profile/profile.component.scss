@@ -86,6 +86,110 @@
   font-size: 14px;
 }
 
+.value-with-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.username-input {
+  padding: 8px 12px;
+  border: 2px solid black;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-width: 250px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 2px solid black;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  background: var(--background-primary);
+  color: var(--text-primary);
+
+  &:hover {
+    background: black;
+    color: white;
+  }
+}
+
+.save-btn {
+  background: var(--secondary-color);
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: black;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.cancel-btn {
+  background: var(--background-primary);
+  color: var(--text-primary);
+
+  &:hover:not(:disabled) {
+    background: black;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.error-message {
+  color: #dc3545;
+  background: var(--background-shade-color-1);
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #dc3545;
+  font-size: 14px;
+}
+
+.success-message {
+  color: #28a745;
+  background: var(--background-shade-color-1);
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #28a745;
+  font-size: 14px;
+}
+
+.username-row {
+  flex-wrap: wrap;
+}
+
 .days-ago {
   color: var(--text-secondary);
   font-size: 12px;

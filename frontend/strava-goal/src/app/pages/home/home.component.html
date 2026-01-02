@@ -97,7 +97,8 @@
           </div>
         </div>
         <div class="empty-state" *ngIf="incompleteFavourites.length === 0">
-          <p>All favourites completed! 🎉</p>
+          <p *ngIf="favouritePeaks.length > 0">All favourites completed! 🎉</p>
+          <p *ngIf="favouritePeaks.length === 0">Add your first peak target to get started! 🏔️</p>
         </div>
       </div>
 
@@ -128,9 +129,14 @@
     <div class="active-challenges-section">
       <div class="section-header">
         <h3>🏆 Active Challenges</h3>
-        <button class="view-all-btn" (click)="navigateToChallenges()">
-          View All Challenges →
-        </button>
+        <div class="header-actions">
+          <button class="add-summit-btn" (click)="viewChallengesOnMap()">
+            🗺️ View on Map
+          </button>
+          <button class="view-all-btn" (click)="navigateToChallenges()">
+            View All Challenges →
+          </button>
+        </div>
       </div>
 
       <div class="challenges-grid" *ngIf="activeChallenges.length > 0">

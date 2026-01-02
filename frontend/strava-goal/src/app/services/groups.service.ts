@@ -254,6 +254,7 @@ export interface Member {
   id: number;
   group_id: number;
   user_id: number;
+  username?: string;
   role: string;
   joined_at: string;
 }
@@ -262,6 +263,7 @@ export interface MemberContribution {
   group_member_id: number;
   group_id: number;
   user_id: number;
+  username?: string;
   role: string;
   joined_at: string;
   total_activities: number | null;
