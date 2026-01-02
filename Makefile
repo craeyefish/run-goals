@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
-# Capture extra args (service names)
-SERVICES := $(filter-out $@,$(MAKECMDGOALS))
+# Only treat extra args as services (ignore the first goal)
+SERVICES := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
 ## ---- Core lifecycle ----
 

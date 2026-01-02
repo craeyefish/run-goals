@@ -15,7 +15,11 @@
     "target": "http://backend:8080",
     "secure": false
   },
-  "/support": {
+  "/support/delete-account": {
+    "target": "http://backend:8080",
+    "secure": false
+  },
+  "/support/refresh-peaks": {
     "target": "http://backend:8080",
     "secure": false
   }

@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './support.component.html',
   styleUrls: ['./support.component.scss'],
 })
-export class SupportComponent {
+export class SupportComponent implements AfterViewInit {
   stravaAthleteId: string = '';
   isDeleting: boolean = false;
   deleteSuccess: boolean = false;
@@ -21,8 +21,24 @@ export class SupportComponent {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute
   ) {}
+
+  ngAfterViewInit(): void {
+    // Handle fragment scrolling after view is initialized
+    this.route.fragment.subscribe((fragment) => {
+      if (fragment) {
+        // Use setTimeout to ensure the DOM is fully rendered
+        setTimeout(() => {
+          const element = document.getElementById(fragment);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    });
+  }
 
   onDeleteAccount() {
     if (!this.stravaAthleteId.trim()) {

@@ -41,6 +41,20 @@ spec:
                 name: summitseekers-backend
                 port:
                   number: 8080
+          - path: /support/delete-account
+            pathType: Prefix
+            backend:
+              service:
+                name: summitseekers-backend
+                port:
+                  number: 8080
+          - path: /support/refresh-peaks
+            pathType: Prefix
+            backend:
+              service:
+                name: summitseekers-backend
+                port:
+                  number: 8080
 
 ---
 # Ingress for frontend

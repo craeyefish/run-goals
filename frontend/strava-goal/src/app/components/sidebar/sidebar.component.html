@@ -6,6 +6,11 @@
     <li><a routerLink="/groups">Groups</a></li>
     <li><a routerLink="/profile">Profile</a></li>
     <li><a routerLink="/support">Support</a></li>
+    <li class="coffee-support">
+      <a routerLink="/support" fragment="support-us" class="coffee-link">
+        <img src="assets/coffee.png" alt="Support Us" class="coffee-icon" />
+      </a>
+    </li>
     <li>
       <button (click)="onLogoutClick(); reloadPage()">Logout</button>
     </li>
