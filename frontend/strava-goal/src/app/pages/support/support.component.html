@@ -1,17 +1,17 @@
 <div class="support-container">
   <div class="support-header">
-    <h1>🏔️ Quest Support Center</h1>
-    <p class="subtitle">Your companion for the running quest adventure</p>
+    <h1>🏔️ Support Center</h1>
+    <p class="subtitle">Your guide to tracking summits and exploring peaks</p>
   </div>
 
   <div class="support-content">
     <!-- Hero Section -->
     <div class="hero-card">
-      <h2>🎮 Welcome, Adventurer!</h2>
+      <h2>👋 Welcome!</h2>
       <p>
-        This support center is your guide to understanding how your Strava
-        connection powers your epic running quest. Whether you're just starting
-        your journey or need to manage your account, we've got you covered!
+        This support center helps you understand how your Strava
+        connection powers your summit tracking and peak exploration. Whether you're just getting
+        started or need to manage your account, we've got you covered.
       </p>
     </div>
 
@@ -20,29 +20,29 @@
       <h2>⚡ What Does Connecting Strava Mean?</h2>
       <div class="info-content">
         <p>
-          When you connect your Strava account to our running quest platform,
-          you're essentially:
+          When you connect your Strava account to our platform,
+          you enable the following features:
         </p>
         <ul class="quest-list">
           <li>
-            🗺️ <strong>Syncing Your Adventures:</strong> Your runs, hikes, and
-            activities automatically appear in your quest log
+            🗺️ <strong>Activity Syncing:</strong> Your runs, hikes, and
+            activities are automatically imported and tracked
           </li>
           <li>
-            🏆 <strong>Unlocking Peak Conquests:</strong> We detect when you
-            summit peaks and mountains, adding them to your collection
+            🏆 <strong>Summit Detection:</strong> We detect when you
+            summit peaks and mountains, building your personal summit collection
           </li>
           <li>
-            📈 <strong>Tracking Your Progress:</strong> Your distance,
-            elevation, and achievements contribute to group quests and personal
+            📈 <strong>Progress Tracking:</strong> Your distance,
+            elevation, and achievements contribute to challenges and personal
             goals
           </li>
           <li>
-            🎯 <strong>Joining Group Quests:</strong> Collaborate with other
-            adventurers on shared goals and challenges
+            🎯 <strong>Challenge Participation:</strong> Join and collaborate on
+            shared peak challenges with others
           </li>
           <li>
-            📊 <strong>Viewing Real-time Stats:</strong> See your year-to-date
+            📊 <strong>Statistics Dashboard:</strong> View your year-to-date
             progress, peak summits, and activity history
           </li>
         </ul>
@@ -57,7 +57,7 @@
 
     <!-- How we manage data -->
     <div class="info-card">
-      <h2>🛡️ How We Protect Your Quest Data</h2>
+      <h2>🛡️ How We Protect Your Data</h2>
       <div class="info-content">
         <p>
           Your data security is our top priority. Here's how we handle your
@@ -70,7 +70,7 @@
             <li>Your Strava athlete ID (public identifier)</li>
             <li>Activity data: runs, hikes, distance, elevation, dates</li>
             <li>Peak summit records and achievements</li>
-            <li>Group membership and goal progress</li>
+            <li>Challenge membership and goal progress</li>
             <li>Access tokens (encrypted) for syncing data</li>
           </ul>
         </div>
@@ -81,7 +81,7 @@
             <li>All data is encrypted and stored securely</li>
             <li>We never share your personal information with third parties</li>
             <li>Access tokens are refreshed automatically and stored safely</li>
-            <li>Your data is only used to enhance your quest experience</li>
+            <li>Your data is only used to power the features you see</li>
           </ul>
         </div>
 
@@ -109,28 +109,28 @@
       <h2>🗑️ Request Account Deletion</h2>
       <div class="deletion-content">
         <p>
-          Need to completely remove your data from our quest platform? No
-          worries, adventurer! You can request a full account deletion below.
+          Need to completely remove your data from our platform?
+          You can request a full account deletion below.
         </p>
 
         <div class="warning-box">
           <h3>⚠️ Important Information:</h3>
           <ul>
             <li>
-              <strong>Complete Data Wipe:</strong> This will permanently delete
-              all your activities, peak summits, and group memberships
+              <strong>Complete Data Removal:</strong> This will permanently delete
+              all your activities, peak summits, and challenge memberships
             </li>
             <li>
-              <strong>Group Quest Impact:</strong> You'll be removed from all
-              group quests immediately
+              <strong>Challenge Impact:</strong> You'll be removed from all
+              challenges immediately
             </li>
             <li>
               <strong>Reversible Process:</strong> You can always reconnect your
               Strava later and start fresh
             </li>
             <li>
-              <strong>Progress Recovery:</strong> While your historical data
-              will be gone, your actual Strava activities remain untouched
+              <strong>Strava Data Unaffected:</strong> Your actual Strava activities
+              remain untouched on Strava
             </li>
           </ul>
         </div>
@@ -163,8 +163,8 @@
           >
             {{
               isDeleting
-                ? "🔄 Deleting Quest Data..."
-                : "🗑️ Delete My Quest Account"
+                ? "🔄 Deleting Account Data..."
+                : "🗑️ Delete My Account"
             }}
           </button>
 
@@ -174,15 +174,14 @@
         </div>
 
         <div *ngIf="deleteSuccess" class="success-message">
-          <h3>✅ Quest Account Deleted Successfully!</h3>
+          <h3>✅ Account Deleted Successfully!</h3>
           <p>
             Your account and all associated data have been permanently removed
             from our platform. You have been automatically logged out and will
             be redirected to the login page shortly.
           </p>
           <p>
-            Safe travels on your future adventures, and remember - you can
-            always start a new quest by reconnecting your Strava account!
+            You can always reconnect your Strava account in the future to start tracking again.
           </p>
         </div>
       </div>
@@ -193,9 +192,8 @@
       <h2>🤝 Need More Help?</h2>
       <div class="help-content">
         <p>
-          Our quest masters are here to help! If you have questions, concerns,
-          or feedback about your running quest experience, don't hesitate to
-          reach out.
+          If you have questions, concerns,
+          or feedback, don't hesitate to reach out.
         </p>
 
         <div class="contact-methods">
@@ -203,7 +201,7 @@
             <h3>📧 Contact Support</h3>
             <p>
               Send us a message about any issues, bug reports, feature requests,
-              or general questions about your running quest experience.
+              or general questions.
             </p>
             <a href="mailto:craeyebytes&#64;gmail.com" class="contact-link"
               >craeyebytes&#64;gmail.com</a
@@ -218,18 +216,6 @@
           </p>
         </div>
       </div>
-    </div>
-
-    <!-- Back to app -->
-    <div class="navigation-card">
-      <h2>🎮 Ready to Continue Your Quest?</h2>
-      <p>
-        Head back to the main application to track your adventures and conquer
-        new peaks!
-      </p>
-      <button class="primary-button" (click)="navigateToHome()">
-        🏔️ Back to Quest Dashboard
-      </button>
     </div>
   </div>
 </div>

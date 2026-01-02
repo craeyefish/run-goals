@@ -30,17 +30,15 @@
   gap: 20px;
 }
 
-// Shared card styles
+// Shared card styles - matching home page styling
 .hero-card,
 .info-card,
 .deletion-card,
-.help-card,
-.navigation-card {
+.help-card {
   background: var(--background-light-shade);
-  border-radius: 8px;
+  border: 3px solid black;
   padding: 20px;
   margin-bottom: 20px;
-  border: 1px solid var(--background-secondary);
 
   h2 {
     color: var(--text-primary);
@@ -103,14 +101,13 @@
   margin: 20px 0;
   padding: 15px;
   background: var(--background-shade-color-1);
-  border-radius: 6px;
+  border: 2px solid var(--background-shade-color-2);
 }
 
 .note-box,
 .warning-box {
   margin: 15px 0;
   padding: 15px;
-  border-radius: 6px;
   border-left: 3px solid var(--accent-color);
 }
 
@@ -158,14 +155,13 @@
   .help-text {
     background: var(--background-shade-color-1);
     padding: 12px;
-    border-radius: 4px;
+    border: 2px solid var(--background-shade-color-2);
     font-size: 13px;
     margin-bottom: 15px;
 
     code {
       background: var(--background-shade-color-2);
       padding: 2px 4px;
-      border-radius: 3px;
       font-family: "Courier New", monospace;
       font-size: 12px;
     }
@@ -188,16 +184,14 @@
   width: 100%;
   max-width: 300px;
   padding: 12px 15px;
-  border: 2px solid var(--background-shade-color-2);
-  border-radius: 6px;
+  border: 2px solid black;
   font-size: 16px;
   background: var(--background-primary);
   color: var(--text-primary);
 
   &:focus {
     outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(32, 129, 195, 0.1);
+    border-color: var(--secondary-color);
   }
 
   &:disabled {
@@ -206,13 +200,12 @@
   }
 }
 
-// Buttons - simpler styling
+// Buttons - matching home page styling
 .delete-button {
   background: #dc3545;
   color: white;
-  border: none;
+  border: 2px solid black;
   padding: 10px 20px;
-  border-radius: 4px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -231,37 +224,34 @@
 
 .primary-button,
 .reconnect-button {
-  background: var(--background-secondary);
-  color: var(--text-secondary);
-  border: 1px solid var(--background-secondary);
+  background: var(--background-primary);
+  color: var(--text-primary);
+  border: 2px solid black;
   padding: 10px 20px;
-  border-radius: 4px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--background-primary);
-    color: var(--text-primary);
+    background: black;
+    color: white;
   }
 }
 
-// Messages - simpler styling
+// Messages
 .error-message {
   color: #dc3545;
   background: var(--background-shade-color-1);
   padding: 12px;
-  border-radius: 4px;
   margin-top: 10px;
-  border-left: 3px solid #dc3545;
+  border: 2px solid #dc3545;
   font-size: 14px;
 }
 
 .success-message {
   background: var(--background-shade-color-1);
-  border-left: 3px solid #28a745;
-  border-radius: 6px;
+  border: 2px solid #28a745;
   padding: 20px;
   text-align: center;
 
@@ -289,7 +279,7 @@
 .contact-item {
   background: var(--background-shade-color-1);
   padding: 15px;
-  border-radius: 6px;
+  border: 2px solid var(--background-shade-color-2);
   text-align: center;
 
   h3 {
@@ -309,15 +299,14 @@
   text-decoration: none;
   font-weight: 600;
   padding: 6px 12px;
-  border: 1px solid var(--background-secondary);
-  border-radius: 4px;
+  border: 2px solid black;
   display: inline-block;
   transition: all 0.2s ease;
   font-size: 13px;
 
   &:hover {
-    background: var(--background-secondary);
-    color: var(--text-secondary);
+    background: black;
+    color: white;
   }
 }
 
@@ -325,21 +314,12 @@
   margin-top: 20px;
   padding: 12px;
   background: var(--background-shade-color-1);
-  border-radius: 4px;
+  border: 2px solid var(--background-shade-color-2);
   text-align: center;
 
   p {
     margin: 0;
     font-size: 13px;
-  }
-}
-
-// Navigation card - simpler styling
-.navigation-card {
-  text-align: center;
-
-  h2 {
-    color: var(--text-primary);
   }
 }
 
@@ -364,8 +344,7 @@
   .hero-card,
   .info-card,
   .deletion-card,
-  .help-card,
-  .navigation-card {
+  .help-card {
     padding: 20px;
 
     h2 {
