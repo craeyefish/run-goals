@@ -1,16 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ChallengeService } from 'src/app/services/challenge.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ProfileService } from 'src/app/services/profile.service';
 import { ChallengePeakWithDetails, ChallengeParticipantWithUser, LeaderboardEntry } from 'src/app/models/challenge.model';
+import { DataTableComponent, TableColumn } from 'src/app/components/shared/data-table/data-table.component';
 
 @Component({
     selector: 'challenge-detail-page',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, DataTableComponent],
     templateUrl: './challenge-detail.component.html',
     styleUrls: ['./challenge-detail.component.scss'],
 })
@@ -48,6 +49,194 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
 
     activeTab: 'peaks' | 'participants' | 'activity' = 'participants';
 
+    // Table column definitions for Peaks tab
+    peakColumns: TableColumn<ChallengePeakWithDetails>[] = [
+        {
+            header: 'Peak Name',
+            field: 'name',
+            type: 'link',
+            sortable: true,
+            linkFn: (row) => `/explore?peakId=${row.peakId}`
+        },
+        {
+            header: 'Elevation',
+            field: 'elevation',
+            type: 'number',
+            sortable: true,
+            formatter: (value) => `${value}m`,
+            align: 'right'
+        },
+        {
+            header: 'Region',
+            field: 'region',
+            type: 'text',
+            sortable: true
+        },
+        {
+            header: 'Status',
+            field: 'isSummited',
+            type: 'badge',
+            badgeClass: (value) => value ? 'badge-success' : 'badge-default',
+            formatter: (value) => value ? '✓ Summited' : 'Pending'
+        }
+    ];
+
+    // Table column definitions for Participants tab (Collaborative)
+    collaborativeParticipantsColumns = computed<TableColumn<ChallengeParticipantWithUser>[]>(() => {
+        const challenge = this.challenge();
+        if (!challenge) return [];
+
+        return [
+            {
+                header: 'Member',
+                field: 'userName',
+                type: 'link',
+                sortable: true,
+                linkFn: (row) => `https://www.strava.com/athletes/${row.stravaAthleteId}`,
+                linkExternal: true,
+                formatter: (value, row) => value || row.stravaAthleteId.toString()
+            },
+            {
+                header: 'Contributed',
+                field: 'totalDistance',
+                type: 'text',
+                sortable: true,
+                formatter: (value, row) => {
+                    if (challenge.goalType === 'distance') return `${(row.totalDistance / 1000).toFixed(1)} km`;
+                    if (challenge.goalType === 'elevation') return `${Math.round(row.totalElevation)} m`;
+                    if (challenge.goalType === 'summit_count') return `${row.totalSummitCount} summits`;
+                    return `${row.peaksCompleted} peaks`;
+                },
+                align: 'right'
+            },
+            {
+                header: 'Joined',
+                field: 'joinedAt',
+                type: 'date'
+            }
+        ];
+    });
+
+    // Table column definitions for Leaderboard (Competitive)
+    leaderboardColumns = computed<TableColumn<LeaderboardEntry>[]>(() => {
+        const challenge = this.challenge();
+        if (!challenge) return [];
+
+        return [
+            {
+                header: 'Rank',
+                field: 'rank',
+                type: 'text',
+                width: '80px',
+                formatter: (value) => {
+                    if (value === 1) return '🥇';
+                    if (value === 2) return '🥈';
+                    if (value === 3) return '🥉';
+                    return `#${value}`;
+                }
+            },
+            {
+                header: 'Member',
+                field: 'userName',
+                type: 'link',
+                sortable: true,
+                linkFn: (row) => `https://www.strava.com/athletes/${row.stravaAthleteId}`,
+                linkExternal: true,
+                formatter: (value, row) => value || row.stravaAthleteId.toString()
+            },
+            {
+                header: 'Progress',
+                field: 'progress',
+                type: 'progress',
+                progressValue: (row) => row.progress,
+                progressLabel: (row) => {
+                    if (challenge.goalType === 'specific_summits') {
+                        return `${row.peaksCompleted}/${row.totalPeaks}`;
+                    }
+                    if (challenge.goalType === 'distance') {
+                        return `${(row.totalDistance / 1000).toFixed(1)}/${(challenge.targetValue! / 1000).toFixed(1)} km`;
+                    }
+                    if (challenge.goalType === 'elevation') {
+                        return `${Math.round(row.totalElevation)}/${challenge.targetValue} m`;
+                    }
+                    if (challenge.goalType === 'summit_count') {
+                        return `${row.totalSummitCount}/${challenge.targetSummitCount}`;
+                    }
+                    return `${row.progress}%`;
+                }
+            },
+            {
+                header: 'Status',
+                field: 'completedAt',
+                type: 'badge',
+                badgeClass: (value) => value ? 'badge-success' : 'badge-default',
+                formatter: (value) => value ? '✅ Complete' : 'In Progress'
+            }
+        ];
+    });
+
+    // Table column definitions for Activities tab
+    activityColumns = computed<TableColumn<any>[]>(() => {
+        const challenge = this.challenge();
+        if (!challenge) return [];
+
+        const columns: TableColumn<any>[] = [
+            {
+                header: 'Activity',
+                field: 'name',
+                type: 'link',
+                linkFn: (row) => `https://www.strava.com/activities/${row.strava_activity_id}`,
+                linkExternal: true
+            },
+            {
+                header: 'User',
+                field: 'userName',
+                type: 'link',
+                linkFn: (row) => `https://www.strava.com/athletes/${row.stravaAthleteId}`,
+                linkExternal: true,
+                formatter: (value, row) => value || row.stravaAthleteId.toString()
+            }
+        ];
+
+        // Add goal-specific columns
+        if (challenge.goalType === 'summit_count' || challenge.goalType === 'specific_summits') {
+            columns.push({
+                header: 'Peaks',
+                field: 'peakNames',
+                type: 'text'
+            });
+        }
+
+        if (challenge.goalType === 'distance' || challenge.goalType === 'summit_count' || challenge.goalType === 'specific_summits') {
+            columns.push({
+                header: 'Distance',
+                field: 'distance',
+                type: 'number',
+                formatter: (value) => `${(value / 1000).toFixed(1)} km`,
+                align: 'right'
+            });
+        }
+
+        if (challenge.goalType === 'elevation' || challenge.goalType === 'summit_count' || challenge.goalType === 'specific_summits') {
+            columns.push({
+                header: 'Elevation',
+                field: 'total_elevation_gain',
+                type: 'number',
+                formatter: (value) => `${Math.round(value)} m`,
+                align: 'right'
+            });
+        }
+
+        columns.push({
+            header: 'Date',
+            field: 'start_date',
+            type: 'date',
+            sortable: true
+        });
+
+        return columns;
+    });
+
     loadUserProfile() {
         this.profileService.getUserProfile().subscribe({
             next: (profile) => {
@@ -71,9 +260,15 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
             }
         });
 
-        // Update breadcrumbs when challenge loads
-        this.challengeService.selectedChallenge
-        // Watch for challenge changes - using effect would be cleaner but this works
+        // Watch for challenge to load and update breadcrumb
+        effect(() => {
+            const challenge = this.challengeService.selectedChallenge();
+            if (challenge) {
+                this.breadcrumbService.addItem({
+                    label: challenge.name,
+                });
+            }
+        });
     }
 
     loadLeaderboard(challengeId: number): void {

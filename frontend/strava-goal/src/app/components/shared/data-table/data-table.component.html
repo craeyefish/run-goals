@@ -1,0 +1,82 @@
+<div class="data-table-container">
+    <table class="data-table"
+           [class.striped]="config.striped"
+           [class.hoverable]="config.hoverable">
+        <thead>
+            <tr>
+                <th *ngFor="let column of columns"
+                    [style.width]="column.width"
+                    [style.text-align]="column.align || 'left'"
+                    [class.sortable]="column.sortable"
+                    (click)="onHeaderClick(column)">
+                    <span class="header-content">
+                        {{ column.header }}
+                        <span class="sort-icon" *ngIf="column.sortable">
+                            {{ getSortIcon(column) }}
+                        </span>
+                    </span>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let row of sortedData()"
+                [class.clickable]="config.rowClickable"
+                (click)="onRowClick(row)">
+                <td *ngFor="let column of columns"
+                    [style.text-align]="column.align || 'left'">
+
+                    <!-- Text/Number/Date columns -->
+                    <ng-container *ngIf="column.type === 'text' || column.type === 'number' || column.type === 'date'">
+                        {{ getCellContent(row, column) }}
+                    </ng-container>
+
+                    <!-- Link column -->
+                    <ng-container *ngIf="column.type === 'link'">
+                        <a *ngIf="!column.linkExternal; else externalLink"
+                           [routerLink]="getLink(row, column)"
+                           class="table-link">
+                            {{ getCellContent(row, column) }}
+                        </a>
+                        <ng-template #externalLink>
+                            <a [href]="getLink(row, column)"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="table-link external">
+                                {{ getCellContent(row, column) }}
+                            </a>
+                        </ng-template>
+                    </ng-container>
+
+                    <!-- Badge column -->
+                    <ng-container *ngIf="column.type === 'badge'">
+                        <span class="badge" [ngClass]="getBadgeClass(row, column)">
+                            {{ getCellContent(row, column) }}
+                        </span>
+                    </ng-container>
+
+                    <!-- Progress column -->
+                    <ng-container *ngIf="column.type === 'progress'">
+                        <div class="progress-cell">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill"
+                                     [style.width.%]="getProgressValue(row, column)">
+                                </div>
+                            </div>
+                            <span class="progress-label">{{ getProgressLabel(row, column) }}</span>
+                        </div>
+                    </ng-container>
+
+                    <!-- Custom column -->
+                    <ng-container *ngIf="column.type === 'custom'">
+                        <div [innerHTML]="getCellContent(row, column)"></div>
+                    </ng-container>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="sortedData().length === 0">
+        <p>{{ config.emptyMessage }}</p>
+    </div>
+</div>

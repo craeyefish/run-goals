@@ -2,21 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { GoalProgressComponent } from 'src/app/components/goal-progress/goal-progress.component';
-import { GoalDeleteConfirmationComponent } from 'src/app/components/groups/goal-delete-confirmation/goal-delete-confirmation.component';
-import { GoalsCreateFormComponent } from 'src/app/components/groups/goals-create-form/goals-create-form.component';
-import { GoalsEditFormComponent } from 'src/app/components/groups/goals-edit-form/goals-edit-form.component';
-import { GroupsGoalsTableComponent } from 'src/app/components/groups/groups-goals-table/groups-goals-table.component';
-import { GroupsMembersTableComponent } from 'src/app/components/groups/groups-members-table/groups-members-table.component';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
-import {
-  CreateGoalRequest,
-  Goal,
-  GroupService,
-  UpdateGoalRequest,
-} from 'src/app/services/groups.service';
+import { GroupService } from 'src/app/services/groups.service';
 import { ChallengeService } from 'src/app/services/challenge.service';
 import { Challenge, ChallengeWithProgress } from 'src/app/models/challenge.model';
+import { DataTableComponent, TableColumn } from 'src/app/components/shared/data-table/data-table.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -26,11 +16,7 @@ import { takeUntil } from 'rxjs/operators';
   imports: [
     CommonModule,
     FormsModule,
-    GoalsCreateFormComponent,
-    GoalsEditFormComponent,
-    GoalDeleteConfirmationComponent,
-    GroupsGoalsTableComponent,
-    GroupsMembersTableComponent,
+    DataTableComponent,
   ],
   templateUrl: './group-details.component.html',
   styleUrls: ['./group-details.component.scss'],
@@ -45,15 +31,6 @@ export class GroupsDetailsPageComponent implements OnInit {
     private router: Router
   ) { }
 
-  createGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
-    signal({ show: false, data: null });
-  editGoalFormSignal: WritableSignal<{ show: boolean; data: Goal | null }> =
-    signal({ show: false, data: null });
-  deleteConfirmationSignal: WritableSignal<{
-    show: boolean;
-    data: Goal | null;
-  }> = signal({ show: false, data: null });
-
   // Challenge-related signals
   groupChallenges = signal<Challenge[]>([]);
   availableChallenges = signal<Challenge[]>([]);
@@ -62,17 +39,71 @@ export class GroupsDetailsPageComponent implements OnInit {
   loadingChallenges = signal(false);
   challengeSearchQuery = '';
 
-  openCreateGoalForm = () =>
-    this.createGoalFormSignal.set({ show: true, data: null });
-  openEditGoalForm = (goal: Goal) => {
-    this.editGoalFormSignal.set({ show: true, data: goal });
-  };
-  openDeleteConfirmation = (goal: Goal) => {
-    this.deleteConfirmationSignal.set({ show: true, data: goal });
-  };
+  // Member stats
+  memberStats = signal<any[]>([]);
+  currentYear = new Date().getFullYear();
 
   selectedGroup = this.groupService.selectedGroup;
-  selectedGoal = this.groupService.selectedGoal;
+
+  // Table column definitions
+  challengeColumns: TableColumn[] = [
+    { header: 'Challenge Name', field: 'name', type: 'text', sortable: true },
+    {
+      header: 'Type',
+      field: 'goalType',
+      type: 'text',
+      formatter: (value) => this.getGoalTypeLabel(value)
+    },
+    {
+      header: 'Goal',
+      field: 'targetValue',
+      type: 'text',
+      formatter: (value, row) => this.formatChallengeGoal(row)
+    },
+    {
+      header: 'Mode',
+      field: 'competitionMode',
+      type: 'badge',
+      badgeClass: (value) => value === 'collaborative' ? 'badge-success' : 'badge-info',
+      formatter: (value) => value === 'collaborative' ? '🤝 Collaborative' : '🏅 Competitive'
+    },
+    { header: 'Region', field: 'region', type: 'text' },
+    { header: 'Deadline', field: 'deadline', type: 'date' },
+  ];
+
+  memberColumns: TableColumn[] = [
+    {
+      header: 'Member',
+      field: 'userName',
+      type: 'link',
+      sortable: true,
+      linkFn: (row) => `https://www.strava.com/athletes/${row.stravaAthleteId}`,
+      linkExternal: true
+    },
+    {
+      header: 'Distance (km)',
+      field: 'totalDistance',
+      type: 'number',
+      sortable: true,
+      formatter: (value) => (value / 1000).toFixed(1),
+      align: 'right'
+    },
+    {
+      header: 'Elevation (m)',
+      field: 'totalElevation',
+      type: 'number',
+      sortable: true,
+      formatter: (value) => Math.round(value).toLocaleString(),
+      align: 'right'
+    },
+    {
+      header: 'Summits',
+      field: 'totalSummits',
+      type: 'number',
+      sortable: true,
+      align: 'right'
+    },
+  ];
 
   ngOnInit() {
     const selectedGroup = this.groupService.selectedGroup();
@@ -90,12 +121,11 @@ export class GroupsDetailsPageComponent implements OnInit {
       label: selectedGroup.name,
     });
 
-    // Load group data if needed
-    this.groupService.loadGoals(selectedGroup.id);
-    this.groupService.getGroupMembers(selectedGroup.id);
-
     // Load group challenges
     this.loadGroupChallenges(selectedGroup.id);
+
+    // Load member stats
+    this.loadMemberStats(selectedGroup.id);
   }
 
   ngOnDestroy() {
@@ -209,85 +239,54 @@ export class GroupsDetailsPageComponent implements OnInit {
     this.router.navigate(['/challenges', challengeId]);
   }
 
-  onCreateGoalFormSubmit = (data: CreateGoalRequest) => {
-    const selectedGroup = this.groupService.selectedGroup();
-    if (!selectedGroup) {
-      console.error('No selectedGroup available');
-      return;
-    }
+  // ==================== Member Stats Methods ====================
 
-    const requestPayload: CreateGoalRequest = {
-      group_id: selectedGroup.id,
-      name: data.name,
-      description: data.description || '',
-      goal_type: data.goal_type,
-      target_summits: data.target_summits || [],
-      target_value: Number(data.target_value),
-      start_date: data.start_date,
-      end_date: data.end_date,
+  loadMemberStats(groupId: number): void {
+    this.groupService.getGroupMembers(groupId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        // For now, just set empty stats - will need backend endpoint for actual stats
+        // TODO: Replace with actual API call for year-to-date member stats
+        // Note: Member interface doesn't have strava_athlete_id, using user_id as placeholder
+        const stats = response.members.map(member => ({
+          userName: member.username || `User ${member.user_id}`,
+          stravaAthleteId: member.user_id, // Using user_id as placeholder until backend provides strava_athlete_id
+          totalDistance: 0,
+          totalElevation: 0,
+          totalSummits: 0
+        }));
+        this.memberStats.set(stats);
+      },
+      error: (err) => console.error('Error loading member stats:', err)
+    });
+  }
+
+  // ==================== Helper Methods ====================
+
+  getGoalTypeLabel(goalType: string): string {
+    const labels: Record<string, string> = {
+      'distance': 'Distance',
+      'elevation': 'Elevation Gain',
+      'summit_count': 'Summit Count',
+      'specific_summits': 'Specific Summits'
     };
+    return labels[goalType] || goalType;
+  }
 
-    this.groupService.createGoal(requestPayload).subscribe({
-      next: (response) => {
-        console.log('Goal Created:', response);
-        this.createGoalFormSignal.set({ show: false, data: null });
-
-        // Store the created goal ID and refresh
-        this.groupService.notifyGoalCreated(response.goal_id);
-        this.groupService.refreshGoals(selectedGroup.id);
-      },
-      error: (err) => {
-        console.error('Error creating group goal:', err);
-      },
-    });
-  };
-
-  onEditGoalFormSubmit = (updateData: UpdateGoalRequest) => {
-    const selectedGroup = this.selectedGroup();
-
-    if (!selectedGroup) {
-      console.error('No group selected');
-      return;
+  formatChallengeGoal(challenge: Challenge): string {
+    if (challenge.goalType === 'distance' && challenge.targetValue) {
+      return `${(challenge.targetValue / 1000).toFixed(0)} km`;
     }
-
-    this.groupService.updateGoal(updateData).subscribe({
-      next: (response) => {
-        console.log('Goal Updated:', updateData.id);
-        this.editGoalFormSignal.set({ show: false, data: null });
-
-        // Use the new refresh method
-        this.groupService.refreshGoals(selectedGroup.id);
-      },
-      error: (err) => {
-        console.error('Error updating goal:', err);
-      },
-    });
-  };
-
-  onDeleteGoalConfirm = () => {
-    const goalToDelete = this.deleteConfirmationSignal().data;
-    const selectedGroup = this.selectedGroup();
-
-    if (!goalToDelete || !selectedGroup) {
-      console.error('No goal or group selected for deletion');
-      return;
+    if (challenge.goalType === 'elevation' && challenge.targetValue) {
+      return `${challenge.targetValue.toLocaleString()} m`;
     }
-
-    this.groupService.deleteGoal(goalToDelete.id).subscribe({
-      next: () => {
-        console.log('Goal deleted:', goalToDelete.id);
-        this.deleteConfirmationSignal.set({ show: false, data: null });
-        this.groupService.notifyGoalDeleted(goalToDelete.id);
-      },
-      error: (err) => {
-        console.error('Error deleting goal:', err);
-        // You could show an error message here
-        alert('Failed to delete goal. Please try again.');
-      },
-    });
-  };
-
-  onDeleteGoalCancel = () => {
-    this.deleteConfirmationSignal.set({ show: false, data: null });
-  };
+    if (challenge.goalType === 'summit_count' && challenge.targetSummitCount) {
+      return `${challenge.targetSummitCount} summits`;
+    }
+    if (challenge.goalType === 'specific_summits') {
+      return 'Specific Peaks';
+    }
+    return '-';
+  }
 }

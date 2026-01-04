@@ -14,10 +14,7 @@ import { PeakSummitService } from '../../services/peak-summit.service';
 import { PeakService, Peak } from '../../services/peak.service';
 import { PersonalGoalsService, PersonalYearlyGoal } from '../../services/personal-goals.service';
 import { SummitFavouritesService } from '../../services/summit-favourites.service';
-import { ChallengeService } from '../../services/challenge.service';
-import { ChallengeWithProgress } from '../../models/challenge.model';
 import { PeakPickerComponent, SelectedPeak } from '../../components/peak-picker/peak-picker.component';
-import { ChallengeCardComponent } from '../../components/challenges/challenge-card/challenge-card.component';
 import { YearlyGoalsComponent } from '../../components/yearly-goals/yearly-goals.component';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
@@ -42,7 +39,7 @@ interface RecentSummit {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, PeakPickerComponent, ChallengeCardComponent, YearlyGoalsComponent],
+  imports: [CommonModule, FormsModule, PeakPickerComponent, YearlyGoalsComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -71,10 +68,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   completedFavourites: any[] = [];
   incompleteFavourites: any[] = [];
   wishlistTab: 'incomplete' | 'complete' = 'incomplete';
-
-  // Active challenges
-  activeChallenges: ChallengeWithProgress[] = [];
-  showAllChallenges = false;
+  wishlistCollapsed = true; // Start collapsed by default
 
   // Recent summits
   recentSummits: RecentSummit[] = [];
@@ -102,11 +96,16 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     private peakService: PeakService,
     private personalGoalsService: PersonalGoalsService,
     private summitFavouritesService: SummitFavouritesService,
-    private challengeService: ChallengeService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
+    // Load wishlist collapse preference from localStorage
+    const savedCollapsed = localStorage.getItem('wishlistCollapsed');
+    if (savedCollapsed !== null) {
+      this.wishlistCollapsed = savedCollapsed === 'true';
+    }
+
     this.loadDashboardData();
   }
 
@@ -150,18 +149,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     // Load active challenges
-    this.challengeService.loadUserChallenges();
-    this.challengeService.getUserChallenges().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        const allChallenges = response.challenges || [];
-        this.activeChallenges = allChallenges
-          .filter((c: ChallengeWithProgress) => !c.isCompleted)
-          .slice(0, 3);
-      },
-      error: (err) => console.error('Error loading challenges:', err)
-    });
+    // Removed active challenges section from home page
 
     combineLatest([
       this.activityService.activities$.pipe(
@@ -459,20 +447,15 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // Navigation methods
-  navigateToChallenges(): void {
-    this.router.navigate(['/challenges']);
-  }
-
-  navigateToChallenge(challengeId: number): void {
-    this.router.navigate(['/challenges', challengeId]);
-  }
-
   viewWishlistOnMap(): void {
     this.router.navigate(['/explore'], { queryParams: { filter: 'wishlist' } });
   }
 
-  viewChallengesOnMap(): void {
-    this.router.navigate(['/explore'], { queryParams: { tab: 'challenges' } });
+  // Wishlist collapse/expand
+  toggleWishlist(): void {
+    this.wishlistCollapsed = !this.wishlistCollapsed;
+    // Optionally save preference to localStorage
+    localStorage.setItem('wishlistCollapsed', String(this.wishlistCollapsed));
   }
 
   createDistanceChart(): void {

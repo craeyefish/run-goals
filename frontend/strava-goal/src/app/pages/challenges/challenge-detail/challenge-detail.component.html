@@ -133,37 +133,12 @@
   <div class="tab-content">
     <!-- Peaks Tab (only for specific_summits goal type) -->
     <div class="peaks-tab" *ngIf="activeTab === 'peaks' && challenge()!.goalType === 'specific_summits'">
-      <!-- Remaining Peaks -->
-      <div class="peaks-section" *ngIf="remainingPeaks.length > 0">
-        <h3>🎯 To Summit ({{ remainingPeaks.length }})</h3>
-        <div class="peaks-grid">
-          <div class="peak-card" *ngFor="let peak of remainingPeaks">
-            <div class="peak-icon">⛰️</div>
-            <div class="peak-details">
-              <span class="peak-name">{{ peak.name }}</span>
-              <span class="peak-alt" *ngIf="peak.altName">({{ peak.altName }})</span>
-              <span class="peak-elevation">{{ peak.elevation }}m</span>
-              <span class="peak-region" *ngIf="peak.region">{{ peak.region }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Completed Peaks -->
-      <div class="peaks-section completed" *ngIf="completedPeaks.length > 0">
-        <h3>✅ Summited ({{ completedPeaks.length }})</h3>
-        <div class="peaks-grid">
-          <div class="peak-card summited" *ngFor="let peak of completedPeaks">
-            <div class="peak-icon">✅</div>
-            <div class="peak-details">
-              <span class="peak-name">{{ peak.name }}</span>
-              <span class="peak-alt" *ngIf="peak.altName">({{ peak.altName }})</span>
-              <span class="peak-elevation">{{ peak.elevation }}m</span>
-              <span class="peak-region" *ngIf="peak.region">{{ peak.region }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-data-table
+        *ngIf="peaks().length > 0"
+        [columns]="peakColumns"
+        [data]="peaks()"
+        [config]="{ emptyMessage: 'No peaks in this challenge yet.' }"
+      ></app-data-table>
 
       <div class="empty-state" *ngIf="peaks().length === 0">
         <p>No peaks in this challenge yet.</p>
@@ -173,152 +148,42 @@
     <!-- Participants Tab -->
     <div class="participants-tab" *ngIf="activeTab === 'participants'">
       <!-- Leaderboard for Competitive Challenges -->
-      <div class="leaderboard-section" *ngIf="challenge()!.competitionMode === 'competitive' && leaderboard().length > 0">
-        <h3>🏆 Leaderboard</h3>
-        <div class="leaderboard">
-          <div 
-            class="leaderboard-row" 
-            *ngFor="let entry of leaderboard()"
-            [class.top3]="entry.rank <= 3"
-            [class.completed]="entry.completedAt">
-            <span class="rank">
-              <ng-container *ngIf="entry.rank === 1">🥇</ng-container>
-              <ng-container *ngIf="entry.rank === 2">🥈</ng-container>
-              <ng-container *ngIf="entry.rank === 3">🥉</ng-container>
-              <ng-container *ngIf="entry.rank > 3">#{{ entry.rank }}</ng-container>
-            </span>
-            
-            <div class="participant-info">
-              <a
-                [href]="'https://www.strava.com/athletes/' + entry.stravaAthleteId"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="name-link">
-                {{ entry.userName || entry.stravaAthleteId }}
-              </a>
-            </div>
+      <div class="leaderboard-section" *ngIf="challenge()!.competitionMode === 'competitive'">
+        <app-data-table
+          *ngIf="leaderboard().length > 0"
+          [columns]="leaderboardColumns()"
+          [data]="leaderboard()"
+          [config]="{ emptyMessage: 'No participants yet. Be the first to join!' }"
+        ></app-data-table>
 
-            <div class="participant-progress">
-              <span class="peaks-count">
-                <ng-container *ngIf="challenge()!.goalType === 'specific_summits'">
-                  {{ entry.peaksCompleted }}/{{ entry.totalPeaks }} peaks
-                </ng-container>
-                <ng-container *ngIf="challenge()!.goalType === 'distance'">
-                  {{ (entry.totalDistance / 1000) | number:'1.1-1' }}/{{ (challenge()!.targetValue! / 1000) | number:'1.1-1' }} km
-                </ng-container>
-                <ng-container *ngIf="challenge()!.goalType === 'elevation'">
-                  {{ entry.totalElevation | number }}/{{ challenge()!.targetValue! | number }} m
-                </ng-container>
-                <ng-container *ngIf="challenge()!.goalType === 'summit_count'">
-                  {{ entry.totalSummitCount }}/{{ challenge()!.targetSummitCount! }} summits
-                </ng-container>
-              </span>
-              <div class="mini-progress">
-                <div
-                  class="mini-fill"
-                  [style.width.%]="entry.progress">
-                </div>
-              </div>
-            </div>
-
-            <span class="completed-badge" *ngIf="entry.completedAt">✅</span>
-          </div>
+        <div class="empty-state" *ngIf="leaderboard().length === 0">
+          <p>No participants yet. Be the first to join!</p>
         </div>
       </div>
 
       <!-- Regular Participants List for Collaborative Challenges -->
-      <div class="leaderboard" *ngIf="challenge()!.competitionMode === 'collaborative' && sortedParticipants.length > 0">
-        <div 
-          class="participant-row" 
-          *ngFor="let participant of sortedParticipants; let i = index">
-          <div class="participant-info">
-            <a
-              [href]="'https://www.strava.com/athletes/' + participant.stravaAthleteId"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="name-link">
-              {{ participant.userName || participant.stravaAthleteId }}
-            </a>
-          </div>
+      <div class="collaborative-section" *ngIf="challenge()!.competitionMode === 'collaborative'">
+        <app-data-table
+          *ngIf="participants().length > 0"
+          [columns]="collaborativeParticipantsColumns()"
+          [data]="participants()"
+          [config]="{ emptyMessage: 'No participants yet. Be the first to join!' }"
+        ></app-data-table>
 
-          <div class="participant-contribution">
-            <span class="contribution-text">
-              <ng-container *ngIf="challenge()!.goalType === 'specific_summits'">
-                {{ participant.peaksCompleted }}/{{ participant.totalPeaks }} peaks
-              </ng-container>
-              <ng-container *ngIf="challenge()!.goalType === 'distance'">
-                {{ (participant.totalDistance / 1000) | number:'1.1-1' }} km
-              </ng-container>
-              <ng-container *ngIf="challenge()!.goalType === 'elevation'">
-                {{ participant.totalElevation | number }} m
-              </ng-container>
-              <ng-container *ngIf="challenge()!.goalType === 'summit_count'">
-                {{ participant.totalSummitCount }} summits
-              </ng-container>
-            </span>
-          </div>
-
-          <span class="completed-badge" *ngIf="participant.completedAt">✅</span>
+        <div class="empty-state" *ngIf="participants().length === 0">
+          <p>No participants yet. Be the first to join!</p>
         </div>
-      </div>
-
-      <div class="empty-state" *ngIf="participants().length === 0 && leaderboard().length === 0">
-        <p>No participants yet. Be the first to join!</p>
       </div>
     </div>
 
     <!-- Activity Tab -->
     <div class="activity-tab" *ngIf="activeTab === 'activity'">
-      <div class="activity-feed" *ngIf="activities().length > 0">
-        <div class="activity-item" *ngFor="let activity of activities()">
-          <div class="activity-icon">🏃</div>
-          <div class="activity-content">
-            <div class="activity-header">
-              <div class="activity-title-row">
-                <a
-                  [href]="'https://www.strava.com/activities/' + activity.strava_activity_id"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="activity-name">
-                  {{ activity.name }}
-                </a>
-                <span class="activity-user">
-                  by
-                  <a
-                    [href]="'https://www.strava.com/athletes/' + activity.stravaAthleteId"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="user-link">
-                    {{ activity.userName || activity.stravaAthleteId }}
-                  </a>
-                </span>
-              </div>
-              <span class="activity-date">{{ formatDate(activity.start_date) }}</span>
-            </div>
-            <div class="activity-details">
-              <!-- Peak names for summit challenges -->
-              <div class="activity-peaks" *ngIf="activity.peakNames">
-                <span class="peak-icon">🏔️</span>
-                <span class="peak-list">{{ activity.peakNames }}</span>
-              </div>
-              <!-- Stats based on goal type -->
-              <div class="activity-stats">
-                <span *ngIf="challenge()!.goalType === 'distance'">
-                  📏 {{ (activity.distance / 1000) | number:'1.1-1' }} km
-                </span>
-                <span *ngIf="challenge()!.goalType === 'elevation'">
-                  ⛰️ {{ activity.total_elevation_gain | number:'1.0-0' }} m
-                </span>
-                <span *ngIf="challenge()!.goalType === 'summit_count' || challenge()!.goalType === 'specific_summits'">
-                  📏 {{ (activity.distance / 1000) | number:'1.1-1' }} km
-                  •
-                  ⛰️ {{ activity.total_elevation_gain | number:'1.0-0' }} m
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-data-table
+        *ngIf="activities().length > 0"
+        [columns]="activityColumns()"
+        [data]="activities()"
+        [config]="{ emptyMessage: 'No activities yet. Start your challenge!' }"
+      ></app-data-table>
 
       <div class="empty-state" *ngIf="activities().length === 0">
         <p>No activities yet. Start your challenge!</p>

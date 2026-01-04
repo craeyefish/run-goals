@@ -47,13 +47,16 @@
     ></app-yearly-goals>
 
     <!-- Summit Wishlist (permanent, year-independent) -->
-    <div class="summit-wishlist-section">
-      <div class="summit-header">
-        <h3>📋 Summit Wishlist</h3>
-        <div class="summit-progress">
-          <span>{{ completedFavourites.length }}/{{ favouritePeaks.length }} completed</span>
+    <div class="summit-wishlist-section" [class.collapsed]="wishlistCollapsed">
+      <div class="summit-header" (click)="toggleWishlist()">
+        <div class="header-left">
+          <span class="collapse-icon">{{ wishlistCollapsed ? '▶' : '▼' }}</span>
+          <h3>📋 Summit Wishlist</h3>
+          <div class="summit-progress">
+            <span>{{ completedFavourites.length }}/{{ favouritePeaks.length }} completed</span>
+          </div>
         </div>
-        <div class="header-actions">
+        <div class="header-actions" (click)="$event.stopPropagation()">
           <button class="add-summit-btn" (click)="viewWishlistOnMap()">
             🗺️ View on Map
           </button>
@@ -63,97 +66,68 @@
         </div>
       </div>
 
-      <!-- Tabs for Complete/Incomplete -->
-      <div class="wishlist-tabs">
-        <button
-          class="tab"
-          [class.active]="wishlistTab === 'incomplete'"
-          (click)="wishlistTab = 'incomplete'"
-        >
-          To Do ({{ incompleteFavourites.length }})
-        </button>
-        <button
-          class="tab"
-          [class.active]="wishlistTab === 'complete'"
-          (click)="wishlistTab = 'complete'"
-        >
-          Complete ({{ completedFavourites.length }})
-        </button>
-      </div>
-
-      <!-- Incomplete Peaks -->
-      <div class="summit-list" *ngIf="wishlistTab === 'incomplete'">
-        <div
-          class="summit-item"
-          *ngFor="let summit of incompleteFavourites"
-        >
-          <div class="summit-info">
-            <span class="summit-name">{{ summit.name }}</span>
-            <span class="summit-elevation">{{ summit.elevation }}m</span>
-          </div>
-          <div class="summit-actions">
-            <span class="summit-status">Pending</span>
-            <button class="remove-btn" (click)="removeFavourite(summit.id)" title="Remove">×</button>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="incompleteFavourites.length === 0">
-          <p *ngIf="favouritePeaks.length > 0">All favourites completed! 🎉</p>
-          <p *ngIf="favouritePeaks.length === 0">Add your first peak target to get started! 🏔️</p>
-        </div>
-      </div>
-
-      <!-- Completed Peaks -->
-      <div class="summit-list" *ngIf="wishlistTab === 'complete'">
-        <div
-          class="summit-item completed"
-          *ngFor="let summit of completedFavourites"
-        >
-          <div class="summit-info">
-            <span class="summit-name">{{ summit.name }}</span>
-            <span class="summit-date" *ngIf="summit.summitedAt">
-              Summited {{ summit.summitedAt | date:'MMM d, yyyy' }}
-            </span>
-          </div>
-          <div class="summit-actions">
-            <span class="summit-status">✓ Done</span>
-            <button class="remove-btn" (click)="removeFavourite(summit.id)" title="Remove">×</button>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="completedFavourites.length === 0">
-          <p>No completed favourites yet. Keep climbing! 🏔️</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Challenges Section -->
-    <div class="active-challenges-section">
-      <div class="section-header">
-        <h3>🏆 Active Challenges</h3>
-        <div class="header-actions">
-          <button class="add-summit-btn" (click)="viewChallengesOnMap()">
-            🗺️ View on Map
+      <!-- Collapsible Content -->
+      <div class="wishlist-content" *ngIf="!wishlistCollapsed">
+        <!-- Tabs for Complete/Incomplete -->
+        <div class="wishlist-tabs">
+          <button
+            class="tab"
+            [class.active]="wishlistTab === 'incomplete'"
+            (click)="wishlistTab = 'incomplete'"
+          >
+            To Do ({{ incompleteFavourites.length }})
           </button>
-          <button class="view-all-btn" (click)="navigateToChallenges()">
-            View All Challenges →
+          <button
+            class="tab"
+            [class.active]="wishlistTab === 'complete'"
+            (click)="wishlistTab = 'complete'"
+          >
+            Complete ({{ completedFavourites.length }})
           </button>
         </div>
-      </div>
 
-      <div class="challenges-grid" *ngIf="activeChallenges.length > 0">
-        <div 
-          *ngFor="let challenge of activeChallenges" 
-          class="challenge-wrapper"
-          (click)="navigateToChallenge(challenge.id)"
-        >
-          <challenge-card [challenge]="challenge"></challenge-card>
+        <!-- Incomplete Peaks -->
+        <div class="summit-list" *ngIf="wishlistTab === 'incomplete'">
+          <div
+            class="summit-item"
+            *ngFor="let summit of incompleteFavourites"
+          >
+            <div class="summit-info">
+              <span class="summit-name">{{ summit.name }}</span>
+              <span class="summit-elevation">{{ summit.elevation }}m</span>
+            </div>
+            <div class="summit-actions">
+              <span class="summit-status">Pending</span>
+              <button class="remove-btn" (click)="removeFavourite(summit.id)" title="Remove">×</button>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="incompleteFavourites.length === 0">
+            <p *ngIf="favouritePeaks.length > 0">All favourites completed! 🎉</p>
+            <p *ngIf="favouritePeaks.length === 0">Add your first peak target to get started! 🏔️</p>
+          </div>
         </div>
-      </div>
 
-      <div class="no-challenges" *ngIf="activeChallenges.length === 0">
-        <p>You haven't joined any challenges yet.</p>
-        <button class="primary-btn" (click)="navigateToChallenges()">
-          Discover Challenges
-        </button>
+        <!-- Completed Peaks -->
+        <div class="summit-list" *ngIf="wishlistTab === 'complete'">
+          <div
+            class="summit-item completed"
+            *ngFor="let summit of completedFavourites"
+          >
+            <div class="summit-info">
+              <span class="summit-name">{{ summit.name }}</span>
+              <span class="summit-date" *ngIf="summit.summitedAt">
+                Summited {{ summit.summitedAt | date:'MMM d, yyyy' }}
+              </span>
+            </div>
+            <div class="summit-actions">
+              <span class="summit-status">✓ Done</span>
+              <button class="remove-btn" (click)="removeFavourite(summit.id)" title="Remove">×</button>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="completedFavourites.length === 0">
+            <p>No completed favourites yet. Keep climbing! 🏔️</p>
+          </div>
+        </div>
       </div>
     </div>
   </ng-container>

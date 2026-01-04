@@ -1,28 +1,4 @@
 <div class="group-details-outer-container">
-  <div class="goals-outer-container">
-    <div class="goals-header-container">
-      <div class="button-container">
-        <div class="text-container">
-          <span>{{ selectedGroup()?.name }} Goals</span>
-        </div>
-      </div>
-      <div class="button-container">
-        <div class="text-container">
-          <span>new goal</span>
-        </div>
-        <button class="add-goal-button" (click)="openCreateGoalForm()">
-          +
-        </button>
-      </div>
-    </div>
-    <div class="goals-table-container">
-      <groups-goals-table
-        [onEditGoalClick]="openEditGoalForm"
-        [onDeleteGoalClick]="openDeleteConfirmation"
-      ></groups-goals-table>
-    </div>
-  </div>
-
   <!-- Group Challenges Section -->
   <div class="challenges-outer-container">
     <div class="challenges-header-container">
@@ -33,101 +9,72 @@
       </div>
       <div class="button-container">
         <div class="text-container">
-          <span>adopt challenge</span>
+          <span>add challenge to group</span>
         </div>
         <button class="add-goal-button" (click)="openAdoptChallengeModal()">
           +
         </button>
       </div>
     </div>
-    
-    <div class="challenges-list" *ngIf="groupChallenges().length > 0">
-      <div 
-        *ngFor="let challenge of groupChallenges()" 
-        class="challenge-card"
-        (click)="navigateToChallenge(challenge.id)"
-      >
-        <div class="challenge-info">
-          <div class="challenge-name">{{ challenge.name }}</div>
-          <div class="challenge-meta">
-            <span *ngIf="challenge.region">{{ challenge.region }}</span>
-            <span class="mode-badge" [class]="challenge.competitionMode">
-              {{ challenge.competitionMode === 'collaborative' ? '🤝' : '🏅' }}
-            </span>
-          </div>
-        </div>
-        <button 
-          class="remove-btn" 
-          (click)="removeGroupChallenge(challenge.id, $event)"
-          title="Remove from group"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-    
+
+    <app-data-table
+      *ngIf="groupChallenges().length > 0"
+      [columns]="challengeColumns"
+      [data]="groupChallenges()"
+      [config]="{ rowClickable: true, emptyMessage: 'No challenges in this group yet.' }"
+      (rowClick)="navigateToChallenge($event.id)"
+    ></app-data-table>
+
     <div class="empty-challenges" *ngIf="groupChallenges().length === 0">
       <p>No challenges adopted yet.</p>
       <button class="adopt-btn" (click)="openAdoptChallengeModal()">
-        Adopt a Challenge
+        Add Challenge to Group
       </button>
     </div>
   </div>
 
+  <!-- Members Section -->
   <div class="members-outer-container">
     <div class="members-header-container">
-      <span>members</span>
+      <span>📊 Members ({{ currentYear }} Stats)</span>
     </div>
-    <div class="members-table-container">
-      <groups-members-table></groups-members-table>
+    <app-data-table
+      *ngIf="memberStats().length > 0"
+      [columns]="memberColumns"
+      [data]="memberStats()"
+      [config]="{ emptyMessage: 'No member stats available.' }"
+    ></app-data-table>
+
+    <div class="empty-state" *ngIf="memberStats().length === 0">
+      <p>No member activity data for this year.</p>
     </div>
   </div>
 </div>
-
-<goals-create-form
-  *ngIf="createGoalFormSignal().show && selectedGroup()"
-  [groupId]="selectedGroup()?.id || 0"
-  (onSubmit)="onCreateGoalFormSubmit($event)"
-  (onCancel)="createGoalFormSignal.set({ show: false, data: null })"
->
-</goals-create-form>
-
-<goals-edit-form
-  *ngIf="editGoalFormSignal().show && editGoalFormSignal().data"
-  [goal]="editGoalFormSignal().data!"
-  (onSubmit)="onEditGoalFormSubmit($event)"
-  (onCancel)="editGoalFormSignal.set({ show: false, data: null })"
->
-</goals-edit-form>
-
-<goal-delete-confirmation
-  *ngIf="deleteConfirmationSignal().show && deleteConfirmationSignal().data"
-  [goal]="deleteConfirmationSignal().data!"
-  (onConfirm)="onDeleteGoalConfirm()"
-  (onCancel)="onDeleteGoalCancel()"
->
-</goal-delete-confirmation>
 
 <!-- Adopt Challenge Modal -->
 <div *ngIf="showAdoptChallengeModal()" class="modal-overlay" (click)="closeAdoptChallengeModal()">
   <div class="modal-content adopt-challenge-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>Adopt a Challenge</h3>
+      <h3>Add Challenge to Group</h3>
       <button class="close-btn" (click)="closeAdoptChallengeModal()">×</button>
     </div>
-    
+
     <div class="modal-body">
+      <p class="modal-description">
+        Adding a challenge to your group makes it visible to all members. Members can then choose to join the challenge.
+      </p>
+
       <div class="search-box">
-        <input 
-          type="text" 
-          placeholder="Search challenges..." 
+        <input
+          type="text"
+          placeholder="Search challenges..."
           [(ngModel)]="challengeSearchQuery"
           (input)="filterAvailableChallenges()"
         />
       </div>
-      
+
       <div class="challenges-list-modal" *ngIf="!loadingChallenges()">
-        <div 
+        <div
           *ngFor="let challenge of filteredAvailableChallenges()"
           class="challenge-option"
           [class.already-adopted]="isChallengeAdopted(challenge.id)"
@@ -140,15 +87,15 @@
               <span *ngIf="challenge.difficulty">• {{ challenge.difficulty }}</span>
             </div>
           </div>
-          <span *ngIf="isChallengeAdopted(challenge.id)" class="adopted-badge">Already adopted</span>
+          <span *ngIf="isChallengeAdopted(challenge.id)" class="adopted-badge">Already added</span>
           <span *ngIf="!isChallengeAdopted(challenge.id)" class="adopt-icon">+</span>
         </div>
-        
+
         <div *ngIf="filteredAvailableChallenges().length === 0" class="no-challenges">
           <p>No challenges found matching your search.</p>
         </div>
       </div>
-      
+
       <div *ngIf="loadingChallenges()" class="loading">
         Loading challenges...
       </div>
