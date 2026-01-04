@@ -1,10 +1,13 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"log"
 	"run-goals/daos"
 	"run-goals/models"
+	"strings"
 	"time"
 )
 
@@ -36,7 +39,9 @@ type ChallengeServiceInterface interface {
 
 	// Participation
 	JoinChallenge(challengeID int64, userID int64) error
+	JoinChallengeByCode(joinCode string, userID int64) (*models.Challenge, error)
 	LeaveChallenge(challengeID int64, userID int64) error
+	LockChallenge(challengeID int64, userID int64) error
 	GetParticipants(challengeID int64) ([]models.ChallengeParticipantWithUser, error)
 	GetLeaderboard(challengeID int64) ([]models.LeaderboardEntry, error)
 
@@ -44,6 +49,10 @@ type ChallengeServiceInterface interface {
 	RecordSummit(challengeID int64, userID int64, peakID int64, activityID *int64, summitedAt time.Time) error
 	GetSummitLog(challengeID int64, userID *int64) ([]models.ChallengeSummitLogWithDetails, error)
 	RefreshParticipantProgress(challengeID int64, userID int64) error
+	RefreshAllChallengeProgress() error
+
+	// Activities
+	GetChallengeActivities(challengeID int64) ([]models.ActivityWithUser, error)
 
 	// Group challenges
 	AddGroupToChallenge(challengeID int64, groupID int64, deadlineOverride *time.Time) error
@@ -54,19 +63,31 @@ type ChallengeServiceInterface interface {
 type ChallengeService struct {
 	l            *log.Logger
 	challengeDao *daos.ChallengeDao
+	activityDao  *daos.ActivityDao
 }
 
 func NewChallengeService(
 	l *log.Logger,
 	challengeDao *daos.ChallengeDao,
+	activityDao *daos.ActivityDao,
 ) *ChallengeService {
 	return &ChallengeService{
 		l:            l,
 		challengeDao: challengeDao,
+		activityDao:  activityDao,
 	}
 }
 
 // ==================== Challenge CRUD ====================
+
+// generateJoinCode creates a 6-character alphanumeric join code
+func (s *ChallengeService) generateJoinCode() (string, error) {
+	bytes := make([]byte, 3) // 3 bytes = 6 hex chars
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return strings.ToUpper(hex.EncodeToString(bytes)), nil
+}
 
 func (s *ChallengeService) CreateChallenge(userID int64, challenge models.Challenge, peakIDs []int64) (*models.Challenge, error) {
 	// Set creator
@@ -78,11 +99,24 @@ func (s *ChallengeService) CreateChallenge(userID int64, challenge models.Challe
 	if challenge.ChallengeType == "" {
 		challenge.ChallengeType = models.ChallengeTypeCustom
 	}
+	if challenge.GoalType == "" {
+		challenge.GoalType = models.GoalTypeSpecificSummits
+	}
 	if challenge.CompetitionMode == "" {
 		challenge.CompetitionMode = models.CompetitionModeCollaborative
 	}
 	if challenge.Visibility == "" {
 		challenge.Visibility = models.VisibilityPrivate
+	}
+
+	// Generate join code if not provided
+	if challenge.JoinCode == "" {
+		joinCode, err := s.generateJoinCode()
+		if err != nil {
+			s.l.Printf("Error generating join code: %v", err)
+			return nil, err
+		}
+		challenge.JoinCode = joinCode
 	}
 
 	// Create challenge
@@ -107,6 +141,12 @@ func (s *ChallengeService) CreateChallenge(userID int64, challenge models.Challe
 	if err != nil {
 		s.l.Printf("Error auto-joining creator to challenge: %v", err)
 		// Don't fail the challenge creation
+	} else {
+		// Calculate initial progress for the creator
+		err = s.RefreshParticipantProgress(*id, userID)
+		if err != nil {
+			s.l.Printf("Warning: Failed to refresh creator's progress: %v", err)
+		}
 	}
 
 	return &challenge, nil
@@ -126,21 +166,44 @@ func (s *ChallengeService) GetChallenge(id int64, userID *int64) (*models.Challe
 		Challenge: *challenge,
 	}
 
-	// Get peak count
-	peaks, err := s.challengeDao.GetChallengePeaks(id)
-	if err == nil {
-		result.TotalPeaks = len(peaks)
-	}
-
-	// If user ID provided, get their progress
+	// If user ID provided, check if they're a participant
 	if userID != nil {
 		isParticipant, _ := s.challengeDao.IsUserParticipant(id, *userID)
 		result.IsJoined = isParticipant
+	}
 
-		if isParticipant {
-			summitLog, _ := s.challengeDao.GetChallengeSummitLog(id, userID)
-			result.CompletedPeaks = len(summitLog)
-			result.IsCompleted = result.CompletedPeaks >= result.TotalPeaks && result.TotalPeaks > 0
+	// For collaborative challenges, show team progress (sum of all participants)
+	// For competitive challenges, show individual progress
+	if challenge.CompetitionMode == models.CompetitionModeCollaborative {
+		// Get all participants and sum their progress
+		participants, err := s.challengeDao.GetChallengeParticipants(id)
+		if err == nil {
+			for _, p := range participants {
+				result.CompletedPeaks += p.PeaksCompleted
+				result.CurrentDistance += p.TotalDistance
+				result.CurrentElevation += p.TotalElevation
+				result.CurrentSummitCount += p.TotalSummitCount
+			}
+		}
+	} else {
+		// Competitive mode: show individual progress
+		if userID != nil && result.IsJoined {
+			participant, err := s.challengeDao.GetChallengeParticipantByUserID(id, *userID)
+			if err == nil && participant != nil {
+				result.CompletedPeaks = participant.PeaksCompleted
+				result.CurrentDistance = participant.TotalDistance
+				result.CurrentElevation = participant.TotalElevation
+				result.CurrentSummitCount = participant.TotalSummitCount
+				result.IsCompleted = participant.CompletedAt != nil
+			}
+		}
+	}
+
+	// For specific_summits, get peak count (target)
+	if challenge.GoalType == models.GoalTypeSpecificSummits {
+		peaks, err := s.challengeDao.GetChallengePeaks(id)
+		if err == nil {
+			result.TotalPeaks = len(peaks)
 		}
 	}
 
@@ -264,7 +327,55 @@ func (s *ChallengeService) JoinChallenge(challengeID int64, userID int64) error 
 		return ErrAlreadyParticipant
 	}
 
-	return s.challengeDao.JoinChallenge(challengeID, userID)
+	// Join the challenge
+	err = s.challengeDao.JoinChallenge(challengeID, userID)
+	if err != nil {
+		return err
+	}
+
+	// Calculate initial progress
+	err = s.RefreshParticipantProgress(challengeID, userID)
+	if err != nil {
+		s.l.Printf("Warning: Failed to refresh participant progress: %v", err)
+		// Don't fail the join, just log the error
+	}
+
+	return nil
+}
+
+func (s *ChallengeService) JoinChallengeByCode(joinCode string, userID int64) (*models.Challenge, error) {
+	// Find challenge by join code
+	challenge, err := s.challengeDao.GetChallengeByJoinCode(joinCode)
+	if err != nil {
+		return nil, err
+	}
+	if challenge == nil {
+		return nil, ErrChallengeNotFound
+	}
+
+	// Check if already participant
+	isParticipant, err := s.challengeDao.IsUserParticipant(challenge.ID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if isParticipant {
+		return nil, ErrAlreadyParticipant
+	}
+
+	// Join the challenge
+	err = s.challengeDao.JoinChallenge(challenge.ID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate initial progress
+	err = s.RefreshParticipantProgress(challenge.ID, userID)
+	if err != nil {
+		s.l.Printf("Warning: Failed to refresh participant progress: %v", err)
+		// Don't fail the join, just log the error
+	}
+
+	return challenge, nil
 }
 
 func (s *ChallengeService) LeaveChallenge(challengeID int64, userID int64) error {
@@ -278,6 +389,25 @@ func (s *ChallengeService) LeaveChallenge(challengeID int64, userID int64) error
 	}
 
 	return s.challengeDao.LeaveChallenge(challengeID, userID)
+}
+
+func (s *ChallengeService) LockChallenge(challengeID int64, userID int64) error {
+	// Check challenge exists
+	challenge, err := s.challengeDao.GetChallengeByID(challengeID)
+	if err != nil {
+		return err
+	}
+	if challenge == nil {
+		return ErrChallengeNotFound
+	}
+
+	// Check ownership
+	if challenge.CreatedByUserID == nil || *challenge.CreatedByUserID != userID {
+		return ErrNotChallengeOwner
+	}
+
+	// Lock the challenge (irreversible)
+	return s.challengeDao.LockChallenge(challengeID)
 }
 
 func (s *ChallengeService) GetParticipants(challengeID int64) ([]models.ChallengeParticipantWithUser, error) {
@@ -331,29 +461,117 @@ func (s *ChallengeService) GetSummitLog(challengeID int64, userID *int64) ([]mod
 }
 
 func (s *ChallengeService) RefreshParticipantProgress(challengeID int64, userID int64) error {
-	// Get total peaks
-	peaks, err := s.challengeDao.GetChallengePeaks(challengeID)
+	// Get the challenge to know its goal type and date range
+	challenge, err := s.challengeDao.GetChallengeByID(challengeID)
 	if err != nil {
 		return err
 	}
-	totalPeaks := len(peaks)
+	if challenge == nil {
+		return ErrChallengeNotFound
+	}
 
-	// Get completed peaks
-	summitLog, err := s.challengeDao.GetChallengeSummitLog(challengeID, &userID)
+	var peaksCompleted int
+	var totalPeaks int
+	var totalDistance float64
+	var totalElevation float64
+	var totalSummitCount int
+	var isCompleted bool
+
+	switch challenge.GoalType {
+	case models.GoalTypeSpecificSummits:
+		// Get total peaks
+		peaks, err := s.challengeDao.GetChallengePeaks(challengeID)
+		if err != nil {
+			return err
+		}
+		totalPeaks = len(peaks)
+
+		// Get completed peaks
+		summitLog, err := s.challengeDao.GetChallengeSummitLog(challengeID, &userID)
+		if err != nil {
+			return err
+		}
+		peaksCompleted = len(summitLog)
+		isCompleted = peaksCompleted >= totalPeaks && totalPeaks > 0
+
+	case models.GoalTypeDistance:
+		// Get activities within challenge date range and sum distance
+		activities, err := s.activityDao.GetActivitiesByUserIDAndDateRange(userID, challenge.StartDate, challenge.Deadline)
+		if err != nil {
+			return err
+		}
+		for _, activity := range activities {
+			totalDistance += activity.Distance
+		}
+		// Check completion
+		if challenge.TargetValue != nil {
+			isCompleted = totalDistance >= *challenge.TargetValue
+		}
+
+	case models.GoalTypeElevation:
+		// Get activities within challenge date range and sum elevation
+		activities, err := s.activityDao.GetActivitiesByUserIDAndDateRange(userID, challenge.StartDate, challenge.Deadline)
+		if err != nil {
+			return err
+		}
+		for _, activity := range activities {
+			totalElevation += activity.Elevation
+		}
+		// Check completion
+		if challenge.TargetValue != nil {
+			isCompleted = totalElevation >= *challenge.TargetValue
+		}
+
+	case models.GoalTypeSummitCount:
+		// Get summit log within challenge date range
+		summitLog, err := s.challengeDao.GetChallengeSummitLog(challengeID, &userID)
+		if err != nil {
+			return err
+		}
+		totalSummitCount = len(summitLog)
+		// Check completion
+		if challenge.TargetSummitCount != nil {
+			isCompleted = totalSummitCount >= *challenge.TargetSummitCount
+		}
+	}
+
+	// Update progress with all fields
+	err = s.challengeDao.UpdateParticipantProgressFull(
+		challengeID, userID,
+		peaksCompleted, totalPeaks,
+		totalDistance, totalElevation, totalSummitCount,
+	)
 	if err != nil {
 		return err
 	}
-	completedPeaks := len(summitLog)
 
-	// Update progress
-	err = s.challengeDao.UpdateParticipantProgress(challengeID, userID, completedPeaks, totalPeaks)
-	if err != nil {
-		return err
-	}
-
-	// Check if completed
-	if completedPeaks >= totalPeaks && totalPeaks > 0 {
+	// Mark as completed if applicable
+	if isCompleted {
 		return s.challengeDao.MarkParticipantCompleted(challengeID, userID)
+	}
+
+	return nil
+}
+
+// RefreshAllChallengeProgress refreshes progress for all active challenges and their participants
+// This should be called after syncing activities to update distance/elevation progress
+func (s *ChallengeService) RefreshAllChallengeProgress() error {
+	// Get all active (non-completed) challenges
+	participants, err := s.challengeDao.GetAllActiveParticipants()
+	if err != nil {
+		s.l.Printf("Error getting active participants: %v", err)
+		return err
+	}
+
+	s.l.Printf("Refreshing progress for %d active challenge participants", len(participants))
+
+	for _, participant := range participants {
+		err := s.RefreshParticipantProgress(participant.ChallengeID, participant.UserID)
+		if err != nil {
+			s.l.Printf("Error refreshing progress for challenge %d user %d: %v",
+				participant.ChallengeID, participant.UserID, err)
+			// Continue with other participants even if one fails
+		}
 	}
 
 	return nil
@@ -394,25 +612,51 @@ func (s *ChallengeService) ProcessActivityForChallenges(userID int64, peakID int
 		return err
 	}
 
-	// For each challenge, check if this peak is part of it
+	// For each challenge, check if this summit should be credited
 	for _, challenge := range challenges {
-		peaks, err := s.challengeDao.GetChallengePeaks(challenge.ID)
-		if err != nil {
-			s.l.Printf("Error getting challenge %d peaks: %v", challenge.ID, err)
+		// Check if activity is within challenge date range
+		if challenge.StartDate != nil && summitedAt.Before(*challenge.StartDate) {
+			continue
+		}
+		if challenge.Deadline != nil && summitedAt.After(*challenge.Deadline) {
 			continue
 		}
 
-		for _, peak := range peaks {
-			if peak.PeakID == peakID {
-				// This summit counts for this challenge
-				err = s.RecordSummit(challenge.ID, userID, peakID, &activityID, summitedAt)
-				if err != nil {
-					s.l.Printf("Error recording summit for challenge %d: %v", challenge.ID, err)
+		// Handle based on goal type
+		switch challenge.GoalType {
+		case models.GoalTypeSpecificSummits:
+			// For specific_summits, only credit if peak is in the challenge list
+			peaks, err := s.challengeDao.GetChallengePeaks(challenge.ID)
+			if err != nil {
+				s.l.Printf("Error getting challenge %d peaks: %v", challenge.ID, err)
+				continue
+			}
+
+			for _, peak := range peaks {
+				if peak.PeakID == peakID {
+					// This summit counts for this challenge
+					err = s.RecordSummit(challenge.ID, userID, peakID, &activityID, summitedAt)
+					if err != nil {
+						s.l.Printf("Error recording summit for challenge %d: %v", challenge.ID, err)
+					}
+					break
 				}
-				break
+			}
+
+		case models.GoalTypeSummitCount:
+			// For summit_count, credit ANY summit within date range
+			err = s.RecordSummit(challenge.ID, userID, peakID, &activityID, summitedAt)
+			if err != nil {
+				s.l.Printf("Error recording summit for challenge %d: %v", challenge.ID, err)
 			}
 		}
 	}
 
 	return nil
+}
+
+// ==================== Activities ====================
+
+func (s *ChallengeService) GetChallengeActivities(challengeID int64) ([]models.ActivityWithUser, error) {
+	return s.challengeDao.GetChallengeActivities(challengeID)
 }

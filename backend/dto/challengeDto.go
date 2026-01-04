@@ -8,31 +8,35 @@ import (
 // ==================== Challenge Requests ====================
 
 type CreateChallengeRequest struct {
-	Name            string                  `json:"name"`
-	Description     *string                 `json:"description"`
-	ChallengeType   models.ChallengeType    `json:"challengeType"`
-	CompetitionMode models.CompetitionMode  `json:"competitionMode"`
-	Visibility      models.Visibility       `json:"visibility"`
-	StartDate       *time.Time              `json:"startDate"`
-	Deadline        *time.Time              `json:"deadline"`
-	TargetCount     *int                    `json:"targetCount"`
-	Region          *string                 `json:"region"`
-	Difficulty      *string                 `json:"difficulty"`
-	PeakIDs         []int64                 `json:"peakIds"`
+	Name              string                  `json:"name"`
+	Description       *string                 `json:"description"`
+	ChallengeType     models.ChallengeType    `json:"challengeType"`
+	GoalType          models.GoalType         `json:"goalType"`
+	CompetitionMode   models.CompetitionMode  `json:"competitionMode"`
+	Visibility        models.Visibility       `json:"visibility"`
+	StartDate         *time.Time              `json:"startDate"`
+	Deadline          *time.Time              `json:"deadline"`
+	TargetValue       *float64                `json:"targetValue"`
+	TargetSummitCount *int                    `json:"targetSummitCount"`
+	Region            *string                 `json:"region"`
+	Difficulty        *string                 `json:"difficulty"`
+	PeakIDs           []int64                 `json:"peakIds"`
 }
 
 type UpdateChallengeRequest struct {
-	ID              int64                   `json:"id"`
-	Name            string                  `json:"name"`
-	Description     *string                 `json:"description"`
-	ChallengeType   models.ChallengeType    `json:"challengeType"`
-	CompetitionMode models.CompetitionMode  `json:"competitionMode"`
-	Visibility      models.Visibility       `json:"visibility"`
-	StartDate       *time.Time              `json:"startDate"`
-	Deadline        *time.Time              `json:"deadline"`
-	TargetCount     *int                    `json:"targetCount"`
-	Region          *string                 `json:"region"`
-	Difficulty      *string                 `json:"difficulty"`
+	ID                int64                   `json:"id"`
+	Name              string                  `json:"name"`
+	Description       *string                 `json:"description"`
+	ChallengeType     models.ChallengeType    `json:"challengeType"`
+	GoalType          models.GoalType         `json:"goalType"`
+	CompetitionMode   models.CompetitionMode  `json:"competitionMode"`
+	Visibility        models.Visibility       `json:"visibility"`
+	StartDate         *time.Time              `json:"startDate"`
+	Deadline          *time.Time              `json:"deadline"`
+	TargetValue       *float64                `json:"targetValue"`
+	TargetSummitCount *int                    `json:"targetSummitCount"`
+	Region            *string                 `json:"region"`
+	Difficulty        *string                 `json:"difficulty"`
 }
 
 type SetChallengePeaksRequest struct {

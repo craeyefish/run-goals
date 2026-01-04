@@ -1,11 +1,22 @@
-<div class="challenge-card" [class.completed]="progressChallenge?.isCompleted">
+<div class="challenge-card" [class.completed]="progressChallenge?.isCompleted" [class.locked]="challenge.isLocked">
   <!-- Header -->
   <div class="card-header">
-    <div class="type-badge" [class]="challenge.challengeType">
-      {{ challengeService.getChallengeTypeLabel(challenge.challengeType) }}
+    <div class="badges-left">
+      <div class="type-badge" [class]="challenge.challengeType">
+        {{ challengeService.getChallengeTypeLabel(challenge.challengeType) }}
+      </div>
+      <div class="goal-type-badge">
+        {{ challengeService.getGoalTypeIcon(challenge.goalType) }}
+        {{ challengeService.getGoalTypeLabel(challenge.goalType) }}
+      </div>
     </div>
-    <div class="visibility-badge" *ngIf="challenge.visibility !== 'private'">
-      {{ challenge.visibility === 'public' ? '🌍' : '👥' }}
+    <div class="badges-right">
+      <div class="visibility-badge" *ngIf="challenge.visibility !== 'private'">
+        {{ challenge.visibility === 'public' ? '🌍' : '👥' }}
+      </div>
+      <div class="locked-badge" *ngIf="challenge.isLocked">
+        🔒
+      </div>
     </div>
   </div>
 
@@ -16,6 +27,13 @@
     <p class="challenge-description" *ngIf="challenge.description">
       {{ challenge.description | slice:0:100 }}{{ (challenge.description!.length) > 100 ? '...' : '' }}
     </p>
+
+    <!-- Target info -->
+    <div class="target-row" *ngIf="challengeService.formatTargetValue(challenge)">
+      <span class="target-value">
+        🎯 {{ challengeService.formatTargetValue(challenge) }}
+      </span>
+    </div>
 
     <!-- Meta info -->
     <div class="meta-row">
@@ -34,7 +52,20 @@
         <div class="progress-fill" [style.width.%]="progressPercentage"></div>
       </div>
       <div class="progress-text">
-        <span>{{ progressChallenge.completedPeaks }}/{{ progressChallenge.totalPeaks }} peaks</span>
+        <span>
+          <ng-container *ngIf="challenge.goalType === 'specific_summits'">
+            {{ progressChallenge.completedPeaks }}/{{ progressChallenge.totalPeaks }} peaks
+          </ng-container>
+          <ng-container *ngIf="challenge.goalType === 'distance'">
+            {{ (progressChallenge.currentDistance / 1000) | number:'1.0-0' }}/{{ (challenge.targetValue! / 1000) | number:'1.0-0' }} km
+          </ng-container>
+          <ng-container *ngIf="challenge.goalType === 'elevation'">
+            {{ progressChallenge.currentElevation | number }}/{{ challenge.targetValue! | number }} m
+          </ng-container>
+          <ng-container *ngIf="challenge.goalType === 'summit_count'">
+            {{ progressChallenge.currentSummitCount }}/{{ challenge.targetSummitCount! }} summits
+          </ng-container>
+        </span>
         <span class="percentage">{{ progressPercentage }}%</span>
       </div>
     </div>
@@ -57,13 +88,26 @@
     <div class="mode-badge" [class]="challenge.competitionMode">
       {{ challenge.competitionMode === 'collaborative' ? '🤝 Collaborative' : '🏆 Competitive' }}
     </div>
-    
+
     <button class="join-btn" *ngIf="showJoinButton && !isJoined" (click)="onJoinClick($event)">
       Join
     </button>
-    
+
     <div class="completed-badge" *ngIf="progressChallenge?.isCompleted">
       ✅ Completed
+    </div>
+  </div>
+
+  <!-- Manage Options (for created challenges) -->
+  <div class="manage-section" *ngIf="showManageOptions">
+    <div class="join-code-section">
+      <label class="join-code-label">Join Code:</label>
+      <div class="join-code-display">
+        <span class="join-code-value">{{ challenge.joinCode }}</span>
+        <button class="copy-btn" (click)="copyJoinCode($event)" title="Copy join code">
+          📋
+        </button>
+      </div>
     </div>
   </div>
 </div>

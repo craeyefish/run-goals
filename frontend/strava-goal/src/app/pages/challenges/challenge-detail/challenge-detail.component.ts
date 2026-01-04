@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ChallengeService } from 'src/app/services/challenge.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
+import { ProfileService } from 'src/app/services/profile.service';
 import { ChallengePeakWithDetails, ChallengeParticipantWithUser, LeaderboardEntry } from 'src/app/models/challenge.model';
 
 @Component({
@@ -19,15 +20,19 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
 
     constructor(
         public challengeService: ChallengeService,
+        private profileService: ProfileService,
         private breadcrumbService: BreadcrumbService,
         private route: ActivatedRoute,
         private router: Router
-    ) { }
+    ) {
+        this.loadUserProfile();
+    }
 
     challenge = this.challengeService.selectedChallenge;
     peaks = this.challengeService.challengePeaks;
     participants = this.challengeService.participants;
     summitLog = this.challengeService.summitLog;
+    activities = this.challengeService.challengeActivities;
     isLoading = this.challengeService.isLoading;
     progressPercentage = this.challengeService.progressPercentage;
 
@@ -35,7 +40,24 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
     leaderboard = signal<LeaderboardEntry[]>([]);
     loadingLeaderboard = signal(false);
 
-    activeTab: 'peaks' | 'participants' | 'activity' = 'peaks';
+    // Join code display
+    showJoinCode = signal(false);
+
+    // Current user
+    currentUserId = signal<number | undefined>(undefined);
+
+    activeTab: 'peaks' | 'participants' | 'activity' = 'participants';
+
+    loadUserProfile() {
+        this.profileService.getUserProfile().subscribe({
+            next: (profile) => {
+                this.currentUserId.set(profile.id);
+            },
+            error: (err) => {
+                console.error('Failed to load user profile', err);
+            }
+        });
+    }
 
     ngOnInit() {
         this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
@@ -44,6 +66,7 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
                 this.challengeId = id;
                 this.challengeService.loadChallenge(id);
                 this.challengeService.loadSummitLog(id);
+                this.challengeService.loadChallengeActivities(id);
                 this.loadLeaderboard(id);
             }
         });
@@ -125,6 +148,32 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
         });
     }
 
+    onLockChallenge() {
+        if (!this.challengeId) return;
+        if (!confirm('Are you sure you want to lock this challenge? Once locked, it cannot be edited.')) return;
+
+        this.challengeService.lockChallenge(this.challengeId).subscribe({
+            next: () => {
+                this.challengeService.loadChallenge(this.challengeId!);
+            },
+            error: (err) => console.error('Failed to lock challenge', err),
+        });
+    }
+
+    copyJoinCode() {
+        const challenge = this.challenge();
+        if (!challenge) return;
+
+        navigator.clipboard.writeText(challenge.joinCode).then(() => {
+            // Could add a toast notification here
+            console.log('Join code copied to clipboard');
+        });
+    }
+
+    toggleJoinCode() {
+        this.showJoinCode.update(v => !v);
+    }
+
     goBack() {
         this.router.navigate(['/challenges']);
     }
@@ -136,5 +185,31 @@ export class ChallengeDetailComponent implements OnInit, OnDestroy {
             month: 'short',
             day: 'numeric',
         });
+    }
+
+    getParticipantProgressPercentage(participant: ChallengeParticipantWithUser): number {
+        const challenge = this.challenge();
+        if (!challenge) return 0;
+
+        switch (challenge.goalType) {
+            case 'specific_summits':
+                if (participant.totalPeaks === 0) return 0;
+                return Math.round((participant.peaksCompleted / participant.totalPeaks) * 100);
+
+            case 'distance':
+                if (!challenge.targetValue || challenge.targetValue === 0) return 0;
+                return Math.min(100, Math.round((participant.totalDistance / challenge.targetValue) * 100));
+
+            case 'elevation':
+                if (!challenge.targetValue || challenge.targetValue === 0) return 0;
+                return Math.min(100, Math.round((participant.totalElevation / challenge.targetValue) * 100));
+
+            case 'summit_count':
+                if (!challenge.targetSummitCount || challenge.targetSummitCount === 0) return 0;
+                return Math.min(100, Math.round((participant.totalSummitCount / challenge.targetSummitCount) * 100));
+
+            default:
+                return 0;
+        }
     }
 }

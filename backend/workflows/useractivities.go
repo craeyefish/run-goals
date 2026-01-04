@@ -9,27 +9,30 @@ import (
 )
 
 type StravaActivityFetcher struct {
-	stravaService *services.StravaService
-	summitService *services.SummitService
-	activitiesDao *daos.ActivityDao
-	userDao       *daos.UserDao
-	logger        *log.Logger
+	stravaService    *services.StravaService
+	summitService    *services.SummitService
+	challengeService *services.ChallengeService
+	activitiesDao    *daos.ActivityDao
+	userDao          *daos.UserDao
+	logger           *log.Logger
 }
 
 // NewStravaActivityFetcher initializes the fetcher.
 func NewStravaActivityFetcher(
 	stravaService *services.StravaService,
 	summitService *services.SummitService,
+	challengeService *services.ChallengeService,
 	usersDao *daos.UserDao,
 	activitiesDao *daos.ActivityDao,
 	logger *log.Logger,
 ) *StravaActivityFetcher {
 	return &StravaActivityFetcher{
-		stravaService: stravaService,
-		summitService: summitService,
-		activitiesDao: activitiesDao,
-		userDao:       usersDao,
-		logger:        logger,
+		stravaService:    stravaService,
+		summitService:    summitService,
+		challengeService: challengeService,
+		activitiesDao:    activitiesDao,
+		userDao:          usersDao,
+		logger:           logger,
 	}
 }
 
@@ -99,5 +102,13 @@ func (s *StravaActivityFetcher) fetchActivities(recentOnly bool) {
 		s.logger.Printf("Error during summit detection: %v", err)
 	} else {
 		s.logger.Println("Summit detection complete")
+	}
+
+	// Refresh challenge progress for all users to account for new distance/elevation activities
+	s.logger.Println("Refreshing challenge progress for all participants...")
+	if err := s.challengeService.RefreshAllChallengeProgress(); err != nil {
+		s.logger.Printf("Error refreshing challenge progress: %v", err)
+	} else {
+		s.logger.Println("Challenge progress refresh complete")
 	}
 }

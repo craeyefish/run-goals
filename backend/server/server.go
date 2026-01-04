@@ -51,10 +51,10 @@ func NewServer() *http.Server {
 	userService := services.NewUserService(logger, userDao)
 	personalGoalsService := services.NewPersonalGoalsService(logger, personalYearlyGoalDao)
 	summitFavouritesService := services.NewSummitFavouritesService(logger, summitFavouritesDao)
-	challengeService := services.NewChallengeService(logger, challengeDao)
+	challengeService := services.NewChallengeService(logger, challengeDao, activityDao)
 
 	// Services for background jobs
-	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao)
+	summitService := services.NewSummitService(logger, config, peaksDao, userPeaksDao, activityDao, challengeService)
 	overpassService := services.NewOverpassService(logger, peaksDao)
 
 	// One-time peak data fetch on startup (peaks don't change often)
@@ -86,7 +86,7 @@ func NewServer() *http.Server {
 
 	// background jobs
 	// TODO(cian): Move out of server.
-	fetcher := workflows.NewStravaActivityFetcher(stravaService, summitService, userDao, activityDao, logger)
+	fetcher := workflows.NewStravaActivityFetcher(stravaService, summitService, challengeService, userDao, activityDao, logger)
 
 	hgController := controllers.NewHgController(logger, activityService, userDao, fetcher)
 	stravaController := controllers.NewStravaController(logger, jwtService, stravaService, summitService, activityDao)

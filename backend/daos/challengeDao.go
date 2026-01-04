@@ -30,6 +30,7 @@ type ChallengeDaoInterface interface {
 	JoinChallenge(challengeID int64, userID int64) error
 	LeaveChallenge(challengeID int64, userID int64) error
 	GetChallengeParticipants(challengeID int64) ([]models.ChallengeParticipantWithUser, error)
+	GetChallengeParticipantByUserID(challengeID int64, userID int64) (*models.ChallengeParticipant, error)
 	GetChallengeLeaderboard(challengeID int64) ([]models.LeaderboardEntry, error)
 	UpdateParticipantProgress(challengeID int64, userID int64, peaksCompleted int, totalPeaks int) error
 	MarkParticipantCompleted(challengeID int64, userID int64) error
@@ -45,6 +46,9 @@ type ChallengeDaoInterface interface {
 	LogSummit(log models.ChallengeSummitLog) error
 	GetChallengeSummitLog(challengeID int64, userID *int64) ([]models.ChallengeSummitLogWithDetails, error)
 	HasUserSummitedPeakForChallenge(challengeID int64, userID int64, peakID int64) (bool, error)
+
+	// Activities
+	GetChallengeActivities(challengeID int64) ([]models.ActivityWithUser, error)
 }
 
 type ChallengeDao struct {
@@ -65,18 +69,20 @@ func (dao *ChallengeDao) CreateChallenge(challenge models.Challenge) (*int64, er
 	var id int64
 	query := `
 		INSERT INTO challenges (
-			name, description, challenge_type, competition_mode, visibility,
+			name, description, challenge_type, goal_type, competition_mode, visibility,
 			start_date, deadline, created_by_user_id, created_by_group_id,
-			target_count, region, difficulty, is_featured
+			target_value, target_summit_count, region, difficulty, is_featured,
+			join_code, is_locked
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
 		)
 		RETURNING id;
 	`
 	err := dao.db.QueryRow(query,
-		challenge.Name, challenge.Description, challenge.ChallengeType, challenge.CompetitionMode, challenge.Visibility,
+		challenge.Name, challenge.Description, challenge.ChallengeType, challenge.GoalType, challenge.CompetitionMode, challenge.Visibility,
 		challenge.StartDate, challenge.Deadline, challenge.CreatedByUserID, challenge.CreatedByGroupID,
-		challenge.TargetCount, challenge.Region, challenge.Difficulty, challenge.IsFeatured,
+		challenge.TargetValue, challenge.TargetSummitCount, challenge.Region, challenge.Difficulty, challenge.IsFeatured,
+		challenge.JoinCode, challenge.IsLocked,
 	).Scan(&id)
 	if err != nil {
 		dao.l.Printf("Error creating challenge: %v", err)
@@ -88,17 +94,19 @@ func (dao *ChallengeDao) CreateChallenge(challenge models.Challenge) (*int64, er
 func (dao *ChallengeDao) GetChallengeByID(id int64) (*models.Challenge, error) {
 	query := `
 		SELECT
-			id, name, description, challenge_type, competition_mode, visibility,
+			id, name, description, challenge_type, goal_type, competition_mode, visibility,
 			start_date, deadline, created_by_user_id, created_by_group_id,
-			target_count, region, difficulty, is_featured, created_at, updated_at
+			target_value, target_summit_count, region, difficulty, is_featured,
+			join_code, is_locked, created_at, updated_at
 		FROM challenges
 		WHERE id = $1;
 	`
 	var c models.Challenge
 	err := dao.db.QueryRow(query, id).Scan(
-		&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.CompetitionMode, &c.Visibility,
+		&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.GoalType, &c.CompetitionMode, &c.Visibility,
 		&c.StartDate, &c.Deadline, &c.CreatedByUserID, &c.CreatedByGroupID,
-		&c.TargetCount, &c.Region, &c.Difficulty, &c.IsFeatured, &c.CreatedAt, &c.UpdatedAt,
+		&c.TargetValue, &c.TargetSummitCount, &c.Region, &c.Difficulty, &c.IsFeatured,
+		&c.JoinCode, &c.IsLocked, &c.CreatedAt, &c.UpdatedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -116,20 +124,22 @@ func (dao *ChallengeDao) UpdateChallenge(challenge models.Challenge) error {
 			name = $2,
 			description = $3,
 			challenge_type = $4,
-			competition_mode = $5,
-			visibility = $6,
-			start_date = $7,
-			deadline = $8,
-			target_count = $9,
-			region = $10,
-			difficulty = $11,
-			is_featured = $12,
+			goal_type = $5,
+			competition_mode = $6,
+			visibility = $7,
+			start_date = $8,
+			deadline = $9,
+			target_value = $10,
+			target_summit_count = $11,
+			region = $12,
+			difficulty = $13,
+			is_featured = $14,
 			updated_at = NOW()
-		WHERE id = $1;
+		WHERE id = $1 AND is_locked = FALSE;
 	`
 	_, err := dao.db.Exec(query,
-		challenge.ID, challenge.Name, challenge.Description, challenge.ChallengeType, challenge.CompetitionMode,
-		challenge.Visibility, challenge.StartDate, challenge.Deadline, challenge.TargetCount,
+		challenge.ID, challenge.Name, challenge.Description, challenge.ChallengeType, challenge.GoalType, challenge.CompetitionMode,
+		challenge.Visibility, challenge.StartDate, challenge.Deadline, challenge.TargetValue, challenge.TargetSummitCount,
 		challenge.Region, challenge.Difficulty, challenge.IsFeatured,
 	)
 	if err != nil {
@@ -154,15 +164,19 @@ func (dao *ChallengeDao) DeleteChallenge(id int64) error {
 func (dao *ChallengeDao) GetChallengesByUser(userID int64) ([]models.ChallengeWithProgress, error) {
 	query := `
 		SELECT
-			c.id, c.name, c.description, c.challenge_type, c.competition_mode, c.visibility,
+			c.id, c.name, c.description, c.challenge_type, c.goal_type, c.competition_mode, c.visibility,
 			c.start_date, c.deadline, c.created_by_user_id, c.created_by_group_id,
-			c.target_count, c.region, c.difficulty, c.is_featured, c.created_at, c.updated_at,
+			c.target_value, c.target_summit_count, c.region, c.difficulty, c.is_featured,
+			c.join_code, c.is_locked, c.created_at, c.updated_at,
 			COALESCE(cp.peaks_completed, 0) as peaks_completed,
 			COALESCE(cp.total_peaks, (SELECT COUNT(*) FROM challenge_peaks WHERE challenge_id = c.id)) as total_peaks,
+			COALESCE(cp.total_distance, 0) as total_distance,
+			COALESCE(cp.total_elevation, 0) as total_elevation,
+			COALESCE(cp.total_summit_count, 0) as total_summit_count,
 			cp.completed_at IS NOT NULL as is_completed
 		FROM challenges c
 		LEFT JOIN challenge_participants cp ON c.id = cp.challenge_id AND cp.user_id = $1
-		WHERE c.created_by_user_id = $1 
+		WHERE c.created_by_user_id = $1
 		   OR cp.user_id = $1
 		ORDER BY c.created_at DESC;
 	`
@@ -177,10 +191,11 @@ func (dao *ChallengeDao) GetChallengesByUser(userID int64) ([]models.ChallengeWi
 	for rows.Next() {
 		var c models.ChallengeWithProgress
 		err := rows.Scan(
-			&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.CompetitionMode, &c.Visibility,
+			&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.GoalType, &c.CompetitionMode, &c.Visibility,
 			&c.StartDate, &c.Deadline, &c.CreatedByUserID, &c.CreatedByGroupID,
-			&c.TargetCount, &c.Region, &c.Difficulty, &c.IsFeatured, &c.CreatedAt, &c.UpdatedAt,
-			&c.CompletedPeaks, &c.TotalPeaks, &c.IsCompleted,
+			&c.TargetValue, &c.TargetSummitCount, &c.Region, &c.Difficulty, &c.IsFeatured,
+			&c.JoinCode, &c.IsLocked, &c.CreatedAt, &c.UpdatedAt,
+			&c.CompletedPeaks, &c.TotalPeaks, &c.CurrentDistance, &c.CurrentElevation, &c.CurrentSummitCount, &c.IsCompleted,
 		)
 		if err != nil {
 			dao.l.Printf("Error scanning challenge: %v", err)
@@ -195,9 +210,10 @@ func (dao *ChallengeDao) GetChallengesByUser(userID int64) ([]models.ChallengeWi
 func (dao *ChallengeDao) GetFeaturedChallenges() ([]models.Challenge, error) {
 	query := `
 		SELECT
-			id, name, description, challenge_type, competition_mode, visibility,
+			id, name, description, challenge_type, goal_type, competition_mode, visibility,
 			start_date, deadline, created_by_user_id, created_by_group_id,
-			target_count, region, difficulty, is_featured, created_at, updated_at
+			target_value, target_summit_count, region, difficulty, is_featured,
+			join_code, is_locked, created_at, updated_at
 		FROM challenges
 		WHERE is_featured = TRUE AND visibility = 'public'
 		ORDER BY name;
@@ -215,13 +231,16 @@ func (dao *ChallengeDao) GetFeaturedChallenges() ([]models.Challenge, error) {
 func (dao *ChallengeDao) GetPublicChallenges(region *string, limit int, offset int) ([]models.Challenge, error) {
 	query := `
 		SELECT
-			id, name, description, challenge_type, competition_mode, visibility,
-			start_date, deadline, created_by_user_id, created_by_group_id,
-			target_count, region, difficulty, is_featured, created_at, updated_at
-		FROM challenges
-		WHERE visibility = 'public'
-		AND ($1::text IS NULL OR region = $1)
-		ORDER BY is_featured DESC, name
+			c.id, c.name, c.description, c.challenge_type, c.goal_type, c.competition_mode, c.visibility,
+			c.start_date, c.deadline, c.created_by_user_id, c.created_by_group_id,
+			c.target_value, c.target_summit_count, c.region, c.difficulty, c.is_featured,
+			c.join_code, c.is_locked, c.created_at, c.updated_at
+		FROM challenges c
+		INNER JOIN users u ON c.created_by_user_id = u.id
+		WHERE c.visibility = 'public'
+		AND u.is_admin = TRUE
+		AND ($1::text IS NULL OR c.region = $1)
+		ORDER BY c.is_featured DESC, c.name
 		LIMIT $2 OFFSET $3;
 	`
 	rows, err := dao.db.Query(query, region, limit, offset)
@@ -237,9 +256,10 @@ func (dao *ChallengeDao) GetPublicChallenges(region *string, limit int, offset i
 func (dao *ChallengeDao) SearchChallenges(queryStr string, limit int) ([]models.Challenge, error) {
 	query := `
 		SELECT
-			id, name, description, challenge_type, competition_mode, visibility,
+			id, name, description, challenge_type, goal_type, competition_mode, visibility,
 			start_date, deadline, created_by_user_id, created_by_group_id,
-			target_count, region, difficulty, is_featured, created_at, updated_at
+			target_value, target_summit_count, region, difficulty, is_featured,
+			join_code, is_locked, created_at, updated_at
 		FROM challenges
 		WHERE visibility = 'public'
 		AND (name ILIKE '%' || $1 || '%' OR region ILIKE '%' || $1 || '%')
@@ -261,9 +281,10 @@ func (dao *ChallengeDao) scanChallenges(rows *sql.Rows) ([]models.Challenge, err
 	for rows.Next() {
 		var c models.Challenge
 		err := rows.Scan(
-			&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.CompetitionMode, &c.Visibility,
+			&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.GoalType, &c.CompetitionMode, &c.Visibility,
 			&c.StartDate, &c.Deadline, &c.CreatedByUserID, &c.CreatedByGroupID,
-			&c.TargetCount, &c.Region, &c.Difficulty, &c.IsFeatured, &c.CreatedAt, &c.UpdatedAt,
+			&c.TargetValue, &c.TargetSummitCount, &c.Region, &c.Difficulty, &c.IsFeatured,
+			&c.JoinCode, &c.IsLocked, &c.CreatedAt, &c.UpdatedAt,
 		)
 		if err != nil {
 			dao.l.Printf("Error scanning challenge: %v", err)
@@ -434,7 +455,9 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 		SELECT
 			cp.id, cp.challenge_id, cp.user_id, cp.joined_at, cp.completed_at,
 			cp.peaks_completed, cp.total_peaks,
-			COALESCE(u.username, '') as user_name
+			cp.total_distance, cp.total_elevation, cp.total_summit_count,
+			COALESCE(u.username, '') as user_name,
+			u.strava_athlete_id
 		FROM challenge_participants cp
 		JOIN users u ON cp.user_id = u.id
 		WHERE cp.challenge_id = $1
@@ -453,7 +476,9 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 		err := rows.Scan(
 			&p.ID, &p.ChallengeID, &p.UserID, &p.JoinedAt, &p.CompletedAt,
 			&p.PeaksCompleted, &p.TotalPeaks,
+			&p.TotalDistance, &p.TotalElevation, &p.TotalSummitCount,
 			&p.UserName,
+			&p.StravaAthleteID,
 		)
 		if err != nil {
 			dao.l.Printf("Error scanning participant: %v", err)
@@ -464,15 +489,42 @@ func (dao *ChallengeDao) GetChallengeParticipants(challengeID int64) ([]models.C
 	return participants, nil
 }
 
+func (dao *ChallengeDao) GetChallengeParticipantByUserID(challengeID int64, userID int64) (*models.ChallengeParticipant, error) {
+	query := `
+		SELECT
+			id, challenge_id, user_id, joined_at, completed_at,
+			peaks_completed, total_peaks,
+			total_distance, total_elevation, total_summit_count
+		FROM challenge_participants
+		WHERE challenge_id = $1 AND user_id = $2;
+	`
+	var p models.ChallengeParticipant
+	err := dao.db.QueryRow(query, challengeID, userID).Scan(
+		&p.ID, &p.ChallengeID, &p.UserID, &p.JoinedAt, &p.CompletedAt,
+		&p.PeaksCompleted, &p.TotalPeaks,
+		&p.TotalDistance, &p.TotalElevation, &p.TotalSummitCount,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		dao.l.Printf("Error getting challenge participant: %v", err)
+		return nil, err
+	}
+	return &p, nil
+}
+
 func (dao *ChallengeDao) GetChallengeLeaderboard(challengeID int64) ([]models.LeaderboardEntry, error) {
 	query := `
 		SELECT
-			cp.user_id, COALESCE(u.username, '') as user_name,
-			cp.peaks_completed, cp.total_peaks, cp.joined_at, cp.completed_at
+			cp.user_id, COALESCE(u.username, '') as user_name, u.strava_athlete_id,
+			cp.peaks_completed, cp.total_peaks,
+			cp.total_distance, cp.total_elevation, cp.total_summit_count,
+			cp.joined_at, cp.completed_at
 		FROM challenge_participants cp
 		JOIN users u ON cp.user_id = u.id
 		WHERE cp.challenge_id = $1
-		ORDER BY cp.peaks_completed DESC, cp.completed_at ASC NULLS LAST, cp.joined_at ASC;
+		ORDER BY cp.peaks_completed DESC, cp.total_distance DESC, cp.total_elevation DESC, cp.total_summit_count DESC, cp.completed_at ASC NULLS LAST, cp.joined_at ASC;
 	`
 	rows, err := dao.db.Query(query, challengeID)
 	if err != nil {
@@ -489,8 +541,10 @@ func (dao *ChallengeDao) GetChallengeLeaderboard(challengeID int64) ([]models.Le
 	for rows.Next() {
 		var entry models.LeaderboardEntry
 		err := rows.Scan(
-			&entry.UserID, &entry.UserName,
-			&entry.PeaksCompleted, &entry.TotalPeaks, &entry.JoinedAt, &entry.CompletedAt,
+			&entry.UserID, &entry.UserName, &entry.StravaAthleteID,
+			&entry.PeaksCompleted, &entry.TotalPeaks,
+			&entry.TotalDistance, &entry.TotalElevation, &entry.TotalSummitCount,
+			&entry.JoinedAt, &entry.CompletedAt,
 		)
 		if err != nil {
 			dao.l.Printf("Error scanning leaderboard entry: %v", err)
@@ -529,6 +583,25 @@ func (dao *ChallengeDao) UpdateParticipantProgress(challengeID int64, userID int
 	return nil
 }
 
+// UpdateParticipantProgressFull updates all progress fields for a participant
+func (dao *ChallengeDao) UpdateParticipantProgressFull(challengeID int64, userID int64, peaksCompleted int, totalPeaks int, totalDistance float64, totalElevation float64, totalSummitCount int) error {
+	query := `
+		UPDATE challenge_participants
+		SET peaks_completed = $3,
+		    total_peaks = $4,
+		    total_distance = $5,
+		    total_elevation = $6,
+		    total_summit_count = $7
+		WHERE challenge_id = $1 AND user_id = $2;
+	`
+	_, err := dao.db.Exec(query, challengeID, userID, peaksCompleted, totalPeaks, totalDistance, totalElevation, totalSummitCount)
+	if err != nil {
+		dao.l.Printf("Error updating participant progress (full): %v", err)
+		return err
+	}
+	return nil
+}
+
 func (dao *ChallengeDao) MarkParticipantCompleted(challengeID int64, userID int64) error {
 	query := `
 		UPDATE challenge_participants
@@ -552,6 +625,38 @@ func (dao *ChallengeDao) IsUserParticipant(challengeID int64, userID int64) (boo
 		return false, err
 	}
 	return exists, nil
+}
+
+// GetAllActiveParticipants returns all participants for challenges that are still active (not completed for the user)
+func (dao *ChallengeDao) GetAllActiveParticipants() ([]models.ChallengeParticipant, error) {
+	query := `
+		SELECT id, challenge_id, user_id, joined_at, completed_at,
+		       peaks_completed, total_peaks, total_distance, total_elevation, total_summit_count
+		FROM challenge_participants
+		WHERE completed_at IS NULL
+		ORDER BY challenge_id, user_id;
+	`
+	rows, err := dao.db.Query(query)
+	if err != nil {
+		dao.l.Printf("Error getting all active participants: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var participants []models.ChallengeParticipant
+	for rows.Next() {
+		var p models.ChallengeParticipant
+		err := rows.Scan(
+			&p.ID, &p.ChallengeID, &p.UserID, &p.JoinedAt, &p.CompletedAt,
+			&p.PeaksCompleted, &p.TotalPeaks, &p.TotalDistance, &p.TotalElevation, &p.TotalSummitCount,
+		)
+		if err != nil {
+			dao.l.Printf("Error scanning participant: %v", err)
+			return nil, err
+		}
+		participants = append(participants, p)
+	}
+	return participants, nil
 }
 
 // ==================== Groups ====================
@@ -617,9 +722,10 @@ func (dao *ChallengeDao) GetChallengeGroups(challengeID int64) ([]models.Challen
 func (dao *ChallengeDao) GetGroupChallenges(groupID int64) ([]models.Challenge, error) {
 	query := `
 		SELECT
-			c.id, c.name, c.description, c.challenge_type, c.competition_mode, c.visibility,
+			c.id, c.name, c.description, c.challenge_type, c.goal_type, c.competition_mode, c.visibility,
 			c.start_date, c.deadline, c.created_by_user_id, c.created_by_group_id,
-			c.target_count, c.region, c.difficulty, c.is_featured, c.created_at, c.updated_at
+			c.target_value, c.target_summit_count, c.region, c.difficulty, c.is_featured,
+			c.join_code, c.is_locked, c.created_at, c.updated_at
 		FROM challenges c
 		JOIN challenge_groups cg ON c.id = cg.challenge_id
 		WHERE cg.group_id = $1
@@ -633,6 +739,51 @@ func (dao *ChallengeDao) GetGroupChallenges(groupID int64) ([]models.Challenge, 
 	defer rows.Close()
 
 	return dao.scanChallenges(rows)
+}
+
+func (dao *ChallengeDao) GetChallengeByJoinCode(joinCode string) (*models.Challenge, error) {
+	query := `
+		SELECT
+			id, name, description, challenge_type, goal_type, competition_mode, visibility,
+			start_date, deadline, created_by_user_id, created_by_group_id,
+			target_value, target_summit_count, region, difficulty, is_featured,
+			join_code, is_locked, created_at, updated_at
+		FROM challenges
+		WHERE join_code = $1;
+	`
+	var c models.Challenge
+	err := dao.db.QueryRow(query, joinCode).Scan(
+		&c.ID, &c.Name, &c.Description, &c.ChallengeType, &c.GoalType, &c.CompetitionMode, &c.Visibility,
+		&c.StartDate, &c.Deadline, &c.CreatedByUserID, &c.CreatedByGroupID,
+		&c.TargetValue, &c.TargetSummitCount, &c.Region, &c.Difficulty, &c.IsFeatured,
+		&c.JoinCode, &c.IsLocked, &c.CreatedAt, &c.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		dao.l.Printf("Error getting challenge by join code: %v", err)
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (dao *ChallengeDao) LockChallenge(challengeID int64) error {
+	query := `UPDATE challenges SET is_locked = TRUE WHERE id = $1 AND is_locked = FALSE;`
+	result, err := dao.db.Exec(query, challengeID)
+	if err != nil {
+		dao.l.Printf("Error locking challenge: %v", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows // Challenge doesn't exist or already locked
+	}
+	return nil
 }
 
 // ==================== Summit Log ====================
@@ -688,7 +839,7 @@ func (dao *ChallengeDao) GetChallengeSummitLog(challengeID int64, userID *int64)
 func (dao *ChallengeDao) HasUserSummitedPeakForChallenge(challengeID int64, userID int64, peakID int64) (bool, error) {
 	query := `
 		SELECT EXISTS(
-			SELECT 1 FROM challenge_summit_log 
+			SELECT 1 FROM challenge_summit_log
 			WHERE challenge_id = $1 AND user_id = $2 AND peak_id = $3
 		);
 	`
@@ -699,4 +850,162 @@ func (dao *ChallengeDao) HasUserSummitedPeakForChallenge(challengeID int64, user
 		return false, err
 	}
 	return exists, nil
+}
+
+// ==================== Activities ====================
+
+func (dao *ChallengeDao) GetChallengeActivities(challengeID int64) ([]models.ActivityWithUser, error) {
+	// First get the challenge to determine goal type
+	challenge, err := dao.GetChallengeByID(challengeID)
+	if err != nil {
+		return nil, err
+	}
+	if challenge == nil {
+		return []models.ActivityWithUser{}, nil
+	}
+
+	activities := []models.ActivityWithUser{}
+	var query string
+
+	// For summit-based challenges, only show activities with summits
+	// For distance/elevation challenges, show all activities in date range
+	if challenge.GoalType == models.GoalTypeSummitCount || challenge.GoalType == models.GoalTypeSpecificSummits {
+		query = `
+			SELECT DISTINCT
+				a.id,
+				a.strava_activity_id,
+				a.strava_athlete_id,
+				a.user_id,
+				a.name,
+				a.description,
+				a.distance,
+				a.elevation,
+				a.moving_time,
+				a.start_date,
+				a.map_polyline,
+				a.photo_url,
+				COALESCE(u.username, '') as user_name,
+				u.strava_athlete_id as user_strava_id,
+				STRING_AGG(DISTINCT p.name, ', ' ORDER BY p.name) as peak_names
+			FROM activity a
+			INNER JOIN challenge_participants cp ON a.user_id = cp.user_id
+			INNER JOIN challenges c ON cp.challenge_id = c.id
+			INNER JOIN users u ON a.user_id = u.id
+			-- Only show activities that contributed summits
+			INNER JOIN challenge_summit_log csl ON csl.challenge_id = c.id
+				AND csl.user_id = a.user_id
+				AND csl.activity_id = a.id
+			INNER JOIN peaks p ON csl.peak_id = p.id
+			WHERE cp.challenge_id = $1
+				AND (c.start_date IS NULL OR a.start_date >= c.start_date)
+				AND (c.deadline IS NULL OR a.start_date <= c.deadline)
+			GROUP BY a.id, a.strava_activity_id, a.strava_athlete_id, a.user_id,
+			         a.name, a.description, a.distance, a.elevation, a.moving_time,
+			         a.start_date, a.map_polyline, a.photo_url, u.username, u.strava_athlete_id
+			ORDER BY a.start_date DESC;
+		`
+	} else {
+		// For distance/elevation challenges, show all activities in date range
+		query = `
+			SELECT DISTINCT
+				a.id,
+				a.strava_activity_id,
+				a.strava_athlete_id,
+				a.user_id,
+				a.name,
+				a.description,
+				a.distance,
+				a.elevation,
+				a.moving_time,
+				a.start_date,
+				a.map_polyline,
+				a.photo_url,
+				COALESCE(u.username, '') as user_name,
+				u.strava_athlete_id as user_strava_id
+			FROM activity a
+			INNER JOIN challenge_participants cp ON a.user_id = cp.user_id
+			INNER JOIN challenges c ON cp.challenge_id = c.id
+			INNER JOIN users u ON a.user_id = u.id
+			WHERE cp.challenge_id = $1
+				AND (c.start_date IS NULL OR a.start_date >= c.start_date)
+				AND (c.deadline IS NULL OR a.start_date <= c.deadline)
+			ORDER BY a.start_date DESC;
+		`
+	}
+	rows, err := dao.db.Query(query, challengeID)
+	if err != nil {
+		dao.l.Printf("Error querying activities for challenge: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		activityWithUser := models.ActivityWithUser{}
+		var elevation sql.NullFloat64
+		var movingTime sql.NullFloat64
+		var peakNames sql.NullString
+
+		if challenge.GoalType == models.GoalTypeSummitCount || challenge.GoalType == models.GoalTypeSpecificSummits {
+			// Summit-based challenges include peak_names
+			err = rows.Scan(
+				&activityWithUser.ID,
+				&activityWithUser.StravaActivityId,
+				&activityWithUser.StravaAthleteId,
+				&activityWithUser.UserID,
+				&activityWithUser.Name,
+				&activityWithUser.Description,
+				&activityWithUser.Distance,
+				&elevation,
+				&movingTime,
+				&activityWithUser.StartDate,
+				&activityWithUser.MapPolyline,
+				&activityWithUser.PhotoURL,
+				&activityWithUser.UserName,
+				&activityWithUser.StravaAthleteID,
+				&peakNames,
+			)
+		} else {
+			// Distance/elevation challenges don't have peak_names
+			err = rows.Scan(
+				&activityWithUser.ID,
+				&activityWithUser.StravaActivityId,
+				&activityWithUser.StravaAthleteId,
+				&activityWithUser.UserID,
+				&activityWithUser.Name,
+				&activityWithUser.Description,
+				&activityWithUser.Distance,
+				&elevation,
+				&movingTime,
+				&activityWithUser.StartDate,
+				&activityWithUser.MapPolyline,
+				&activityWithUser.PhotoURL,
+				&activityWithUser.UserName,
+				&activityWithUser.StravaAthleteID,
+			)
+		}
+
+		if err != nil {
+			dao.l.Printf("Error scanning activity: %v", err)
+			return nil, err
+		}
+
+		if elevation.Valid {
+			activityWithUser.Elevation = elevation.Float64
+		}
+		if movingTime.Valid {
+			activityWithUser.MovingTime = movingTime.Float64
+		}
+		if peakNames.Valid {
+			activityWithUser.PeakNames = &peakNames.String
+		}
+
+		activities = append(activities, activityWithUser)
+	}
+
+	if err = rows.Err(); err != nil {
+		dao.l.Printf("Error iterating activities: %v", err)
+		return nil, err
+	}
+
+	return activities, nil
 }

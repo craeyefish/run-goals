@@ -13,6 +13,7 @@ import { ChallengeService } from 'src/app/services/challenge.service';
 export class ChallengeCardComponent {
     @Input() challenge!: Challenge | ChallengeWithProgress;
     @Input() showJoinButton = false;
+    @Input() showManageOptions = false;
 
     constructor(public challengeService: ChallengeService) { }
 
@@ -31,8 +32,28 @@ export class ChallengeCardComponent {
 
     get progressPercentage(): number {
         const c = this.progressChallenge;
-        if (!c || c.totalPeaks === 0) return 0;
-        return Math.round((c.completedPeaks / c.totalPeaks) * 100);
+        if (!c) return 0;
+
+        switch (c.goalType) {
+            case 'specific_summits':
+                if (c.totalPeaks === 0) return 0;
+                return Math.round((c.completedPeaks / c.totalPeaks) * 100);
+
+            case 'distance':
+                if (!c.targetValue || c.targetValue === 0) return 0;
+                return Math.min(100, Math.round((c.currentDistance / c.targetValue) * 100));
+
+            case 'elevation':
+                if (!c.targetValue || c.targetValue === 0) return 0;
+                return Math.min(100, Math.round((c.currentElevation / c.targetValue) * 100));
+
+            case 'summit_count':
+                if (!c.targetSummitCount || c.targetSummitCount === 0) return 0;
+                return Math.min(100, Math.round((c.currentSummitCount / c.targetSummitCount) * 100));
+
+            default:
+                return 0;
+        }
     }
 
     get hasDeadline(): boolean {
@@ -66,6 +87,14 @@ export class ChallengeCardComponent {
             error: (err) => {
                 console.error('Failed to join challenge', err);
             },
+        });
+    }
+
+    copyJoinCode(event: Event) {
+        event.stopPropagation();
+        navigator.clipboard.writeText(this.challenge.joinCode).then(() => {
+            // Could add a toast notification here
+            console.log('Join code copied to clipboard');
         });
     }
 }

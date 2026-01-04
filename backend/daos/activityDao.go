@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"log"
 	"run-goals/models"
+	"time"
 )
 
 type ActivityDaoInterface interface {
 	UpsertActivity(activity *models.Activity) error
 	GetActivitiesByUserID(userID int64) ([]models.Activity, error)
+	GetActivitiesByUserIDAndDateRange(userID int64, startDate, endDate *time.Time) ([]models.Activity, error)
 	GetActivityByID(id int64) (models.Activity, error)
 	GetActivities() ([]models.Activity, error)
 }
@@ -462,4 +464,81 @@ func (dao *ActivityDao) ResetSummitsCalculated() (int64, error) {
 	count, _ := result.RowsAffected()
 	dao.l.Printf("Reset summits_calculated on %d activities", count)
 	return count, nil
+}
+
+// GetActivitiesByUserIDAndDateRange returns activities for a user within a date range
+func (dao *ActivityDao) GetActivitiesByUserIDAndDateRange(userID int64, startDate, endDate *time.Time) ([]models.Activity, error) {
+	activities := []models.Activity{}
+	sqlQuery := `
+        SELECT
+            id,
+            strava_activity_id,
+            strava_athlete_id,
+            user_id,
+            name,
+            description,
+            distance,
+            elevation,
+            moving_time,
+            start_date,
+            map_polyline,
+            photo_url
+        FROM activity
+        WHERE user_id = $1
+          AND ($2::timestamp IS NULL OR start_date >= $2)
+          AND ($3::timestamp IS NULL OR start_date <= $3)
+        ORDER BY start_date DESC;
+    `
+	rows, err := dao.db.Query(sqlQuery, userID, startDate, endDate)
+	if err != nil {
+		dao.l.Println("Error querying activity table with date range", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		activity := models.Activity{}
+		var elevation sql.NullFloat64
+		var movingTime sql.NullFloat64
+		err = rows.Scan(
+			&activity.ID,
+			&activity.StravaActivityId,
+			&activity.StravaAthleteId,
+			&activity.UserID,
+			&activity.Name,
+			&activity.Description,
+			&activity.Distance,
+			&elevation,
+			&movingTime,
+			&activity.StartDate,
+			&activity.MapPolyline,
+			&activity.PhotoURL,
+		)
+		if err != nil {
+			dao.l.Println("Error parsing query result", err)
+			return nil, err
+		}
+
+		// Set elevation value, defaulting to 0 if NULL
+		if elevation.Valid {
+			activity.Elevation = elevation.Float64
+		} else {
+			activity.Elevation = 0
+		}
+
+		// Set moving_time value, defaulting to 0 if NULL
+		if movingTime.Valid {
+			activity.MovingTime = movingTime.Float64
+		} else {
+			activity.MovingTime = 0
+		}
+
+		activities = append(activities, activity)
+	}
+	err = rows.Err()
+	if err != nil {
+		dao.l.Println("Error during iteration", err)
+		return nil, err
+	}
+
+	return activities, nil
 }

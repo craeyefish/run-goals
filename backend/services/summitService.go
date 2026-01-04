@@ -21,11 +21,12 @@ type SummitServiceInterface interface {
 }
 
 type SummitService struct {
-	l            *log.Logger
-	config       *config.Config
-	peaksDao     *daos.PeaksDao
-	userPeaksDao *daos.UserPeaksDao
-	activityDao  *daos.ActivityDao
+	l               *log.Logger
+	config          *config.Config
+	peaksDao        *daos.PeaksDao
+	userPeaksDao    *daos.UserPeaksDao
+	activityDao     *daos.ActivityDao
+	challengeService *ChallengeService
 }
 
 func NewSummitService(
@@ -34,13 +35,15 @@ func NewSummitService(
 	peaksDao *daos.PeaksDao,
 	userPeaksDao *daos.UserPeaksDao,
 	activityDao *daos.ActivityDao,
+	challengeService *ChallengeService,
 ) *SummitService {
 	return &SummitService{
-		l:            l,
-		config:       config,
-		peaksDao:     peaksDao,
-		userPeaksDao: userPeaksDao,
-		activityDao:  activityDao,
+		l:               l,
+		config:          config,
+		peaksDao:        peaksDao,
+		userPeaksDao:    userPeaksDao,
+		activityDao:     activityDao,
+		challengeService: challengeService,
 	}
 }
 
@@ -226,6 +229,14 @@ func (s *SummitService) CalculateSummitsForActivity(activity *models.Activity) e
 				s.l.Printf("Failed to mark summit for user=%d peak=%d: %v", activity.UserID, peak.ID, err)
 			} else {
 				s.l.Printf("Summit detected! user=%d peak=%d (%s) activity=%d", activity.UserID, peak.ID, peak.Name, activity.ID)
+
+				// Also credit this summit to any challenges
+				if s.challengeService != nil {
+					err = s.challengeService.ProcessActivityForChallenges(activity.UserID, peak.ID, activity.ID, activity.StartDate)
+					if err != nil {
+						s.l.Printf("Failed to process challenges for summit: %v", err)
+					}
+				}
 			}
 			hasSummit = true
 		}

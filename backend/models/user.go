@@ -39,6 +39,7 @@ type User struct {
 	ID              int64          `json:"id"`
 	StravaAthleteID int64          `json:"strava_athelete_id"` // Strava athlete ID, unique
 	Username        NullableString `json:"username"`            // User-chosen display name
+	IsAdmin         bool           `json:"is_admin"`            // Whether user has admin privileges
 	AccessToken     string         `json:"access_token"`
 	RefreshToken    string         `json:"refresh_token"`
 	ExpiresAt       time.Time      `json:"expires_at"`

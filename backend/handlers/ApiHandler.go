@@ -193,9 +193,19 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			handler.challengesController.JoinChallenge(rw, r)
 			return
 		}
+	case "/api/challenge-join-by-code":
+		if r.Method == http.MethodPost {
+			handler.challengesController.JoinChallengeByCode(rw, r)
+			return
+		}
 	case "/api/challenge-leave":
 		if r.Method == http.MethodDelete {
 			handler.challengesController.LeaveChallenge(rw, r)
+			return
+		}
+	case "/api/challenge-lock":
+		if r.Method == http.MethodPost {
+			handler.challengesController.LockChallenge(rw, r)
 			return
 		}
 	case "/api/challenge-participants":
@@ -211,6 +221,11 @@ func (handler *ApiHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case "/api/challenge-summit-log":
 		if r.Method == http.MethodGet {
 			handler.challengesController.GetSummitLog(rw, r)
+			return
+		}
+	case "/api/challenge-activities":
+		if r.Method == http.MethodGet {
+			handler.challengesController.GetChallengeActivities(rw, r)
 			return
 		}
 	case "/api/challenge-summit":

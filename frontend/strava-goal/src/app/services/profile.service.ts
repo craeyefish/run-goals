@@ -6,6 +6,7 @@ export interface UserProfile {
   id: number;
   strava_athelete_id: number;
   username?: string;
+  is_admin: boolean;
   last_distance: number;
   last_updated: string;
   created_at: string;

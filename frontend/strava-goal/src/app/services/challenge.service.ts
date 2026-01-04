@@ -14,10 +14,12 @@ import {
     SetChallengePeaksRequest,
     AddGroupToChallengeRequest,
     RecordSummitRequest,
+    JoinChallengeByCodeRequest,
     ChallengeDetailResponse,
     ChallengeListResponse,
     PublicChallengeListResponse,
 } from '../models/challenge.model';
+import { ActivityWithUser } from './activity.service';
 
 @Injectable({
     providedIn: 'root',
@@ -29,6 +31,7 @@ export class ChallengeService {
     challengePeaks = signal<ChallengePeakWithDetails[]>([]);
     participants = signal<ChallengeParticipantWithUser[]>([]);
     summitLog = signal<ChallengeSummitLogWithDetails[]>([]);
+    challengeActivities = signal<ActivityWithUser[]>([]);
     featuredChallenges = signal<Challenge[]>([]);
     publicChallenges = signal<Challenge[]>([]);
     isLoading = signal<boolean>(false);
@@ -40,8 +43,28 @@ export class ChallengeService {
 
     progressPercentage = computed(() => {
         const challenge = this.selectedChallenge();
-        if (!challenge || challenge.totalPeaks === 0) return 0;
-        return Math.round((challenge.completedPeaks / challenge.totalPeaks) * 100);
+        if (!challenge) return 0;
+
+        switch (challenge.goalType) {
+            case 'specific_summits':
+                if (challenge.totalPeaks === 0) return 0;
+                return Math.round((challenge.completedPeaks / challenge.totalPeaks) * 100);
+
+            case 'distance':
+                if (!challenge.targetValue || challenge.targetValue === 0) return 0;
+                return Math.min(100, Math.round((challenge.currentDistance / challenge.targetValue) * 100));
+
+            case 'elevation':
+                if (!challenge.targetValue || challenge.targetValue === 0) return 0;
+                return Math.min(100, Math.round((challenge.currentElevation / challenge.targetValue) * 100));
+
+            case 'summit_count':
+                if (!challenge.targetSummitCount || challenge.targetSummitCount === 0) return 0;
+                return Math.min(100, Math.round((challenge.currentSummitCount / challenge.targetSummitCount) * 100));
+
+            default:
+                return 0;
+        }
     });
 
     constructor(private http: HttpClient) { }
@@ -109,9 +132,19 @@ export class ChallengeService {
         return this.http.post<void>('/api/challenge-join', {}, { params });
     }
 
+    joinChallengeByCode(joinCode: string): Observable<Challenge> {
+        const request: JoinChallengeByCodeRequest = { joinCode };
+        return this.http.post<Challenge>('/api/challenge-join-by-code', request);
+    }
+
     leaveChallenge(challengeId: number): Observable<void> {
         const params = new HttpParams().set('challengeId', challengeId);
         return this.http.delete<void>('/api/challenge-leave', { params });
+    }
+
+    lockChallenge(challengeId: number): Observable<void> {
+        const params = new HttpParams().set('challengeId', challengeId);
+        return this.http.post<void>('/api/challenge-lock', {}, { params });
     }
 
     getParticipants(challengeId: number): Observable<ChallengeParticipantWithUser[]> {
@@ -135,6 +168,13 @@ export class ChallengeService {
     recordSummit(challengeId: number, request: RecordSummitRequest): Observable<void> {
         const params = new HttpParams().set('challengeId', challengeId);
         return this.http.post<void>('/api/challenge-summit', request, { params });
+    }
+
+    // ==================== Activities ====================
+
+    getChallengeActivities(challengeId: number): Observable<ActivityWithUser[]> {
+        const params = new HttpParams().set('challengeId', challengeId);
+        return this.http.get<ActivityWithUser[]>('/api/challenge-activities', { params });
     }
 
     // ==================== Groups ====================
@@ -221,6 +261,17 @@ export class ChallengeService {
         });
     }
 
+    loadChallengeActivities(challengeId: number): void {
+        this.getChallengeActivities(challengeId).subscribe({
+            next: (activities) => {
+                this.challengeActivities.set(activities || []);
+            },
+            error: (err) => {
+                console.error('Failed to load challenge activities', err);
+            },
+        });
+    }
+
     selectChallenge(challenge: ChallengeWithProgress | null): void {
         this.selectedChallenge.set(challenge);
         if (challenge) {
@@ -250,6 +301,26 @@ export class ChallengeService {
         }
     }
 
+    getGoalTypeLabel(goalType: string): string {
+        switch (goalType) {
+            case 'distance': return 'Distance';
+            case 'elevation': return 'Elevation Gain';
+            case 'summit_count': return 'Summit Count';
+            case 'specific_summits': return 'Specific Peaks';
+            default: return goalType;
+        }
+    }
+
+    getGoalTypeIcon(goalType: string): string {
+        switch (goalType) {
+            case 'distance': return '📏';
+            case 'elevation': return '⛰️';
+            case 'summit_count': return '🏔️';
+            case 'specific_summits': return '📍';
+            default: return '🎯';
+        }
+    }
+
     getCompetitionModeLabel(mode: string): string {
         switch (mode) {
             case 'collaborative': return 'Collaborative';
@@ -274,6 +345,27 @@ export class ChallengeService {
             case 'hard': return '#f44336';
             case 'expert': return '#9C27B0';
             default: return '#9E9E9E';
+        }
+    }
+
+    formatTargetValue(challenge: Challenge): string {
+        switch (challenge.goalType) {
+            case 'distance':
+                return challenge.targetValue
+                    ? `${(challenge.targetValue / 1000).toFixed(1)} km`
+                    : '';
+            case 'elevation':
+                return challenge.targetValue
+                    ? `${challenge.targetValue.toLocaleString()} m`
+                    : '';
+            case 'summit_count':
+                return challenge.targetSummitCount
+                    ? `${challenge.targetSummitCount} summits`
+                    : '';
+            case 'specific_summits':
+                return 'Specific peaks list';
+            default:
+                return '';
         }
     }
 }

@@ -5,7 +5,8 @@ import {
     CreateChallengeRequest,
     ChallengeType,
     CompetitionMode,
-    Visibility
+    Visibility,
+    GoalType
 } from 'src/app/models/challenge.model';
 import { PeakPickerComponent, SelectedPeak } from 'src/app/components/peak-picker/peak-picker.component';
 
@@ -30,9 +31,8 @@ export class ChallengeCreateFormComponent {
     // Step 1: Basic Info
     name = '';
     description = '';
-    challengeType: ChallengeType = 'custom';
+    goalType: GoalType = 'specific_summits';
     competitionMode: CompetitionMode = 'collaborative';
-    visibility: Visibility = 'private';
     region = '';
     difficulty = '';
 
@@ -41,9 +41,19 @@ export class ChallengeCreateFormComponent {
     startDate = '';
     deadline = '';
 
-    // Step 3: Peaks
+    // Step 3: Goal-specific fields
+    // For specific_summits
     showPeakPicker = signal(false);
     selectedPeaks: SelectedPeak[] = [];
+
+    // For distance (in km, will convert to meters)
+    targetDistance = 0;
+
+    // For elevation (in meters)
+    targetElevation = 0;
+
+    // For summit_count
+    targetSummitCount = 0;
 
     // Validation
     get step1Valid(): boolean {
@@ -60,7 +70,18 @@ export class ChallengeCreateFormComponent {
     }
 
     get step3Valid(): boolean {
-        return this.selectedPeaks.length > 0;
+        switch (this.goalType) {
+            case 'specific_summits':
+                return this.selectedPeaks.length > 0;
+            case 'distance':
+                return this.targetDistance > 0;
+            case 'elevation':
+                return this.targetElevation > 0;
+            case 'summit_count':
+                return this.targetSummitCount > 0;
+            default:
+                return false;
+        }
     }
 
     get canSubmit(): boolean {
@@ -147,14 +168,20 @@ export class ChallengeCreateFormComponent {
         const request: CreateChallengeRequest = {
             name: this.name.trim(),
             description: this.description.trim() || undefined,
-            challengeType: this.challengeType,
+            challengeType: 'custom', // Always custom now
+            goalType: this.goalType,
             competitionMode: this.competitionMode,
-            visibility: this.visibility,
+            visibility: 'private', // Always private (only admins can make public)
             startDate: formatDateToISO(this.startDate),
             deadline: this.hasDeadline && this.deadline ? formatDateToISO(this.deadline) : undefined,
             region: this.region.trim() || undefined,
             difficulty: this.difficulty || undefined,
-            peakIds: this.selectedPeaks.map(p => p.id),
+            // Goal-specific fields
+            targetValue: this.goalType === 'distance' ? this.targetDistance * 1000 : // Convert km to meters
+                         this.goalType === 'elevation' ? this.targetElevation :
+                         undefined,
+            targetSummitCount: this.goalType === 'summit_count' ? this.targetSummitCount : undefined,
+            peakIds: this.goalType === 'specific_summits' ? this.selectedPeaks.map(p => p.id) : [],
         };
 
         this.onSubmit.emit(request);

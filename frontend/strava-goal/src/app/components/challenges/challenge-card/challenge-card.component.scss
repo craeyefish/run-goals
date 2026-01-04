@@ -17,11 +17,30 @@
         opacity: 0.8;
         border-color: var(--success-color);
     }
+
+    &.locked {
+        border-color: #9E9E9E;
+        opacity: 0.9;
+    }
 }
 
 .card-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.badges-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.badges-right {
+    display: flex;
+    gap: 0.5rem;
     align-items: center;
 }
 
@@ -47,8 +66,22 @@
     }
 }
 
+.goal-type-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    font-weight: 500;
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #388e3c;
+    border: 1px solid #388e3c;
+}
+
 .visibility-badge {
     font-size: 1rem;
+}
+
+.locked-badge {
+    font-size: 1rem;
+    color: #9E9E9E;
 }
 
 .card-content {
@@ -70,6 +103,16 @@
     color: var(--text-secondary);
     font-size: 0.875rem;
     line-height: 1.4;
+}
+
+.target-row {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 500;
+
+    .target-value {
+        color: var(--secondary-color);
+    }
 }
 
 .meta-row {
@@ -174,4 +217,60 @@
     font-size: 0.8rem;
     color: var(--success-color);
     font-weight: 500;
+}
+
+.manage-section {
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--background-shade-color-2);
+    margin-top: 0.5rem;
+}
+
+.join-code-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.join-code-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.join-code-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.join-code-value {
+    font-family: monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 0.5rem 0.75rem;
+    background: var(--background-shade-color-2);
+    border: 2px solid black;
+    color: var(--text-primary);
+    flex: 1;
+    text-align: center;
+}
+
+.copy-btn {
+    padding: 0.5rem 0.75rem;
+    background: var(--background-light-shade);
+    border: 2px solid black;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+
+    &:hover {
+        background: var(--secondary-color);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
 }

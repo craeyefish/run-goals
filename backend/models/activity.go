@@ -32,3 +32,11 @@ type Activity struct {
 func (a *Activity) IsHG() bool {
 	return strings.Contains(strings.ToLower(a.Name), "#hg")
 }
+
+// ActivityWithUser includes user information for display
+type ActivityWithUser struct {
+	Activity
+	UserName        string  `json:"userName"`
+	StravaAthleteID int64   `json:"stravaAthleteId"`
+	PeakNames       *string `json:"peakNames,omitempty"` // Comma-separated peak names for summit activities
+}

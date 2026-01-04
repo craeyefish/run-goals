@@ -31,13 +31,18 @@ type ChallengesControllerInterface interface {
 
 	// Participation
 	JoinChallenge(rw http.ResponseWriter, r *http.Request)
+	JoinChallengeByCode(rw http.ResponseWriter, r *http.Request)
 	LeaveChallenge(rw http.ResponseWriter, r *http.Request)
+	LockChallenge(rw http.ResponseWriter, r *http.Request)
 	GetParticipants(rw http.ResponseWriter, r *http.Request)
 	GetLeaderboard(rw http.ResponseWriter, r *http.Request)
 
 	// Progress
 	GetSummitLog(rw http.ResponseWriter, r *http.Request)
 	RecordSummit(rw http.ResponseWriter, r *http.Request)
+
+	// Activities
+	GetChallengeActivities(rw http.ResponseWriter, r *http.Request)
 
 	// Groups
 	AddGroupToChallenge(rw http.ResponseWriter, r *http.Request)
@@ -77,16 +82,18 @@ func (c *ChallengesController) CreateChallenge(rw http.ResponseWriter, r *http.R
 
 	// Convert request to model
 	challenge := models.Challenge{
-		Name:            request.Name,
-		Description:     request.Description,
-		ChallengeType:   request.ChallengeType,
-		CompetitionMode: request.CompetitionMode,
-		Visibility:      request.Visibility,
-		StartDate:       request.StartDate,
-		Deadline:        request.Deadline,
-		TargetCount:     request.TargetCount,
-		Region:          request.Region,
-		Difficulty:      request.Difficulty,
+		Name:              request.Name,
+		Description:       request.Description,
+		ChallengeType:     request.ChallengeType,
+		GoalType:          request.GoalType,
+		CompetitionMode:   request.CompetitionMode,
+		Visibility:        request.Visibility,
+		StartDate:         request.StartDate,
+		Deadline:          request.Deadline,
+		TargetValue:       request.TargetValue,
+		TargetSummitCount: request.TargetSummitCount,
+		Region:            request.Region,
+		Difficulty:        request.Difficulty,
 	}
 
 	created, err := c.challengeService.CreateChallenge(userID, challenge, request.PeakIDs)
@@ -157,17 +164,19 @@ func (c *ChallengesController) UpdateChallenge(rw http.ResponseWriter, r *http.R
 	defer r.Body.Close()
 
 	challenge := models.Challenge{
-		ID:              request.ID,
-		Name:            request.Name,
-		Description:     request.Description,
-		ChallengeType:   request.ChallengeType,
-		CompetitionMode: request.CompetitionMode,
-		Visibility:      request.Visibility,
-		StartDate:       request.StartDate,
-		Deadline:        request.Deadline,
-		TargetCount:     request.TargetCount,
-		Region:          request.Region,
-		Difficulty:      request.Difficulty,
+		ID:                request.ID,
+		Name:              request.Name,
+		Description:       request.Description,
+		ChallengeType:     request.ChallengeType,
+		GoalType:          request.GoalType,
+		CompetitionMode:   request.CompetitionMode,
+		Visibility:        request.Visibility,
+		StartDate:         request.StartDate,
+		Deadline:          request.Deadline,
+		TargetValue:       request.TargetValue,
+		TargetSummitCount: request.TargetSummitCount,
+		Region:            request.Region,
+		Difficulty:        request.Difficulty,
 	}
 
 	err := c.challengeService.UpdateChallenge(request.ID, userID, challenge)
@@ -451,6 +460,76 @@ func (c *ChallengesController) LeaveChallenge(rw http.ResponseWriter, r *http.Re
 	rw.WriteHeader(http.StatusNoContent)
 }
 
+func (c *ChallengesController) JoinChallengeByCode(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle POST challenge-join-by-code")
+
+	// Parse join code from request body
+	var request struct {
+		JoinCode string `json:"joinCode"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(rw, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if request.JoinCode == "" {
+		http.Error(rw, "Join code is required", http.StatusBadRequest)
+		return
+	}
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	challenge, err := c.challengeService.JoinChallengeByCode(request.JoinCode, userID)
+	if err != nil {
+		if errors.Is(err, services.ErrChallengeNotFound) {
+			http.Error(rw, "Invalid join code", http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, services.ErrAlreadyParticipant) {
+			http.Error(rw, "Already a participant", http.StatusConflict)
+			return
+		}
+		c.l.Printf("Error joining challenge by code: %v", err)
+		http.Error(rw, "Failed to join challenge", http.StatusInternalServerError)
+		return
+	}
+
+	// Return the challenge details
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(challenge)
+}
+
+func (c *ChallengesController) LockChallenge(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle POST challenge-lock")
+
+	challengeID, err := c.getChallengeIDFromURL(r)
+	if err != nil {
+		http.Error(rw, "Invalid challenge ID", http.StatusBadRequest)
+		return
+	}
+
+	userID, _ := meta.GetUserIDFromContext(r.Context())
+
+	err = c.challengeService.LockChallenge(challengeID, userID)
+	if err != nil {
+		if errors.Is(err, services.ErrChallengeNotFound) {
+			http.Error(rw, "Challenge not found", http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, services.ErrNotChallengeOwner) {
+			http.Error(rw, "Not authorized to lock this challenge", http.StatusForbidden)
+			return
+		}
+		c.l.Printf("Error locking challenge: %v", err)
+		http.Error(rw, "Failed to lock challenge", http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
 func (c *ChallengesController) GetParticipants(rw http.ResponseWriter, r *http.Request) {
 	c.l.Printf("Handle GET challenge-participants")
 
@@ -645,6 +724,30 @@ func (c *ChallengesController) GetGroupChallenges(rw http.ResponseWriter, r *htt
 
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(response)
+}
+
+// ==================== Helpers ====================
+
+// ==================== Activities ====================
+
+func (c *ChallengesController) GetChallengeActivities(rw http.ResponseWriter, r *http.Request) {
+	c.l.Printf("Handle GET challenge-activities")
+
+	challengeID, err := c.getChallengeIDFromURL(r)
+	if err != nil {
+		http.Error(rw, "Invalid challenge ID", http.StatusBadRequest)
+		return
+	}
+
+	activities, err := c.challengeService.GetChallengeActivities(challengeID)
+	if err != nil {
+		c.l.Printf("Error getting challenge activities: %v", err)
+		http.Error(rw, "Failed to get activities", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(activities)
 }
 
 // ==================== Helpers ====================

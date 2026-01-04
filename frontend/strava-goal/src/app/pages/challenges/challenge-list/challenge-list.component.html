@@ -2,22 +2,34 @@
   <!-- Header -->
   <div class="header">
     <h1>Challenges</h1>
-    <button class="create-btn" (click)="openCreateForm()">
-      <span class="icon">+</span>
-      Create Challenge
-    </button>
+    <div class="header-actions">
+      <button class="join-code-btn" (click)="openJoinByCodeForm()">
+        <span class="icon">🔑</span>
+        Join by Code
+      </button>
+      <button class="create-btn" (click)="openCreateForm()">
+        <span class="icon">+</span>
+        Create Challenge
+      </button>
+    </div>
   </div>
 
   <!-- Tabs -->
   <div class="tabs">
-    <button 
-      class="tab" 
-      [class.active]="activeTab() === 'my'"
-      (click)="setTab('my')">
+    <button
+      class="tab"
+      [class.active]="activeTab() === 'joined'"
+      (click)="setTab('joined')">
       My Challenges
     </button>
-    <button 
-      class="tab" 
+    <button
+      class="tab"
+      [class.active]="activeTab() === 'created'"
+      (click)="setTab('created')">
+      My Created
+    </button>
+    <button
+      class="tab"
       [class.active]="activeTab() === 'discover'"
       (click)="setTab('discover')">
       Discover
@@ -29,36 +41,50 @@
     Loading challenges...
   </div>
 
-  <!-- My Challenges Tab -->
-  <ng-container *ngIf="activeTab() === 'my' && !isLoading()">
+  <!-- My Challenges Tab (Joined) -->
+  <ng-container *ngIf="activeTab() === 'joined' && !isLoading()">
     <!-- Empty State -->
-    <div class="empty-state" *ngIf="myChallenges.length === 0">
+    <div class="empty-state" *ngIf="joinedChallenges.length === 0">
       <div class="empty-content">
-        <h2>No challenges yet!</h2>
-        <p>Create your first challenge or join an existing one from the Discover tab.</p>
-        <button class="primary-btn" (click)="openCreateForm()">Create Your First Challenge</button>
+        <h2>No challenges joined yet!</h2>
+        <p>Join a challenge using a code or browse the Discover tab.</p>
+        <div class="empty-actions">
+          <button class="primary-btn" (click)="openJoinByCodeForm()">Join by Code</button>
+          <button class="secondary-btn" (click)="setTab('discover')">Discover Challenges</button>
+        </div>
       </div>
     </div>
 
-    <!-- Active Challenges -->
-    <div class="section" *ngIf="activeChallenges.length > 0">
-      <h2 class="section-title">Active ({{ activeChallenges.length }})</h2>
+    <!-- Joined Challenges Grid -->
+    <div class="section" *ngIf="joinedChallenges.length > 0">
       <div class="challenge-grid">
         <challenge-card
-          *ngFor="let challenge of activeChallenges"
+          *ngFor="let challenge of joinedChallenges"
           [challenge]="challenge"
           (click)="onChallengeClick(challenge)">
         </challenge-card>
       </div>
     </div>
+  </ng-container>
 
-    <!-- Completed Challenges -->
-    <div class="section" *ngIf="completedChallenges.length > 0">
-      <h2 class="section-title">Completed ({{ completedChallenges.length }})</h2>
+  <!-- My Created Tab -->
+  <ng-container *ngIf="activeTab() === 'created' && !isLoading()">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="createdChallenges.length === 0">
+      <div class="empty-content">
+        <h2>No challenges created yet!</h2>
+        <p>Create your first challenge and invite others to join.</p>
+        <button class="primary-btn" (click)="openCreateForm()">Create Your First Challenge</button>
+      </div>
+    </div>
+
+    <!-- Created Challenges Grid -->
+    <div class="section" *ngIf="createdChallenges.length > 0">
       <div class="challenge-grid">
         <challenge-card
-          *ngFor="let challenge of completedChallenges"
+          *ngFor="let challenge of createdChallenges"
           [challenge]="challenge"
+          [showManageOptions]="true"
           (click)="onChallengeClick(challenge)">
         </challenge-card>
       </div>
@@ -104,3 +130,37 @@
   (onSubmit)="onChallengeCreated($event)"
   (onCancel)="closeCreateForm()">
 </challenge-create-form>
+
+<!-- Join by Code Modal -->
+<div class="modal-overlay" *ngIf="showJoinByCodeForm()" (click)="closeJoinByCodeForm()">
+  <div class="modal-content join-code-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Join Challenge by Code</h2>
+      <button class="close-btn" (click)="closeJoinByCodeForm()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="help-text">Enter the 6-character challenge code to join</p>
+      <div class="join-code-input-group">
+        <input
+          type="text"
+          class="join-code-input"
+          [(ngModel)]="joinCodeInput"
+          [value]="joinCodeInput()"
+          (ngModelChange)="joinCodeInput.set($event.toUpperCase())"
+          placeholder="ABC123"
+          maxlength="6"
+          autofocus
+        />
+        <button class="join-btn" (click)="joinByCode()" [disabled]="!joinCodeInput()">
+          Join
+        </button>
+      </div>
+      <div class="error-message" *ngIf="joinCodeError()">
+        {{ joinCodeError() }}
+      </div>
+      <div class="modal-footer-text">
+        <p>Ask the challenge creator for the join code</p>
+      </div>
+    </div>
+  </div>
+</div>

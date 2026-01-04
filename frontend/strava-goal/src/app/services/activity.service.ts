@@ -17,6 +17,12 @@ export interface Activity {
   photo_url?: string;
 }
 
+export interface ActivityWithUser extends Activity {
+  userName: string;
+  stravaAthleteId: number;
+  peakNames?: string; // Comma-separated peak names for summit activities
+}
+
 @Injectable({ providedIn: 'root' })
 export class ActivityService {
   private activitiesSubject = new BehaviorSubject<Activity[] | null>(null);
